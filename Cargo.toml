@@ -8,12 +8,16 @@ eframe = { version = "0.31.0", features = ["glow", "persistence", "wayland"] }
 egui = { version = "0.31.0", features = ["serde"] }
 env_logger = "0.11.6"
 log = "0.4.25"
+rand = { version = "0.6.0", features = ["wasm-bindgen"] }
 serde = { version = "1.0.217", features = ["derive"] }
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
-web-sys = "0.3.77"
+web-sys = { version ="0.3.77", features =["Element", "Document", "Window","OrientationLockType", "Screen", "ScreenOrientation"]}
 
 [profile.release]
-opt-level = 'z'
-lto = "thin"
+opt-level = 's'
+lto = true
 codegen-units = 1
+
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']

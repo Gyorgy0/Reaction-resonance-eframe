@@ -1,0 +1,15 @@
+[
+    {
+        "name": "Methane",
+        "density": 0.657,
+        "phase": "Gas",
+        "material_type": "Fuel",
+        "durability": 50,
+        "color": {
+            "r": 0.99,
+            "g": 0.98,
+            "b": 0.0,
+            "a": 1.0
+        }
+    }
+]

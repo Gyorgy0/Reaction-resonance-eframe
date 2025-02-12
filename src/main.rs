@@ -19,10 +19,11 @@ fn main() -> eframe::Result {
     )
 }
 
-// When compiling to web using trunk:
+// When compiling to webassembly
 #[cfg(target_arch = "wasm32")]
 fn main() {
     use eframe::wasm_bindgen::JsCast as _;
+    use web_sys::Document;
 
     // Redirect `log` message to `console.log` and friends:
     eframe::WebLogger::init(log::LevelFilter::Debug).ok();
@@ -34,7 +35,6 @@ fn main() {
             .expect("No window")
             .document()
             .expect("No document");
-
         let canvas = document
             .get_element_by_id("glcanvas")
             .expect("Failed to find the_canvas_id")
@@ -48,8 +48,8 @@ fn main() {
                 Box::new(|cc| Ok(Box::new(Reaction_resonance_eframe::EFrameApp::new(cc)))),
             )
             .await;
-
-        // Remove the loading text and spinner:
+        // LOADING SCREEN NOT YET IMPLEMENTED
+        /*// Remove the loading text and spinner:
         if let Some(loading_text) = document.get_element_by_id("loading_text") {
             match start_result {
                 Ok(_) => {
@@ -62,6 +62,6 @@ fn main() {
                     panic!("Failed to start eframe: {e:?}");
                 }
             }
-        }
+        }*/
     });
 }

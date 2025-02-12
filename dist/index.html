@@ -17,19 +17,27 @@
     }
 </style>
   <script type="module">
-    import init from './Reaction-resoanance-eframe_bg.js'
+    import init from './Reaction-resonance-eframe_bg.js'
 
     init().catch((error) => {
       if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
         throw error;
       }
     });
+    let canvas = document.getElementById("glcanvas");
+    if (canvas.requestFullscreen) {
+    canvas.requestFullscreen();
+  } else if (canvas.webkitRequestFullscreen) { /* Safari */
+    canvas.webkitRequestFullscreen();
+  } else if (canvas.msRequestFullscreen) { /* IE11 */
+    canvas.msRequestFullscreen();
+  }
   </script>
   <canvas id = "glcanvas"></canvas>
 
 <script type="module">
-import init, * as bindings from '/Reaction-resonance-eframe-9834cf76d4108417.js';
-const wasm = await init({ module_or_path: '/Reaction-resonance-eframe-9834cf76d4108417_bg.wasm' });
+import init, * as bindings from '/Reaction-resonance-eframe-203007a8e230b1e7.js';
+const wasm = await init({ module_or_path: '/Reaction-resonance-eframe-203007a8e230b1e7_bg.wasm' });
 
 
 window.wasmBindings = bindings;
