@@ -2,6 +2,7 @@ use std::fmt::{self};
 
 use crate::chemistry::Material_Type;
 use crate::physics::Phase;
+use crate::world::{color32_u8, Board};
 
 impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -32,4 +33,17 @@ impl fmt::Display for Material_Type {
             Material_Type::Solvent => write!(f, "Solvent"),
         }
     }
+}
+
+impl Board {
+pub fn draw_board(&self) -> Vec<u8> {
+    let f: Vec<u8> = self
+        .contents
+        .iter()
+        .flat_map(|particle| {
+            particle.material.color.get_val()
+        })
+        .collect();
+    f
+}
 }

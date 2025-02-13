@@ -6,14 +6,14 @@ use rand::Rng;
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Material {
-    pub name: String,                 // Name of the material
+    pub name: & 'static str,                 // Name of the material
     pub density: f32,                 // Mass of a cm^3 volume of the material
     pub phase: Phase, // Phase of the material for, the implemented phases check the "Phase" enum
     pub material_type: Material_Type, // Type of the material for, the implemented types check the "Type" enum
     pub durability: i32, // Durability of a material - how much force it needs to disintegrate the material -> higher = more force
-    pub color: [u8; 4],  // Color of the material
+    pub color: color32_u8,  // Color of the material
 }
 #[derive(Clone)]
 pub struct Particle {
@@ -60,6 +60,16 @@ impl color32_u8 {
     }
 }
 
+// Conversions:
+// color32_u8 -> [u8;4]
+impl From<color32_u8> for [u8;4] {
+    #[inline(always)]
+    fn from(v: color32_u8) -> Self {
+        [v.r, v.g, v.b, v.a]
+    }
+}
+
+
 #[derive(Clone)]
 pub struct Board {
     pub width: u16,
@@ -70,20 +80,22 @@ pub struct Board {
     pub cellsize: vec2_f32,
 }
 
+pub static VOID:Material = Material {
+        name: "Void",
+        density: 0.0,
+        phase: Phase::Void,
+        material_type: Material_Type::Atmosphere,
+        durability: -1,
+        color: color32_u8::new(0, 0, 0, 100),
+    };
+
 impl Board {
     pub fn create_board(&mut self, width: u16, height: u16) {
         self.width = width;
         self.height = height;
         self.contents = vec![
             Particle {
-                material: Material {
-                    name: "Void".to_string(),
-                    density: 0.0,
-                    phase: Phase::Void,
-                    material_type: Material_Type::Atmosphere,
-                    durability: -1,
-                    color: [0, 0, 0, 100],
-                },
+                material: VOID,
                 speed: egui::Vec2::from(vec2_f32::new(0.0, 0.0)),
                 temperature: 20.0,
                 updated: false,

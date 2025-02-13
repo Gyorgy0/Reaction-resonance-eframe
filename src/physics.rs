@@ -1,6 +1,6 @@
 use crate::{
     chemistry::Material_Type,
-    world::{Board, Material},
+    world::{color32_u8, Board, Material, VOID},
 };
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -542,14 +542,7 @@ impl Board {
                         energy: cellenergy - 1.0,
                     };
                 } else {
-                    self.contents[cellpos].material = Material {
-                        name: "Void".to_string(),
-                        density: 0.0,
-                        phase: Phase::Void,
-                        material_type: Material_Type::Atmosphere,
-                        durability: -1,
-                        color: [0, 0, 0, 100],
-                    };
+                    self.contents[cellpos].material = VOID;
                 }
 
                 // Rng determines which side should the particle fall
