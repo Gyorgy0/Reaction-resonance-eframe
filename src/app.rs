@@ -1,5 +1,8 @@
 
-use egui::{epaint::TextureManager, frame, Color32, ColorImage, Image, TextureHandle, Vec2};
+use std::{default, sync::Arc};
+
+use eframe::glow::NEAREST;
+use egui::{epaint::TextureManager, frame, load, Color32, ColorImage, Image, ImageData, TextureFilter, TextureHandle, TextureId, TextureOptions, Vec2, Widget};
 
 use crate::world::{vec2_f32, Board, Material, color32_u8};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -8,6 +11,8 @@ use crate::world::{vec2_f32, Board, Material, color32_u8};
 pub struct EFrameApp {
     fullscreen: bool,
     #[serde(skip)]
+    texture: TextureHandle,
+    #[serde(skip)]
     game_board: Board,
     #[serde(skip)]
     materials: Vec<Material>,
@@ -15,17 +20,22 @@ pub struct EFrameApp {
 
 impl Default for EFrameApp {
     fn default() -> Self {
+        let mut game_board = Board {
+            width: 512,
+            height: 384,
+            contents: vec![],
+            gravity: 9.81,
+            brushsize: 1,
+            cellsize: vec2_f32::new(0.0, 0.0),
+        };
+        game_board.create_board();
+        let ctx = egui::Context::default();
+        let texture = ctx.load_texture( "Board".to_string(), ColorImage::example(), TextureOptions::NEAREST);
         Self {
             fullscreen: false,
-            game_board: Board {
-                width: 512,
-                height: 384,
-                contents: vec![],
-                gravity: 9.81,
-                brushsize: 1,
-                cellsize: vec2_f32::new(0.0, 0.0),
-            },
+            game_board: game_board,
             materials: vec![],
+            texture: texture,
         }
     }
 }
@@ -97,11 +107,13 @@ impl eframe::App for EFrameApp {
                     self.fullscreen = false
                 }
             }
-            let pixels: Vec<u8> = self.game_board.draw_board();
-            print!("{}", pixels.len());
-            //let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied([self.game_board.height as usize, self.game_board.width as usize], &mut pixels);
-            
 
+            let mut pixels: Vec<u8> = self.game_board.draw_board();
+            let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied([self.game_board.width as usize, self.game_board.height as usize], &mut pixels);
+            self.texture = ctx.load_texture("Board", frameimage.clone(), TextureOptions::NEAREST);
+            //self.texture.set(frameimage.clone(), TextureOptions::NEAREST);
+            let sized_texture = load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
+            Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx())).ui(ui);
 
         });
     }

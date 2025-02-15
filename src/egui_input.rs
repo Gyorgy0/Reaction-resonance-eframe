@@ -1,7 +1,6 @@
 fn handle_mouse_input(game_board: &mut Board, selected_material: &mut Material) {
     let row_count: i32 = game_board.height as i32;
     let col_count: i32 = game_board.width as i32;
-    let cursor_position = EFrameApp::raw_input_hook(&mut self, ctx, raw_input);
     //let cursor_position = egui::RawInput::mouse_position();
     let x = (cursor_position.0 - 5.0) / game_board.cellsize.x;
     let y = (cursor_position.1 - 25.0) / game_board.cellsize.y;
@@ -14,14 +13,7 @@ fn handle_mouse_input(game_board: &mut Board, selected_material: &mut Material) 
         let material = if is_mouse_button_down(MouseButton::Left) {
             selected_material.clone()
         } else {
-            Material {
-                name: "Void".to_string(),
-                density: 0.0,
-                phase: Phase::Void,
-                material_type: Material_Type::Atmosphere,
-                durability: -1,
-                color: color_u8!(0, 0, 0, 100),
-            }
+            VOID
         };
         for i in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
@@ -33,7 +25,7 @@ fn handle_mouse_input(game_board: &mut Board, selected_material: &mut Material) 
                 {
                     game_board.contents[((i + (y as i32)) * col_count + (j + x as i32)) as usize] =
                         Particle {
-                            material: material.clone(),
+                            material: selected_material,
                             speed: mq::math::vec2(0.0, game_board.gravity.signum() * 1.0),
                             temperature: 20.0,
                             updated: true,

@@ -542,7 +542,7 @@ impl Board {
                         energy: cellenergy - 1.0,
                     };
                 } else {
-                    self.contents[cellpos].material = VOID;
+                    self.contents[cellpos].material = VOID.clone();
                 }
 
                 // Rng determines which side should the particle fall

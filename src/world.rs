@@ -6,15 +6,16 @@ use rand::Rng;
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub(crate) struct Material {
-    pub name: & 'static str,                 // Name of the material
+    pub name: String,                 // Name of the material
     pub density: f32,                 // Mass of a cm^3 volume of the material
     pub phase: Phase, // Phase of the material for, the implemented phases check the "Phase" enum
     pub material_type: Material_Type, // Type of the material for, the implemented types check the "Type" enum
     pub durability: i32, // Durability of a material - how much force it needs to disintegrate the material -> higher = more force
     pub color: color32_u8,  // Color of the material
 }
+
 #[derive(Clone)]
 pub struct Particle {
     pub material: Material, // Material of the particle
@@ -81,7 +82,7 @@ pub struct Board {
 }
 
 pub static VOID:Material = Material {
-        name: "Void",
+        name: String::new(),
         density: 0.0,
         phase: Phase::Void,
         material_type: Material_Type::Atmosphere,
@@ -90,12 +91,10 @@ pub static VOID:Material = Material {
     };
 
 impl Board {
-    pub fn create_board(&mut self, width: u16, height: u16) {
-        self.width = width;
-        self.height = height;
+pub fn create_board(&mut self) {
         self.contents = vec![
             Particle {
-                material: VOID,
+                material: VOID.clone(),
                 speed: egui::Vec2::from(vec2_f32::new(0.0, 0.0)),
                 temperature: 20.0,
                 updated: false,

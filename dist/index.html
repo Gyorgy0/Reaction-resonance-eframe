@@ -24,20 +24,12 @@
         throw error;
       }
     });
-    let canvas = document.getElementById("glcanvas");
-    if (canvas.requestFullscreen) {
-    canvas.requestFullscreen();
-  } else if (canvas.webkitRequestFullscreen) { /* Safari */
-    canvas.webkitRequestFullscreen();
-  } else if (canvas.msRequestFullscreen) { /* IE11 */
-    canvas.msRequestFullscreen();
-  }
   </script>
   <canvas id = "glcanvas"></canvas>
 
 <script type="module">
-import init, * as bindings from '/Reaction-resonance-eframe-203007a8e230b1e7.js';
-const wasm = await init({ module_or_path: '/Reaction-resonance-eframe-203007a8e230b1e7_bg.wasm' });
+import init, * as bindings from '/Reaction-resonance-eframe-8421003e4dd5e2bb.js';
+const wasm = await init({ module_or_path: '/Reaction-resonance-eframe-8421003e4dd5e2bb_bg.wasm' });
 
 
 window.wasmBindings = bindings;
