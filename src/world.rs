@@ -19,7 +19,7 @@ pub(crate) struct Material {
 #[derive(Clone)]
 pub struct Particle {
     pub material: Material, // Material of the particle
-    pub speed: Vec2,        // Vectors of the particle (x, y)
+    pub speed: vec2_f32,        // Vectors of the particle (x, y)
     pub temperature: f32,   // Temperature of the material
     pub updated: bool,      // Is it updated?
     pub seed: f32,          // Seed of particle
@@ -95,7 +95,7 @@ pub fn create_board(&mut self) {
         self.contents = vec![
             Particle {
                 material: VOID.clone(),
-                speed: egui::Vec2::from(vec2_f32::new(0.0, 0.0)),
+                speed: vec2_f32::new(0.0, 0.0),
                 temperature: 20.0,
                 updated: false,
                 seed: rand::thread_rng().gen_range(0.0, 1.0),

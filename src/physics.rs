@@ -1,7 +1,4 @@
-use crate::{
-    chemistry::Material_Type,
-    world::{color32_u8, Board, Material, VOID},
-};
+use crate::world::{Board, VOID};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
@@ -59,9 +56,9 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             Phase::Powder { coarseness: _f32 } => {
                 // Gravity simulation
-                self.contents[cellpos].speed[1] += self.gravity * framedelta;
+                self.contents[cellpos].speed.y += self.gravity * framedelta;
                 let mut ychange = 0;
-                for _k in 0..=self.contents[cellpos].speed[1].abs() as i32 {
+                for _k in 0..=self.contents[cellpos].speed.y.abs() as i32 {
                     // Falling and checking if there is a particle with a larger density
                     if self.contents[cellpos].material.density
                         > self
@@ -83,7 +80,7 @@ impl Board {
                         .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
                         .is_none()
                     {
-                        self.contents[cellpos].speed[1] -= self.gravity * framedelta;
+                        self.contents[cellpos].speed.y -= self.gravity * framedelta;
                         break;
                     }
                     // Checks, whether there is another denser particle in the path of the falling particle
@@ -111,7 +108,7 @@ impl Board {
                             .phase
                             == (Phase::Powder { coarseness: _f32 })
                     {
-                        self.contents[cellpos].speed[1] -= self.gravity * framedelta;
+                        self.contents[cellpos].speed.y -= self.gravity * framedelta;
                         break;
                     }
                 }
@@ -205,9 +202,9 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             Phase::Liquid { viscosity: _f32 } => {
                 // Gravity simulation
-                self.contents[cellpos].speed[1] += self.gravity * framedelta;
+                self.contents[cellpos].speed.y += self.gravity * framedelta;
                 let mut ychange = 0;
-                for _k in 0..=self.contents[cellpos].speed[1].abs() as i32 {
+                for _k in 0..=self.contents[cellpos].speed.y.abs() as i32 {
                     // Falling and checking if there is a particle with a larger density
                     if self.contents[cellpos].material.density
                         > self
@@ -229,7 +226,7 @@ impl Board {
                         .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
                         .is_none()
                     {
-                        self.contents[cellpos].speed[1] -= self.gravity * framedelta;
+                        self.contents[cellpos].speed.y -= self.gravity * framedelta;
                         break;
                     }
                     // Checks, whether there is another denser particle in the path of the falling particle
@@ -273,7 +270,7 @@ impl Board {
                             .phase
                             == (Phase::Liquid { viscosity: _f32 })
                     {
-                        self.contents[cellpos].speed[1] -= self.gravity * framedelta;
+                        self.contents[cellpos].speed.y -= self.gravity * framedelta;
                         break;
                     }
                 }
@@ -286,8 +283,8 @@ impl Board {
                 }
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
-                if self.contents[cellpos].speed[0].abs() > 1.0 {
-                    self.contents[cellpos].speed[0] = 0.0;
+                if self.contents[cellpos].speed.x.abs() > 1.0 {
+                    self.contents[cellpos].speed.x = 0.0;
                 } else {
                     let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
                     if rnd.abs()
@@ -301,11 +298,11 @@ impl Board {
                                 .sqrt())
                         .powi(16)
                     {
-                        self.contents[cellpos].speed[0] += rnd.signum()
+                        self.contents[cellpos].speed.x += rnd.signum()
                             * (rnd.abs() + self.contents[cellpos].material.phase.get_viscosity())
                                 .powi(4);
-                        orientation = (self.contents[cellpos].speed[0].signum()
-                            * (self.contents[cellpos].speed[0].abs() + 1.0))
+                        orientation = (self.contents[cellpos].speed.x.signum()
+                            * (self.contents[cellpos].speed.x.abs() + 1.0))
                             as i32;
                     }
                 }
@@ -324,8 +321,8 @@ impl Board {
                         .density
                         > self.contents[cellpos].material.density
                 {
-                    self.contents[cellpos].speed[0] = self.contents[cellpos].speed[0].abs();
-                    orientation = (self.contents[cellpos].speed[0].abs() + 1.0) as i32;
+                    self.contents[cellpos].speed.x = self.contents[cellpos].speed.x.abs();
+                    orientation = (self.contents[cellpos].speed.x.abs() + 1.0) as i32;
                 } else if self
                     .contents
                     .get((i * col_count + j + 1) as usize)
@@ -341,8 +338,8 @@ impl Board {
                         .density
                         < self.contents[cellpos].material.density
                 {
-                    self.contents[cellpos].speed[0] = -1.0 * self.contents[cellpos].speed[0].abs();
-                    orientation = (-1.0 * (self.contents[cellpos].speed[0].abs() + 1.0)) as i32;
+                    self.contents[cellpos].speed.x = -1.0 * self.contents[cellpos].speed.x.abs();
+                    orientation = (-1.0 * (self.contents[cellpos].speed.x.abs() + 1.0)) as i32;
                 } else if self
                     .contents
                     .get((i * col_count + j + 1) as usize)
@@ -358,8 +355,8 @@ impl Board {
                         .density
                         <= self.contents[cellpos].material.density
                 {
-                    orientation = (self.contents[cellpos].speed[0].signum()
-                        * (self.contents[cellpos].speed[0].abs() + 1.0))
+                    orientation = (self.contents[cellpos].speed.x.signum()
+                        * (self.contents[cellpos].speed.x.abs() + 1.0))
                         as i32;
                 }
 
@@ -396,7 +393,7 @@ impl Board {
                             [((i * col_count) + (j + orientation.signum() * _k)) as usize]
                             .updated = true;
                     } else {
-                        self.contents[cellpos].speed[0] *= -1.0;
+                        self.contents[cellpos].speed.x *= -1.0;
                         break;
                     }
                 }
@@ -410,13 +407,13 @@ impl Board {
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis
-                if self.contents[cellpos].speed[1].abs() > 1.0 {
-                    self.contents[cellpos].speed[1] = 0.0;
+                if self.contents[cellpos].speed.y.abs() > 1.0 {
+                    self.contents[cellpos].speed.y = 0.0;
                 } else {
                     let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
-                    self.contents[cellpos].speed[1] += rnd.signum() * (rnd.abs());
-                    orientation = (self.contents[cellpos].speed[1].signum()
-                        * (self.contents[cellpos].speed[1].abs() + 1.0))
+                    self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
+                    orientation = (self.contents[cellpos].speed.y.signum()
+                        * (self.contents[cellpos].speed.y.abs() + 1.0))
                         as i32;
                 }
 
@@ -467,19 +464,19 @@ impl Board {
                             [(((i + (orientation.signum() * _k)) * col_count) + j) as usize]
                             .updated = true;
                     } else {
-                        self.contents[cellpos].speed[1] *= -1.0;
+                        self.contents[cellpos].speed.y *= -1.0;
                         break;
                     }
                 }
                 orientation = 0;
                 // This calculates the position on the X axis
-                if self.contents[cellpos].speed[0].abs() > 1.0 {
-                    self.contents[cellpos].speed[0] = 0.0;
+                if self.contents[cellpos].speed.x.abs() > 1.0 {
+                    self.contents[cellpos].speed.x = 0.0;
                 } else {
                     let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
-                    self.contents[cellpos].speed[0] += rnd.signum() * (rnd.abs());
-                    orientation = (self.contents[cellpos].speed[0].signum()
-                        * (self.contents[cellpos].speed[0].abs() + 1.0))
+                    self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
+                    orientation = (self.contents[cellpos].speed.x.signum()
+                        * (self.contents[cellpos].speed.x.abs() + 1.0))
                         as i32;
                 }
 
@@ -525,7 +522,7 @@ impl Board {
                             [((i * col_count) + j + (orientation.signum() * _k)) as usize]
                             .updated = true;
                     } else {
-                        self.contents[cellpos].speed[0] *= -1.0;
+                        self.contents[cellpos].speed.x *= -1.0;
                         break;
                     }
                 }
@@ -548,13 +545,13 @@ impl Board {
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis
-                if self.contents[cellpos].speed[1].abs() > 1.0 {
-                    self.contents[cellpos].speed[1] = 0.0;
+                if self.contents[cellpos].speed.y.abs() > 1.0 {
+                    self.contents[cellpos].speed.y = 0.0;
                 } else {
                     let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
-                    self.contents[cellpos].speed[1] += rnd.signum() * (rnd.abs());
-                    orientation = (self.contents[cellpos].speed[1].signum()
-                        * (self.contents[cellpos].speed[1].abs() + 1.0))
+                    self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
+                    orientation = (self.contents[cellpos].speed.y.signum()
+                        * (self.contents[cellpos].speed.y.abs() + 1.0))
                         as i32;
                 }
 
@@ -605,19 +602,19 @@ impl Board {
                             [(((i + (orientation.signum() * _k)) * col_count) + j) as usize]
                             .updated = true;
                     } else {
-                        self.contents[cellpos].speed[1] *= -1.0;
+                        self.contents[cellpos].speed.y *= -1.0;
                         break;
                     }
                 }
                 orientation = 0;
                 // This calculates the position on the X axis
-                if self.contents[cellpos].speed[0].abs() > 1.0 {
-                    self.contents[cellpos].speed[0] = 0.0;
+                if self.contents[cellpos].speed.x.abs() > 1.0 {
+                    self.contents[cellpos].speed.x = 0.0;
                 } else {
                     let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
-                    self.contents[cellpos].speed[0] += rnd.signum() * (rnd.abs());
-                    orientation = (self.contents[cellpos].speed[0].signum()
-                        * (self.contents[cellpos].speed[0].abs() + 1.0))
+                    self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
+                    orientation = (self.contents[cellpos].speed.x.signum()
+                        * (self.contents[cellpos].speed.x.abs() + 1.0))
                         as i32;
                 }
 
@@ -663,7 +660,7 @@ impl Board {
                             [((i * col_count) + j + (orientation.signum() * _k)) as usize]
                             .updated = true;
                     } else {
-                        self.contents[cellpos].speed[0] *= -1.0;
+                        self.contents[cellpos].speed.x *= -1.0;
                         break;
                     }
                 }

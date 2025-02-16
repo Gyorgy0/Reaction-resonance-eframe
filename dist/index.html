@@ -24,12 +24,13 @@
         throw error;
       }
     });
+	glcanvas.request
   </script>
   <canvas id = "glcanvas"></canvas>
 
 <script type="module">
-import init, * as bindings from '/Reaction-resonance-eframe-8421003e4dd5e2bb.js';
-const wasm = await init({ module_or_path: '/Reaction-resonance-eframe-8421003e4dd5e2bb_bg.wasm' });
+import init, * as bindings from '/Reaction-resonance-eframe-cb7f1a6458f3ed92.js';
+const wasm = await init({ module_or_path: '/Reaction-resonance-eframe-cb7f1a6458f3ed92_bg.wasm' });
 
 
 window.wasmBindings = bindings;

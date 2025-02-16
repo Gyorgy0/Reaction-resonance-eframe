@@ -2,7 +2,7 @@ use std::fmt::{self};
 
 use crate::chemistry::Material_Type;
 use crate::physics::Phase;
-use crate::world::{color32_u8, Board};
+use crate::world::Board;
 
 impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
