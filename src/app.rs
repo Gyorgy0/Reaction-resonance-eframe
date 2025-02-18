@@ -2,7 +2,7 @@
 
 use egui::{load, ColorImage, Image, Sense, TextureHandle, TextureOptions};
 
-use crate::{chemistry::Material_Type, egui_input::handle_mouse_input, physics::Phase, world::{color32_u8, update_board, vec2_f32, Board, Material}};
+use crate::{chemistry::Material_Type, egui_input::{handle_key_inputs, handle_mouse_input}, physics::Phase, world::{color32_u8, update_board, vec2_f32, Board, Material}};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -29,7 +29,7 @@ impl Default for EFrameApp {
             height: 384,
             contents: vec![],
             gravity: 9.81,
-            brushsize: 1,
+            brushsize: 10,
             cellsize: vec2_f32::new(1.0, 1.0),
         };
         game_board.create_board();
@@ -127,10 +127,10 @@ impl eframe::App for EFrameApp {
             self.texture = ctx.load_texture("Board", frameimage.clone(), TextureOptions::NEAREST);
             self.texture.set(frameimage.clone(), TextureOptions::NEAREST);
             let sized_texture = load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
-            let board = ui.add(Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx())).sense(Sense::drag()));
-            if board.dragged() {
-                handle_mouse_input(&mut self.game_board, &mut self.selected_material, board);
-            }
+            let mut board = ui.add(Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx())).sense(Sense::click_and_drag()));
+
+            handle_mouse_input(&mut self.game_board, &mut self.selected_material, board.clone());
+            handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
             update_board(&mut self.game_board, self.is_stopped, &mut self.frame);
             egui::Context::request_repaint(&ctx);
 
