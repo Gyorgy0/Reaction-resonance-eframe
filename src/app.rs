@@ -2,7 +2,7 @@
 
 use egui::{load, ColorImage, Image, Sense, TextureHandle, TextureOptions};
 
-use crate::{chemistry::Material_Type, egui_input::handle_mouse_input, physics::Phase, world::{color32_u8, vec2_f32, Board, Material}};
+use crate::{chemistry::Material_Type, egui_input::handle_mouse_input, physics::Phase, world::{color32_u8, update_board, vec2_f32, Board, Material}};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -14,7 +14,12 @@ pub struct EFrameApp {
     game_board: Board,
     #[serde(skip)]
     materials: Vec<Material>,
+    #[serde(skip)]
     selected_material: Material,
+    #[serde(skip)]
+    is_stopped: bool,
+    #[serde(skip)]
+    frame: u8,
 }
 
 impl Default for EFrameApp {
@@ -37,12 +42,14 @@ impl Default for EFrameApp {
             texture: texture,
             selected_material: Material {
                 name: "Methane".to_string(),
-        density: 0.0,
+        density: 0.657,
         phase: Phase::Gas,
         material_type: Material_Type::Fuel,
         durability: -1,
         color: color32_u8::new(252, 250, 0, 255),
             },
+            is_stopped: false,
+    frame: 0,
         }
     }
 }
@@ -124,6 +131,8 @@ impl eframe::App for EFrameApp {
             if board.dragged() {
                 handle_mouse_input(&mut self.game_board, &mut self.selected_material, board);
             }
+            update_board(&mut self.game_board, self.is_stopped, &mut self.frame);
+            egui::Context::request_repaint(&ctx);
 
         });
     }

@@ -104,3 +104,33 @@ pub fn create_board(&mut self) {
         ];
     }
 }
+
+#[inline(always)]
+pub fn update_board(game_board: &mut Board, is_stopped: bool, frame: &mut u8) {
+    let row_count = game_board.height as i32;
+    let col_count: i32 = game_board.width as i32;
+    let framedelta = 1.0/60.0;
+    if !is_stopped {
+        match *frame {
+            0 => {
+                (0..row_count * col_count).into_iter().for_each(|count| {
+                    let i = count / col_count;
+                    let j = count % col_count;
+                    game_board.solve_particle(i, j, framedelta);
+                    game_board.solve_reactions(i, j, framedelta);
+                });
+                *frame = 1;
+            }
+            1 => {
+                (0..row_count * col_count).for_each(|count| {
+                    let i = count / col_count;
+                    let j = (col_count - 1) - (count % col_count);
+                    game_board.solve_particle(i, j, framedelta);
+                    game_board.solve_reactions(i, j, framedelta);
+                });
+                *frame = 0;
+            }
+            _ => {}
+        }
+    }
+}
