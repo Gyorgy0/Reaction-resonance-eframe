@@ -27,7 +27,7 @@ pub fn handle_mouse_input(game_board: &mut Board, selected_material: &mut Materi
                             speed: vec2_f32::new(0.0, game_board.gravity.signum() * 1.0),
                             temperature: 20.0,
                             updated: true,
-                            seed: rand::thread_rng().gen_range(0.0, 1.0),
+                            seed: rand::random_range(0.0..1.0),
                         }
                 }
             }
@@ -48,7 +48,7 @@ pub fn handle_mouse_input(game_board: &mut Board, selected_material: &mut Materi
                             speed: vec2_f32::new(0.0, game_board.gravity.signum() * 1.0),
                             temperature: 20.0,
                             updated: true,
-                            seed: rand::thread_rng().gen_range(0.0, 1.0),
+                            seed: rand::random_range(0.0..1.0),
                         }
                 }
             }

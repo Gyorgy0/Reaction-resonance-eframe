@@ -120,7 +120,7 @@ impl Board {
                     self.contents[((i + (self.gravity.signum() as i32 * ychange)) * col_count + j) as usize].updated = false;
                 }
                 // This decides where the particle falls (left or right)
-                let rnd = rand::thread_rng().gen_range(0, 2);
+                let rnd = rand::random_range(0..2);
 
                 if self.contents[cellpos].updated
                     && self
@@ -286,7 +286,7 @@ impl Board {
                 if self.contents[cellpos].speed.x.abs() > 1.0 {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
-                    let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
+                    let rnd: f32 = rand::random_range(-1.0..1.0);
                     if rnd.abs()
                         >= (1_f32
                             - self.contents[cellpos]
@@ -410,7 +410,7 @@ impl Board {
                 if self.contents[cellpos].speed.y.abs() > 1.0 {
                     self.contents[cellpos].speed.y = 0.0;
                 } else {
-                    let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
+                    let rnd: f32 = rand::random_range(-1.0..1.0);
                     self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.y.signum()
                         * (self.contents[cellpos].speed.y.abs() + 1.0))
@@ -473,7 +473,7 @@ impl Board {
                 if self.contents[cellpos].speed.x.abs() > 1.0 {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
-                    let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
+                    let rnd: f32 = rand::random_range(-1.0..1.0);
                     self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.x.signum()
                         * (self.contents[cellpos].speed.x.abs() + 1.0))
@@ -548,7 +548,7 @@ impl Board {
                 if self.contents[cellpos].speed.y.abs() > 1.0 {
                     self.contents[cellpos].speed.y = 0.0;
                 } else {
-                    let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
+                    let rnd: f32 = rand::random_range(-1.0..1.0);
                     self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.y.signum()
                         * (self.contents[cellpos].speed.y.abs() + 1.0))
@@ -611,7 +611,7 @@ impl Board {
                 if self.contents[cellpos].speed.x.abs() > 1.0 {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
-                    let rnd: f32 = rand::thread_rng().gen_range(-1.0, 1.0);
+                    let rnd: f32 = rand::random_range(-1.0..1.0);
                     self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.x.signum()
                         * (self.contents[cellpos].speed.x.abs() + 1.0))

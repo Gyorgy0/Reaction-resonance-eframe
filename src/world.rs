@@ -98,7 +98,7 @@ pub fn create_board(&mut self) {
                 speed: vec2_f32::new(0.0, 0.0),
                 temperature: 20.0,
                 updated: false,
-                seed: rand::thread_rng().gen_range(0.0, 1.0),
+                seed: rand::random_range(0.0..1.0),
             };
             (self.width as usize) * (self.height as usize)
         ];

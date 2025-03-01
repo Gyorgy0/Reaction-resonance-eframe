@@ -25,7 +25,7 @@ impl Board {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;
         if self.contents[cellpos].material.material_type == Material_Type::Fuel {
-            let rnd = rand::thread_rng().gen_range(0_u8, 4_u8);
+            let rnd = rand::random_range(0_u8..4_u8);
             if std::mem::discriminant(
                 &self
                     .contents
