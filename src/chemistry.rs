@@ -6,17 +6,17 @@ use serde::{Deserialize, Serialize};
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub(crate) enum Material_Type {
-    Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
-    Glass, // Amorphous material formed from a molten material and it's cooled without proper crystalization
-    Fuel,  // Flammable material under normal circumstances
     Acid, // Corrosive material - everything with a pH value lower than 7.0 - for simplicity we use a common amphoter - water H2O
-    Base, // Corrosive material - everything with a pH value higher than 7.0 - for simplicity we use a common amphoter - water H2O
-    Oxidizer, // This material can enhance the explosive power of explosives or the burning of fuels by aiding their combustion
-    Explosive, // A material that generates a lot of energy and lot of gases
     Alloy,    // Mixture of metals
+    Atmosphere, // Mixture of materials that are always present in the simulation*/
+    Base, // Corrosive material - everything with a pH value higher than 7.0 - for simplicity we use a common amphoter - water H2O
+    Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
+    Explosive, // A material that generates a lot of energy and lot of gases
+    Fuel,  // Flammable material under normal circumstances
+    Glass, // Amorphous material formed from a molten material and it's cooled without proper crystalization
+    Oxidizer, // This material can enhance the explosive power of explosives or the burning of fuels by aiding their combustion
     Solution, // Material that contains other materials e.g. salts, on heat it leaves the dissolved materials behind
     Solvent,  // Dissolves certain materials
-    Atmosphere, // Mixture of materials that are always present in the simulation*/
 }
 
 impl Board {
