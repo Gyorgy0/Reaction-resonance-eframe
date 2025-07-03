@@ -13,13 +13,13 @@ pub(crate) struct Material {
     pub phase: Phase, // Phase of the material for, the implemented phases check the "Phase" enum
     pub material_type: Material_Type, // Type of the material for, the implemented types check the "Type" enum
     pub durability: i32, // Durability of a material - how much force it needs to disintegrate the material -> higher = more force
-    pub color: color32_u8,  // Color of the material
+    pub color: color32_u8, // Color of the material
 }
 
 #[derive(Clone)]
 pub struct Particle {
     pub material: Material, // Material of the particle
-    pub speed: vec2_f32,        // Vectors of the particle (x, y)
+    pub speed: vec2_f32,    // Vectors of the particle (x, y)
     pub temperature: f32,   // Temperature of the material
     pub updated: bool,      // Is it updated?
     pub seed: f32,          // Seed of particle
@@ -63,13 +63,12 @@ impl color32_u8 {
 
 // Conversions:
 // color32_u8 -> [u8;4]
-impl From<color32_u8> for [u8;4] {
+impl From<color32_u8> for [u8; 4] {
     #[inline(always)]
     fn from(v: color32_u8) -> Self {
         [v.r, v.g, v.b, v.a]
     }
 }
-
 
 #[derive(Clone)]
 pub struct Board {
@@ -81,17 +80,17 @@ pub struct Board {
     pub cellsize: vec2_f32,
 }
 
-pub static VOID:Material = Material {
-        name: String::new(),
-        density: 0.0,
-        phase: Phase::Void,
-        material_type: Material_Type::Atmosphere,
-        durability: -1,
-        color: color32_u8::new(0, 0, 0, 100),
-    };
+pub static VOID: Material = Material {
+    name: String::new(),
+    density: 0.0,
+    phase: Phase::Void,
+    material_type: Material_Type::Atmosphere,
+    durability: -1,
+    color: color32_u8::new(0, 0, 0, 100),
+};
 
 impl Board {
-pub fn create_board(&mut self) {
+    pub fn create_board(&mut self) {
         self.contents = vec![
             Particle {
                 material: VOID.clone(),
@@ -109,7 +108,7 @@ pub fn create_board(&mut self) {
 pub fn update_board(game_board: &mut Board, is_stopped: bool, frame: &mut u8) {
     let row_count = game_board.height as i32;
     let col_count: i32 = game_board.width as i32;
-    let framedelta = 1.0/60.0;
+    let framedelta = 1.0 / 60.0;
     if !is_stopped {
         match *frame {
             0 => {

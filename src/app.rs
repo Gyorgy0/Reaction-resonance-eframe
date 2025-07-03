@@ -1,8 +1,11 @@
-
-
 use egui::{load, ColorImage, Image, Sense, TextureHandle, TextureOptions};
 
-use crate::{chemistry::Material_Type, egui_input::{handle_key_inputs, handle_mouse_input}, physics::Phase, world::{color32_u8, update_board, vec2_f32, Board, Material}};
+use crate::{
+    chemistry::Material_Type,
+    egui_input::{handle_key_inputs, handle_mouse_input},
+    physics::Phase,
+    world::{color32_u8, update_board, vec2_f32, Board, Material},
+};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -34,7 +37,11 @@ impl Default for EFrameApp {
         };
         game_board.create_board();
         let ctx = egui::Context::default();
-        let texture = ctx.load_texture( "Board".to_string(), ColorImage::example(), TextureOptions::NEAREST);
+        let texture = ctx.load_texture(
+            "Board".to_string(),
+            ColorImage::example(),
+            TextureOptions::NEAREST,
+        );
         Self {
             fullscreen: false,
             game_board: game_board,
@@ -42,14 +49,14 @@ impl Default for EFrameApp {
             texture: texture,
             selected_material: Material {
                 name: "Methane".to_string(),
-        density: 0.657,
-        phase: Phase::Gas,
-        material_type: Material_Type::Fuel,
-        durability: -1,
-        color: color32_u8::new(252, 250, 0, 255),
+                density: 0.657,
+                phase: Phase::Gas,
+                material_type: Material_Type::Fuel,
+                durability: -1,
+                color: color32_u8::new(252, 250, 0, 255),
             },
             is_stopped: false,
-    frame: 0,
+            frame: 0,
         }
     }
 }
@@ -123,17 +130,31 @@ impl eframe::App for EFrameApp {
             }
 
             let mut pixels: Vec<u8> = self.game_board.draw_board();
-            let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied([self.game_board.width as usize, self.game_board.height as usize], &mut pixels);
+            let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied(
+                [
+                    self.game_board.width as usize,
+                    self.game_board.height as usize,
+                ],
+                &mut pixels,
+            );
             self.texture = ctx.load_texture("Board", frameimage.clone(), TextureOptions::NEAREST);
-            self.texture.set(frameimage.clone(), TextureOptions::NEAREST);
-            let sized_texture = load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
-            let mut board = ui.add(Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx())).sense(Sense::click_and_drag()));
+            self.texture
+                .set(frameimage.clone(), TextureOptions::NEAREST);
+            let sized_texture =
+                load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
+            let mut board = ui.add(
+                Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx()))
+                    .sense(Sense::click_and_drag()),
+            );
 
-            handle_mouse_input(&mut self.game_board, &mut self.selected_material, board.clone());
+            handle_mouse_input(
+                &mut self.game_board,
+                &mut self.selected_material,
+                board.clone(),
+            );
             handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
             update_board(&mut self.game_board, self.is_stopped, &mut self.frame);
             egui::Context::request_repaint(&ctx);
-
         });
     }
 }

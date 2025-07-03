@@ -36,14 +36,12 @@ impl fmt::Display for Material_Type {
 }
 
 impl Board {
-pub fn draw_board(&self) -> Vec<u8> {
-    let f: Vec<u8> = self
-        .contents
-        .iter()
-        .flat_map(|particle| {
-            particle.material.color.get_val()
-        })
-        .collect();
-    f
-}
+    pub fn draw_board(&self) -> Vec<u8> {
+        let f: Vec<u8> = self
+            .contents
+            .iter()
+            .flat_map(|particle| particle.material.color.get_val())
+            .collect();
+        f
+    }
 }
