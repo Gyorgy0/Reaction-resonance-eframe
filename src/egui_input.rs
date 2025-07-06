@@ -1,6 +1,6 @@
 use std::ops::Not;
 
-use egui::{Key, PointerButton, Response};
+use egui::{Key, PointerButton, Response, Vec2};
 
 use crate::world::*;
 
@@ -13,7 +13,7 @@ pub fn handle_mouse_input(
     let cursor_position = response.hover_pos().unwrap_or_default();
     let x = (cursor_position.x - 5.0) / game_board.cellsize.x;
     let y = (cursor_position.y - 25.0) / game_board.cellsize.y;
-    if response.dragged_by(PointerButton::Primary) {
+    if response.dragged_by(PointerButton::Primary) || response.clicked_by(PointerButton::Primary) {
         let material = selected_material.clone();
         for i in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
@@ -26,7 +26,7 @@ pub fn handle_mouse_input(
                     game_board.contents[((i + (y as i32)) * col_count + (j + x as i32)) as usize] =
                         Particle {
                             material: material.clone(),
-                            speed: vec2_f32::new(0.0, game_board.gravity.signum() * 1.0),
+                            speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                             temperature: 20.0,
                             updated: true,
                             seed: rand::random_range(0.0..1.0),
@@ -34,7 +34,9 @@ pub fn handle_mouse_input(
                 }
             }
         }
-    } else if response.dragged_by(PointerButton::Secondary) {
+    } else if response.dragged_by(PointerButton::Secondary)
+        || response.clicked_by(PointerButton::Secondary)
+    {
         let material = VOID.clone();
         for i in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
@@ -47,7 +49,7 @@ pub fn handle_mouse_input(
                     game_board.contents[((i + (y as i32)) * col_count + (j + x as i32)) as usize] =
                         Particle {
                             material: material.clone(),
-                            speed: vec2_f32::new(0.0, game_board.gravity.signum() * 1.0),
+                            speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                             temperature: 20.0,
                             updated: true,
                             seed: rand::random_range(0.0..1.0),

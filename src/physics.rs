@@ -1,4 +1,10 @@
-use crate::world::{Board, VOID};
+use std::cell;
+
+use crate::{
+    chemistry::Material_Type,
+    world::{Board, Material, VOID},
+};
+use egui::Color32;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
@@ -62,12 +68,11 @@ impl Board {
                     // Falling and checking if there is a particle with a larger density
                     if self.contents[cellpos].material.density
                         > self
-                            .contents
-                            .get(
-                                ((i + (self.gravity.signum() as i32 * _k)) * col_count + j)
-                                    as usize,
+                            .get_particle(
+                                (i + (self.gravity.signum() as i32 * _k)) as u16,
+                                j as u16,
+                                cellpos,
                             )
-                            .unwrap_or(&self.contents[cellpos])
                             .material
                             .density
                         && self.contents[cellpos].updated
@@ -76,8 +81,7 @@ impl Board {
                     }
                     // Checks if the particle falls inside bounds
                     else if self
-                        .contents
-                        .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
+                        .get_cell((i + (self.gravity.signum() as i32 * _k)) as u16, j as u16)
                         .is_none()
                     {
                         self.contents[cellpos].speed.y -= self.gravity * framedelta;
@@ -85,24 +89,22 @@ impl Board {
                     }
                     // Checks, whether there is another denser particle in the path of the falling particle
                     else if self
-                        .contents
-                        .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(
+                            (i + (self.gravity.signum() as i32 * _k)) as u16,
+                            j as u16,
+                            cellpos,
+                        )
                         .material
                         .phase
                         == Phase::Solid
                         || self
-                            .contents
-                            .get(
-                                ((i + (self.gravity.signum() as i32 * _k)
+                            .get_particle(
+                                (i + (self.gravity.signum() as i32 * _k)
                                     + self.gravity.signum() as i32)
-                                    * col_count
-                                    + j) as usize,
-                            )
-                            .unwrap_or(
-                                &self.contents[((i + (self.gravity.signum() as i32 * _k))
-                                    * col_count
-                                    + j) as usize],
+                                    as u16,
+                                j as u16,
+                                ((i + (self.gravity.signum() as i32 * _k)) * col_count + j)
+                                    as usize,
                             )
                             .material
                             .phase
@@ -124,16 +126,20 @@ impl Board {
 
                 if self.contents[cellpos].updated
                     && self
-                        .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j + 1) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(
+                            (i + self.gravity.signum() as i32) as u16,
+                            (j + 1) as u16,
+                            cellpos,
+                        )
                         .material
                         .density
                         < self.contents[cellpos].material.density
                     && self
-                        .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j + 1) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(
+                            (i + self.gravity.signum() as i32) as u16,
+                            (j + 1) as u16,
+                            cellpos,
+                        )
                         .material
                         .phase
                         != Phase::Solid
@@ -160,16 +166,20 @@ impl Board {
                 }
                 if self.contents[cellpos].updated
                     && self
-                        .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j - 1) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(
+                            (i + self.gravity.signum() as i32) as u16,
+                            (j - 1) as u16,
+                            cellpos,
+                        )
                         .material
                         .density
                         < self.contents[cellpos].material.density
                     && self
-                        .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j - 1) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(
+                            (i + self.gravity.signum() as i32) as u16,
+                            (j - 1) as u16,
+                            cellpos,
+                        )
                         .material
                         .phase
                         != Phase::Solid
@@ -204,16 +214,15 @@ impl Board {
                 // Gravity simulation
                 self.contents[cellpos].speed.y += self.gravity * framedelta;
                 let mut ychange = 0;
-                for _k in 0..=self.contents[cellpos].speed.y.abs() as i32 {
+                for _k in 0..self.contents[cellpos].speed.y.abs() as i32 {
                     // Falling and checking if there is a particle with a larger density
                     if self.contents[cellpos].material.density
                         > self
-                            .contents
-                            .get(
-                                ((i + (self.gravity.signum() as i32 * _k)) * col_count + j)
-                                    as usize,
+                            .get_particle(
+                                (i + (self.gravity.signum() as i32 * _k)) as u16,
+                                j as u16,
+                                cellpos,
                             )
-                            .unwrap_or(&self.contents[cellpos])
                             .material
                             .density
                         && self.contents[cellpos].updated
@@ -222,8 +231,7 @@ impl Board {
                     }
                     // Checks if the particle falls inside bounds
                     else if self
-                        .contents
-                        .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
+                        .get_cell((i + (self.gravity.signum() as i32 * _k)) as u16, j as u16)
                         .is_none()
                     {
                         self.contents[cellpos].speed.y -= self.gravity * framedelta;
@@ -231,40 +239,34 @@ impl Board {
                     }
                     // Checks, whether there is another denser particle in the path of the falling particle
                     else if self
-                        .contents
-                        .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(
+                            (i + (self.gravity.signum() as i32 * _k)) as u16,
+                            j as u16,
+                            cellpos,
+                        )
                         .material
                         .phase
                         == Phase::Solid
                         || self
-                            .contents
-                            .get(
-                                ((i + (self.gravity.signum() as i32 * _k)
+                            .get_particle(
+                                (i + (self.gravity.signum() as i32 * _k)
                                     + self.gravity.signum() as i32)
-                                    * col_count
-                                    + j) as usize,
-                            )
-                            .unwrap_or(
-                                &self.contents[((i + (self.gravity.signum() as i32 * _k))
-                                    * col_count
-                                    + j) as usize],
+                                    as u16,
+                                j as u16,
+                                ((i + (self.gravity.signum() as i32 * _k)) * col_count + j)
+                                    as usize,
                             )
                             .material
                             .phase
                             == (Phase::Powder { coarseness: _f32 })
                         || self
-                            .contents
-                            .get(
-                                ((i + (self.gravity.signum() as i32 * _k)
+                            .get_particle(
+                                (i + (self.gravity.signum() as i32 * _k)
                                     + self.gravity.signum() as i32)
-                                    * col_count
-                                    + j) as usize,
-                            )
-                            .unwrap_or(
-                                &self.contents[((i + (self.gravity.signum() as i32 * _k))
-                                    * col_count
-                                    + j) as usize],
+                                    as u16,
+                                j as u16,
+                                ((i + (self.gravity.signum() as i32 * _k)) * col_count + j)
+                                    as usize,
                             )
                             .material
                             .phase
@@ -307,16 +309,12 @@ impl Board {
                     }
                 }
                 if self
-                    .contents
-                    .get((i * col_count + j + 1) as usize)
-                    .unwrap_or(&self.contents[cellpos])
+                    .get_particle(i as u16, (j + 1) as u16, cellpos)
                     .material
                     .density
                     < self.contents[cellpos].material.density
                     && self
-                        .contents
-                        .get((i * col_count + j - 1) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(i as u16, (j - 1) as u16, cellpos)
                         .material
                         .density
                         > self.contents[cellpos].material.density
@@ -324,16 +322,12 @@ impl Board {
                     self.contents[cellpos].speed.x = self.contents[cellpos].speed.x.abs();
                     orientation = (self.contents[cellpos].speed.x.abs() + 1.0) as i32;
                 } else if self
-                    .contents
-                    .get((i * col_count + j + 1) as usize)
-                    .unwrap_or(&self.contents[cellpos])
+                    .get_particle(i as u16, (j + 1) as u16, cellpos)
                     .material
                     .density
                     > self.contents[cellpos].material.density
                     && self
-                        .contents
-                        .get((i * col_count + j - 1) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(i as u16, (j - 1) as u16, cellpos)
                         .material
                         .density
                         < self.contents[cellpos].material.density
@@ -341,16 +335,12 @@ impl Board {
                     self.contents[cellpos].speed.x = -1.0 * self.contents[cellpos].speed.x.abs();
                     orientation = (-1.0 * (self.contents[cellpos].speed.x.abs() + 1.0)) as i32;
                 } else if self
-                    .contents
-                    .get((i * col_count + j + 1) as usize)
-                    .unwrap_or(&self.contents[cellpos])
+                    .get_particle(i as u16, (j + 1) as u16, cellpos)
                     .material
                     .density
                     <= self.contents[cellpos].material.density
                     && self
-                        .contents
-                        .get((i * col_count + j - 1) as usize)
-                        .unwrap_or(&self.contents[cellpos])
+                        .get_particle(i as u16, (j - 1) as u16, cellpos)
                         .material
                         .density
                         <= self.contents[cellpos].material.density
@@ -360,27 +350,25 @@ impl Board {
                         as i32;
                 }
 
-                for _k in 0..=orientation.abs() {
+                for _k in 0..orientation.abs() {
                     // This condition checks, whether the particle can fall to the determined side
                     if self.is_in_bounds(j, orientation.signum() * _k)
                         && self
-                            .contents
-                            .get((i * col_count + j + orientation.signum() * _k) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(i as u16, (j + orientation.signum() * _k) as u16, cellpos)
                             .material
                             .density
                             <= self.contents[cellpos].material.density
                         && (self
-                            .contents
-                            .get((i * col_count + j + orientation.signum() * _k) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(i as u16, (j + orientation.signum() * _k) as u16, cellpos)
                             .material
                             .phase
                             != Phase::Solid
                             || self
-                                .contents
-                                .get((i * col_count + j + orientation.signum() * _k) as usize)
-                                .unwrap_or(&self.contents[cellpos])
+                                .get_particle(
+                                    i as u16,
+                                    (j + orientation.signum() * _k) as u16,
+                                    cellpos,
+                                )
                                 .material
                                 .phase
                                 != (Phase::Powder { coarseness: _f32 }))
@@ -417,34 +405,36 @@ impl Board {
                         as i32;
                 }
 
-                for _k in 0..=orientation.abs() {
+                for _k in 0..orientation.abs() {
                     // This condition checks, whether the particle can fall to the determined side
                     if self
-                        .contents
-                        .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
+                        .get_cell((i + (orientation.signum() * _k)) as u16, j as u16)
                         .is_some()
                         && self
-                            .contents
-                            .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                (i + (orientation.signum() * _k)) as u16,
+                                j as u16,
+                                cellpos,
+                            )
                             .material
                             .density
                             <= self.contents[cellpos].material.density
                         && (self
-                            .contents
-                            .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                (i + (orientation.signum() * _k)) as u16,
+                                j as u16,
+                                cellpos,
+                            )
                             .material
                             .phase
                             != Phase::Solid
                             || std::mem::discriminant(
                                 &self
-                                    .contents
-                                    .get(
-                                        ((i + (orientation.signum() * _k)) * col_count + j)
-                                            as usize,
+                                    .get_particle(
+                                        (i + (orientation.signum() * _k)) as u16,
+                                        j as u16,
+                                        cellpos,
                                     )
-                                    .unwrap_or(&self.contents[cellpos])
                                     .material
                                     .phase,
                             ) != std::mem::discriminant(&(Phase::Powder { coarseness: 0_f32 }))
@@ -480,36 +470,44 @@ impl Board {
                         as i32;
                 }
 
-                for _k in 0..=orientation.abs() {
+                for _k in 0..orientation.abs() {
                     // This condition checks, whether the particle can fall to the determined side
                     if self.is_in_bounds(j, orientation.signum() * _k)
                         && self
-                            .contents
-                            .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                i as u16,
+                                (j + (orientation.signum() * _k)) as u16,
+                                cellpos,
+                            )
                             .material
                             .density
                             <= self.contents[cellpos].material.density
                         && (self
-                            .contents
-                            .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                i as u16,
+                                (j + (orientation.signum() * _k)) as u16,
+                                cellpos,
+                            )
                             .material
                             .phase
                             != Phase::Solid
                             || std::mem::discriminant(
                                 &self
-                                    .contents
-                                    .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                                    .unwrap_or(&self.contents[cellpos])
+                                    .get_particle(
+                                        i as u16,
+                                        (j + (orientation.signum() * _k)) as u16,
+                                        cellpos,
+                                    )
                                     .material
                                     .phase,
                             ) != std::mem::discriminant(&(Phase::Powder { coarseness: 0_f32 }))
                             || std::mem::discriminant(
                                 &self
-                                    .contents
-                                    .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                                    .unwrap_or(&self.contents[cellpos])
+                                    .get_particle(
+                                        i as u16,
+                                        (j + (orientation.signum() * _k)) as u16,
+                                        cellpos,
+                                    )
                                     .material
                                     .phase,
                             ) != std::mem::discriminant(&(Phase::Liquid { viscosity: 0_f32 })))
@@ -539,7 +537,14 @@ impl Board {
                         energy: cellenergy - 1.0,
                     };
                 } else {
-                    self.contents[cellpos].material = VOID.clone();
+                    self.contents[cellpos].material = Material {
+                        name: "Void".to_string(),
+                        density: 0.0,
+                        phase: Phase::Void,
+                        material_type: Material_Type::Atmosphere,
+                        durability: -1,
+                        color: Color32::from_rgba_unmultiplied(0, 0, 0, 100),
+                    };
                 }
 
                 // Rng determines which side should the particle fall
@@ -555,34 +560,36 @@ impl Board {
                         as i32;
                 }
 
-                for _k in 0..=orientation.abs() {
+                for _k in 0..orientation.abs() {
                     // This condition checks, whether the particle can fall to the determined side
                     if self
-                        .contents
-                        .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
+                        .get_cell((i + (orientation.signum() * _k)) as u16, j as u16)
                         .is_some()
                         && self
-                            .contents
-                            .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                (i + (orientation.signum() * _k)) as u16,
+                                j as u16,
+                                cellpos,
+                            )
                             .material
                             .density
                             <= self.contents[cellpos].material.density
                         && (self
-                            .contents
-                            .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                (i + (orientation.signum() * _k)) as u16,
+                                j as u16,
+                                cellpos,
+                            )
                             .material
                             .phase
                             != Phase::Solid
                             || std::mem::discriminant(
                                 &self
-                                    .contents
-                                    .get(
-                                        ((i + (orientation.signum() * _k)) * col_count + j)
-                                            as usize,
+                                    .get_particle(
+                                        (i + (orientation.signum() * _k)) as u16,
+                                        j as u16,
+                                        cellpos,
                                     )
-                                    .unwrap_or(&self.contents[cellpos])
                                     .material
                                     .phase,
                             ) != std::mem::discriminant(&(Phase::Powder { coarseness: 0_f32 }))
@@ -618,36 +625,44 @@ impl Board {
                         as i32;
                 }
 
-                for _k in 0..=orientation.abs() {
+                for _k in 0..orientation.abs() {
                     // This condition checks, whether the particle can fall to the determined side
                     if self.is_in_bounds(j, orientation.signum() * _k)
                         && self
-                            .contents
-                            .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                i as u16,
+                                (j + (orientation.signum() * _k)) as u16,
+                                cellpos,
+                            )
                             .material
                             .density
                             <= self.contents[cellpos].material.density
                         && (self
-                            .contents
-                            .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                            .unwrap_or(&self.contents[cellpos])
+                            .get_particle(
+                                i as u16,
+                                (j + (orientation.signum() * _k)) as u16,
+                                cellpos,
+                            )
                             .material
                             .phase
                             != Phase::Solid
                             || std::mem::discriminant(
                                 &self
-                                    .contents
-                                    .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                                    .unwrap_or(&self.contents[cellpos])
+                                    .get_particle(
+                                        i as u16,
+                                        (j + (orientation.signum() * _k)) as u16,
+                                        cellpos,
+                                    )
                                     .material
                                     .phase,
                             ) != std::mem::discriminant(&(Phase::Powder { coarseness: 0_f32 }))
                             || std::mem::discriminant(
                                 &self
-                                    .contents
-                                    .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                                    .unwrap_or(&self.contents[cellpos])
+                                    .get_particle(
+                                        i as u16,
+                                        (j + (orientation.signum() * _k)) as u16,
+                                        cellpos,
+                                    )
                                     .material
                                     .phase,
                             ) != std::mem::discriminant(&(Phase::Liquid { viscosity: 0_f32 })))

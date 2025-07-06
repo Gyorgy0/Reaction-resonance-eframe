@@ -1,10 +1,10 @@
-use egui::{load, ColorImage, Image, Sense, TextureHandle, TextureOptions};
+use egui::{load, Color32, ColorImage, Image, Sense, TextureHandle, TextureOptions, Vec2};
 
 use crate::{
     chemistry::Material_Type,
     egui_input::{handle_key_inputs, handle_mouse_input},
     physics::Phase,
-    world::{color32_u8, update_board, vec2_f32, Board, Material},
+    world::{update_board, Board, Material},
 };
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -33,7 +33,7 @@ impl Default for EFrameApp {
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
-            cellsize: vec2_f32::new(1.0, 1.0),
+            cellsize: Vec2::new(3.0, 3.0),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -53,7 +53,7 @@ impl Default for EFrameApp {
                 phase: Phase::Gas,
                 material_type: Material_Type::Fuel,
                 durability: -1,
-                color: color32_u8::new(252, 250, 0, 255),
+                color: Color32::from_rgba_unmultiplied(252, 250, 0, 255),
             },
             is_stopped: false,
             frame: 0,
@@ -144,6 +144,10 @@ impl eframe::App for EFrameApp {
                 load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
             let mut board = ui.add(
                 Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx()))
+                    .fit_to_exact_size(Vec2::new(
+                        self.game_board.width as f32 * self.game_board.cellsize.x,
+                        self.game_board.height as f32 * self.game_board.cellsize.y,
+                    ))
                     .sense(Sense::click_and_drag()),
             );
 

@@ -40,7 +40,7 @@ impl Board {
         let f: Vec<u8> = self
             .contents
             .iter()
-            .flat_map(|particle| particle.material.color.get_val())
+            .flat_map(|particle| particle.material.color.to_array())
             .collect();
         f
     }
