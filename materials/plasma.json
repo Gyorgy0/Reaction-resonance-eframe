@@ -1,0 +1,19 @@
+[
+    {
+        "name": "Fire",
+        "density": 0.657,
+        "phase": {
+            "Plasma": {
+                "energy": 70.0
+            }
+        },
+        "material_type": "Atmosphere",
+        "durability": 50,
+        "color": {
+            "r": 1.0,
+            "g": 0.63,
+            "b": 0.0,
+            "a": 1.0
+        }
+    }
+]
