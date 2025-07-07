@@ -1,11 +1,11 @@
-use egui::{load, Color32, ColorImage, Image, Sense, TextureHandle, TextureOptions, Vec2};
-
 use crate::{
     chemistry::Material_Type,
     egui_input::{handle_key_inputs, handle_mouse_input},
     physics::Phase,
     world::{update_board, Board, Material},
 };
+use egui::{load, Color32, ColorImage, Image, Sense, TextureHandle, TextureOptions, Vec2};
+use rand::SeedableRng;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -23,6 +23,8 @@ pub struct EFrameApp {
     is_stopped: bool,
     #[serde(skip)]
     frame: u8,
+    #[serde(skip)]
+    rng: rand_xorshift::XorShiftRng,
 }
 
 impl Default for EFrameApp {
@@ -44,19 +46,20 @@ impl Default for EFrameApp {
         );
         Self {
             fullscreen: false,
-            game_board: game_board,
+            game_board,
             materials: vec![],
-            texture: texture,
+            texture,
             selected_material: Material {
                 name: "Methane".to_string(),
                 density: 0.657,
-                phase: Phase::Gas,
+                phase: Phase::Powder { coarseness: 0.5 },
                 material_type: Material_Type::Fuel,
                 durability: -1,
                 color: Color32::from_rgba_unmultiplied(252, 250, 0, 255),
             },
             is_stopped: false,
             frame: 0,
+            rng: rand_xorshift::XorShiftRng::seed_from_u64(0),
         }
     }
 }
@@ -128,6 +131,7 @@ impl eframe::App for EFrameApp {
                     self.fullscreen = false
                 }
             }
+            ui.label("FPS: ".to_owned() + &ui.input(|i| (1.0 / i.unstable_dt).to_string()));
 
             let mut pixels: Vec<u8> = self.game_board.draw_board();
             let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied(
@@ -142,7 +146,7 @@ impl eframe::App for EFrameApp {
                 .set(frameimage.clone(), TextureOptions::NEAREST);
             let sized_texture =
                 load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
-            let mut board = ui.add(
+            let board = ui.add(
                 Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx()))
                     .fit_to_exact_size(Vec2::new(
                         self.game_board.width as f32 * self.game_board.cellsize.x,
@@ -157,8 +161,14 @@ impl eframe::App for EFrameApp {
                 board.clone(),
             );
             handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
-            update_board(&mut self.game_board, self.is_stopped, &mut self.frame);
-            egui::Context::request_repaint(&ctx);
+            update_board(
+                &mut self.game_board,
+                self.is_stopped,
+                &mut self.frame,
+                ctx.input(|time| time.unstable_dt),
+                &mut self.rng,
+            );
+            egui::Context::request_repaint(ctx);
         });
     }
 }

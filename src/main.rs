@@ -7,6 +7,7 @@ fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
     let native_options = eframe::NativeOptions {
+        vsync: false,
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([400.0, 300.0])
             .with_min_inner_size([300.0, 220.0]),
@@ -15,7 +16,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "Reaction resonance",
         native_options,
-        Box::new(|cc| Ok(Box::new(Reaction_resonance_eframe::EFrameApp::new(cc)))),
+        Box::new(|cc| Ok(Box::new(reaction_resonance_eframe::EFrameApp::new(cc)))),
     )
 }
 
@@ -45,7 +46,7 @@ fn main() {
             .start(
                 canvas,
                 web_options,
-                Box::new(|cc| Ok(Box::new(Reaction_resonance_eframe::EFrameApp::new(cc)))),
+                Box::new(|cc| Ok(Box::new(reaction_resonance_eframe::EFrameApp::new(cc)))),
             )
             .await;
         // LOADING SCREEN NOT YET IMPLEMENTED
