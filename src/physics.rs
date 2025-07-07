@@ -1,14 +1,12 @@
 use std::u32;
 
-use rand_core::RngCore;
-
 use crate::{
     chemistry::Material_Type,
     world::{Board, Material},
 };
 use egui::Color32;
-use rand_xorshift::{self, XorShiftRng};
 use serde::{Deserialize, Serialize};
+use xorshift::{Rng, SeedableRng, Xoroshiro128, Xorshift1024, Xorshift128};
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum Phase {
@@ -58,7 +56,7 @@ impl Board {
         i: i32,
         j: i32,
         framedelta: f32,
-        rng: &mut XorShiftRng,
+        rng: &mut Xorshift128,
     ) {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;
@@ -136,7 +134,8 @@ impl Board {
                 }
                 // This decides where the particle falls (left or right)
                 // Generates u32 between 0 and 2
-                let rnd = ((rng.next_u32() as f32 / u32::MAX as f32) * 2_f32) as u32;
+                let rnd = rng.gen_range(0, 2);
+                //let rnd = ((rng.next_u32() as f32 / u32::MAX as f32) * 2_f32) as u32;
 
                 if self.contents[cellpos].updated
                     && self
@@ -303,7 +302,8 @@ impl Board {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    let rnd = rng.gen_range(-1_f32, 1_f32);
                     if rnd.abs()
                         >= (1_f32
                             - self.contents[cellpos]
@@ -428,7 +428,8 @@ impl Board {
                     self.contents[cellpos].speed.y = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    let rnd = rng.gen_range(-1_f32, 1_f32);
                     self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.y.signum()
                         * (self.contents[cellpos].speed.y.abs() + 1.0))
@@ -492,7 +493,8 @@ impl Board {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    let rnd = rng.gen_range(-1_f32, 1_f32);
                     self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.x.signum()
                         * (self.contents[cellpos].speed.x.abs() + 1.0))
@@ -575,7 +577,8 @@ impl Board {
                     self.contents[cellpos].speed.y = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    let rnd = rng.gen_range(-1_f32, 1_f32);
                     self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.y.signum()
                         * (self.contents[cellpos].speed.y.abs() + 1.0))
@@ -639,7 +642,8 @@ impl Board {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
+                    let rnd = rng.gen_range(-1_f32, 1_f32);
                     self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.x.signum()
                         * (self.contents[cellpos].speed.x.abs() + 1.0))

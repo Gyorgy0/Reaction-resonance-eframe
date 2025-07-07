@@ -2,9 +2,11 @@ use crate::chemistry::Material_Type;
 use crate::physics::Phase;
 use egui::Color32;
 use egui::Vec2;
-use rand_xorshift::XorShiftRng;
 use serde::Deserialize;
 use serde::Serialize;
+use xorshift::Xoroshiro128;
+use xorshift::Xorshift1024;
+use xorshift::Xorshift128;
 
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct Material {
@@ -65,7 +67,7 @@ pub fn update_board(
     is_stopped: bool,
     frame: &mut u8,
     framedelta: f32,
-    rng: &mut XorShiftRng,
+    rng: &mut Xorshift128,
 ) {
     let row_count = game_board.height as i32;
     let col_count: i32 = game_board.width as i32;

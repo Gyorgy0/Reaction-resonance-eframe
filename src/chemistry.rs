@@ -1,7 +1,7 @@
 use crate::physics::Phase;
 use crate::world::Board;
-use rand_xorshift::XorShiftRng;
 use serde::{Deserialize, Serialize};
+use xorshift::{SeedableRng, Xoroshiro128, Xorshift1024, Xorshift128};
 
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
@@ -26,7 +26,7 @@ impl Board {
         i: i32,
         j: i32,
         framedelta: f32,
-        rng: &mut XorShiftRng,
+        rng: &mut Xorshift128,
     ) {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;

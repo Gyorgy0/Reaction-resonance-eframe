@@ -5,7 +5,7 @@ use crate::{
     world::{update_board, Board, Material},
 };
 use egui::{load, Color32, ColorImage, Image, Sense, TextureHandle, TextureOptions, Vec2};
-use rand::SeedableRng;
+use xorshift::{xorshift128, Rng, SeedableRng, Xoroshiro128, Xorshift1024, Xorshift128};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -24,7 +24,7 @@ pub struct EFrameApp {
     #[serde(skip)]
     frame: u8,
     #[serde(skip)]
-    rng: rand_xorshift::XorShiftRng,
+    rng: Xorshift128,
 }
 
 impl Default for EFrameApp {
@@ -44,6 +44,7 @@ impl Default for EFrameApp {
             ColorImage::example(),
             TextureOptions::NEAREST,
         );
+        let states: [u64; 16] = [rand::random(); 16];
         Self {
             fullscreen: false,
             game_board,
@@ -59,7 +60,7 @@ impl Default for EFrameApp {
             },
             is_stopped: false,
             frame: 0,
-            rng: rand_xorshift::XorShiftRng::seed_from_u64(0),
+            rng: SeedableRng::from_seed(&states[..]),
         }
     }
 }
