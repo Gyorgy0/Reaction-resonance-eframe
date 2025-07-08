@@ -1,4 +1,4 @@
-use egui::{InputState, Key, PointerButton, Response, Vec2};
+use egui::{Key, PointerButton, Response, Vec2};
 use std::ops::Not;
 
 use crate::world::*;

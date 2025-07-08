@@ -1,7 +1,7 @@
 use crate::physics::Phase;
 use crate::world::Board;
 use serde::{Deserialize, Serialize};
-use xorshift::{SeedableRng, Xoroshiro128, Xorshift1024, Xorshift128};
+use xorshift::Xorshift128;
 
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]

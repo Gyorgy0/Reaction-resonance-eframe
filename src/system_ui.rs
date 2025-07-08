@@ -11,7 +11,7 @@ impl fmt::Display for Phase {
             Phase::Solid => write!(f, "Solid"),
             Phase::Powder { coarseness: _ } => write!(f, "Powder"),
             Phase::Liquid { viscosity: _ } => write!(f, "Liquid"),
-            Phase::Gas {} => write!(f, "Gas"),
+            Phase::Gas => write!(f, "Gas"),
             Phase::Plasma { energy: _ } => write!(f, "Plasma"),
         }
     }

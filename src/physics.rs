@@ -1,4 +1,3 @@
-use std::u32;
 
 use crate::{
     chemistry::Material_Type,
@@ -6,7 +5,7 @@ use crate::{
 };
 use egui::Color32;
 use serde::{Deserialize, Serialize};
-use xorshift::{Rng, SeedableRng, Xoroshiro128, Xorshift1024, Xorshift128};
+use xorshift::{Rng, Xorshift128};
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum Phase {
@@ -355,8 +354,8 @@ impl Board {
                         .density
                         < self.contents[cellpos].material.density
                 {
-                    self.contents[cellpos].speed.x = -1.0 * self.contents[cellpos].speed.x.abs();
-                    orientation = (-1.0 * (self.contents[cellpos].speed.x.abs() + 1.0)) as i32;
+                    self.contents[cellpos].speed.x = -self.contents[cellpos].speed.x.abs();
+                    orientation = -(self.contents[cellpos].speed.x.abs() + 1.0) as i32;
                 } else if self
                     .contents
                     .get((i * col_count + j + 1) as usize)
@@ -420,7 +419,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // GAS PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Gas {} => {
+            Phase::Gas => {
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis

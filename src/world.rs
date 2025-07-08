@@ -4,8 +4,6 @@ use egui::Color32;
 use egui::Vec2;
 use serde::Deserialize;
 use serde::Serialize;
-use xorshift::Xoroshiro128;
-use xorshift::Xorshift1024;
 use xorshift::Xorshift128;
 
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
