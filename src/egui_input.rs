@@ -1,6 +1,5 @@
+use egui::{InputState, Key, PointerButton, Response, Vec2};
 use std::ops::Not;
-
-use egui::{Key, PointerButton, Response, Vec2};
 
 use crate::world::*;
 
@@ -8,11 +7,12 @@ pub fn handle_mouse_input(
     game_board: &mut Board,
     selected_material: &mut Material,
     response: Response,
+    ctx: egui::Context,
 ) {
     let col_count: i32 = game_board.width as i32;
     let cursor_position = response.hover_pos().unwrap_or_default();
-    let x = (cursor_position.x - 5.0) / game_board.cellsize.x;
-    let y = (cursor_position.y - 25.0) / game_board.cellsize.y;
+    let x = (cursor_position.x - 7.5) / game_board.cellsize.x;
+    let y = (cursor_position.y - 45.0) / game_board.cellsize.y;
     if response.dragged_by(PointerButton::Primary) || response.clicked_by(PointerButton::Primary) {
         let material = selected_material.clone();
         for i in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
@@ -58,16 +58,14 @@ pub fn handle_mouse_input(
             }
         }
     };
-    /*
-    if (response..1 > -120.0 && mouse_wheel().1 <= -60.0 && game_board.brushsize < row_count)
-        || (mouse_wheel().1 < 120.0 && mouse_wheel().1 >= 60.0 && game_board.brushsize > 2)
+    // Brush resizing with mouse scroll
+    let mouse_scroll = ctx.input(|input| input.raw_scroll_delta);
+    if mouse_scroll.y.abs() >= 0.1
+        && ((game_board.brushsize > 1 && mouse_scroll.y.signum() == -1.0)
+            || (game_board.brushsize < 256 && mouse_scroll.y.signum() == 1.0))
     {
-        game_board.brushsize -= 2 * (mouse_wheel().1 / 60.0) as i32;
-    } else if (mouse_wheel().1 <= -120.0 && game_board.brushsize < row_count)
-        || (mouse_wheel().1 >= 120.0 && game_board.brushsize > 2)
-    {
-        game_board.brushsize -= 2 * (mouse_wheel().1 / 120.0) as i32;
-    }*/
+        game_board.brushsize += 2 * (mouse_scroll.y.signum()) as i32;
+    }
 }
 
 pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response: Response) {

@@ -4,7 +4,9 @@ use crate::{
     physics::Phase,
     world::{update_board, Board, Material},
 };
-use egui::{load, Color32, ColorImage, Image, Sense, TextureHandle, TextureOptions, Vec2};
+use egui::{
+    load, Color32, ColorImage, CornerRadius, Image, InputState, Pos2, Rect, Sense, Stroke, TextureHandle, TextureOptions, Vec2
+};
 use xorshift::{xorshift128, Rng, SeedableRng, Xoroshiro128, Xorshift1024, Xorshift128};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -90,6 +92,7 @@ impl eframe::App for EFrameApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+            ui.painter().with_clip_rect(ctx.screen_rect()).rect(Rect::from_center_size(ctx.input(|input| input.pointer.hover_pos().unwrap_or(Pos2::new(0.0, 0.0))), Vec2::new(self.game_board.brushsize as f32 * self.game_board.cellsize.x, self.game_board.brushsize as f32 * self.game_board.cellsize.y)), 1.0, Color32::from_white_alpha(0), Stroke::new(1.0, Color32::from_white_alpha(255)), egui::StrokeKind::Outside);
             #[cfg(target_arch = "wasm32")]
             if ui.button("Fullscreen").clicked() {
                 let Some(window) = web_sys::window() else {
@@ -155,11 +158,11 @@ impl eframe::App for EFrameApp {
                     ))
                     .sense(Sense::click_and_drag()),
             );
-
             handle_mouse_input(
                 &mut self.game_board,
                 &mut self.selected_material,
                 board.clone(),
+                ctx.clone(),
             );
             handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
             update_board(
