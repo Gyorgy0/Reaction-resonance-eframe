@@ -1,3 +1,5 @@
+use std::default;
+
 use crate::{
     chemistry::Material_Type,
     egui_input::{handle_key_inputs, handle_mouse_input},
@@ -5,9 +7,9 @@ use crate::{
     world::{update_board, Board, Material},
 };
 use egui::{
-    load, Color32, ColorImage, Image, Pos2, Rect, Sense, Stroke,
-    TextureHandle, TextureOptions, Vec2,
+    load, util::hash, Color32, ColorImage, Frame, Id, Image, LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
 };
+use env_logger::fmt::style::{Color, RgbColor};
 use xorshift::{SeedableRng, Xorshift128};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -47,7 +49,11 @@ impl Default for EFrameApp {
             ColorImage::example(),
             TextureOptions::NEAREST,
         );
-        let states: [u64; 16] = [rand::random(); 16];
+        // Seeding the rng
+        let mut states: [u64; 16] = [0;16];
+        (0..16 as usize).into_iter().for_each(|num| {
+            states[num] = rand::random();
+        });
         Self {
             fullscreen: false,
             game_board,
@@ -93,7 +99,7 @@ impl eframe::App for EFrameApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.painter().with_clip_rect(ctx.screen_rect()).rect(
+            ui.painter().clone().with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0)))).with_clip_rect(ctx.screen_rect()).rect(
                 Rect::from_center_size(
                     ctx.input(|input| input.pointer.hover_pos().unwrap_or(Pos2::new(-1024.0, -1024.0))),
                     Vec2::new(
@@ -102,8 +108,8 @@ impl eframe::App for EFrameApp {
                     ),
                 ),
                 1.0,
-                Color32::from_white_alpha(0),
-                Stroke::new(1.0, Color32::from_white_alpha(255)),
+                Color32::from_black_alpha(100),
+                Stroke::new(2.0, Color32::from_additive_luminance(255)),
                 egui::StrokeKind::Outside,
             );
             #[cfg(target_arch = "wasm32")]
