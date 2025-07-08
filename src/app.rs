@@ -95,7 +95,7 @@ impl eframe::App for EFrameApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.painter().with_clip_rect(ctx.screen_rect()).rect(
                 Rect::from_center_size(
-                    ctx.input(|input| input.pointer.hover_pos().unwrap_or(Pos2::new(0.0, 0.0))),
+                    ctx.input(|input| input.pointer.hover_pos().unwrap_or(Pos2::new(-1024.0, -1024.0))),
                     Vec2::new(
                         self.game_board.brushsize as f32 * self.game_board.cellsize.x,
                         self.game_board.brushsize as f32 * self.game_board.cellsize.y,
