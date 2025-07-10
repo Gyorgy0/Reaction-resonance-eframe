@@ -7,7 +7,7 @@ use crate::{
     world::{update_board, Board, Material},
 };
 use egui::{
-    load, util::hash, Color32, ColorImage, Frame, Id, Image, LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
+    emath::GuiRounding, load, util::hash, Color32, ColorImage, Frame, Id, Image, LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
 };
 use env_logger::fmt::style::{Color, RgbColor};
 use xorshift::{SeedableRng, Xorshift128};
@@ -35,12 +35,12 @@ pub struct EFrameApp {
 impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
-            width: 512,
-            height: 384,
+            width: 51,
+            height: 38,
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
-            cellsize: Vec2::new(3.0, 3.0),
+            cellsize: Vec2::new(30.0, 30.0),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -101,10 +101,10 @@ impl eframe::App for EFrameApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.painter().clone().with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0)))).with_clip_rect(ctx.screen_rect()).rect(
                 Rect::from_center_size(
-                    ctx.input(|input| input.pointer.hover_pos().unwrap_or(Pos2::new(-1024.0, -1024.0))),
+                    ctx.input(|input| (((input.pointer.hover_pos().unwrap_or(Pos2::new(-1024.0, -1024.0))) / self.game_board.cellsize.x).floor())*self.game_board.cellsize.x + Vec2::new(self.game_board.cellsize.x-7.5, self.game_board.cellsize.y)),
                     Vec2::new(
-                        self.game_board.brushsize as f32 * self.game_board.cellsize.x,
-                        self.game_board.brushsize as f32 * self.game_board.cellsize.y,
+                        self.game_board.brushsize as f32 * self.game_board.cellsize.x + self.game_board.cellsize.x,
+                        self.game_board.brushsize as f32 * self.game_board.cellsize.y + self.game_board.cellsize.y,
                     ),
                 ),
                 1.0,
