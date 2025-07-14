@@ -1,16 +1,16 @@
 [
     {
-      "name": "Wood",
-      "density": 2.0,
-      "phase": "Solid",
-      "material_type": "Fuel",
-      "durability": 40,
-      "color": {
-        "r": 0.83,
-        "g": 0.69,
-        "b": 0.51,
-        "a": 1.0
-      }
+        "name": "Wood",
+        "density": 2.0,
+        "phase": "Solid",
+        "material_type": "Fuel",
+        "durability": 40,
+        "color": [
+            212,
+            176,
+            130,
+            255
+        ]
     },
     {
         "name": "Void",
@@ -18,11 +18,11 @@
         "phase": "Solid",
         "material_type": "Atmosphere",
         "durability": 40,
-        "color": {
-          "r": 0.0,
-          "g": 0.0,
-          "b": 0.0,
-          "a": 0.39
-        }
-      }
-  ]
+        "color": [
+            0,
+            0,
+            0,
+            100
+        ]
+    }
+]

@@ -9,11 +9,11 @@
         },
         "material_type": "Atmosphere",
         "durability": 50,
-        "color": {
-            "r": 1.0,
-            "g": 0.63,
-            "b": 0.0,
-            "a": 1.0
-        }
+        "color": [
+            255,
+            160,
+            0,
+            255
+        ]
     }
 ]

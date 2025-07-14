@@ -1,4 +1,7 @@
-use std::default;
+use std::{
+    default,
+    fs::{self, File},
+};
 
 use crate::{
     chemistry::Material_Type,
@@ -7,9 +10,11 @@ use crate::{
     world::{update_board, Board, Material},
 };
 use egui::{
-    emath::GuiRounding, load, util::hash, Color32, ColorImage, Frame, Id, Image, LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
+    emath::GuiRounding, load, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image,
+    LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals,
 };
 use env_logger::fmt::style::{Color, RgbColor};
+use serde::Serialize;
 use xorshift::{SeedableRng, Xorshift128};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -35,12 +40,12 @@ pub struct EFrameApp {
 impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
-            width: 51,
-            height: 38,
+            width: 25,
+            height: 12,
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
-            cellsize: Vec2::new(30.0, 30.0),
+            cellsize: Vec2::new(50.0, 50.0),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -50,23 +55,31 @@ impl Default for EFrameApp {
             TextureOptions::NEAREST,
         );
         // Seeding the rng
-        let mut states: [u64; 16] = [0;16];
+        let mut states: [u64; 16] = [0; 16];
         (0..16 as usize).into_iter().for_each(|num| {
             states[num] = rand::random();
         });
+        let paths = fs::read_dir("src/materials/").unwrap();
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            // Materials need to be hosted on github Pages or somewhere where they can be accessed by an url
+            panic!("Work in progress on WASM, sowwy :'( !!!");
+        }
+        
+        let mut materials: Vec<Material> = vec![];
+        for path in paths {
+            let materials_per_phase = fs::read(path.unwrap().path().display().to_string()).unwrap();
+            let mut serialized_materials: Vec<Material> =
+                serde_json::from_slice(&materials_per_phase.as_slice()).unwrap();
+            materials.append(&mut serialized_materials);
+        }
         Self {
             fullscreen: false,
             game_board,
-            materials: vec![],
+            materials: materials.clone(),
             texture,
-            selected_material: Material {
-                name: "Methane".to_string(),
-                density: 0.657,
-                phase: Phase::Powder { coarseness: 0.5 },
-                material_type: Material_Type::Fuel,
-                durability: -1,
-                color: Color32::from_rgba_unmultiplied(252, 250, 0, 255),
-            },
+            selected_material: materials[0].clone(),
             is_stopped: false,
             frame: 0,
             rng: SeedableRng::from_seed(&states[..]),
@@ -99,19 +112,6 @@ impl eframe::App for EFrameApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.painter().clone().with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0)))).with_clip_rect(ctx.screen_rect()).rect(
-                Rect::from_center_size(
-                    ctx.input(|input| (((input.pointer.hover_pos().unwrap_or(Pos2::new(-1024.0, -1024.0))) / self.game_board.cellsize.x).floor())*self.game_board.cellsize.x + Vec2::new(self.game_board.cellsize.x-7.5, self.game_board.cellsize.y)),
-                    Vec2::new(
-                        self.game_board.brushsize as f32 * self.game_board.cellsize.x + self.game_board.cellsize.x,
-                        self.game_board.brushsize as f32 * self.game_board.cellsize.y + self.game_board.cellsize.y,
-                    ),
-                ),
-                1.0,
-                Color32::from_black_alpha(100),
-                Stroke::new(2.0, Color32::from_additive_luminance(255)),
-                egui::StrokeKind::Outside,
-            );
             #[cfg(target_arch = "wasm32")]
             if ui.button("Fullscreen").clicked() {
                 let Some(window) = web_sys::window() else {
@@ -177,6 +177,25 @@ impl eframe::App for EFrameApp {
                     ))
                     .sense(Sense::click_and_drag()),
             );
+            ui.painter()
+                .clone()
+                .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
+                .with_clip_rect(ctx.screen_rect())
+                .rect(
+                    Rect::from_center_size(
+                        ((board.hover_pos().unwrap_or(pos2(-1024.0, -1024.0)).to_vec2() / vec2(self.game_board.cellsize.x, self.game_board.cellsize.y)).floor() * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y)).to_pos2() - vec2(7.5, 0.0),
+                        Vec2::new(
+                            self.game_board.brushsize as f32 * self.game_board.cellsize.x
+                                + self.game_board.cellsize.x,
+                            self.game_board.brushsize as f32 * self.game_board.cellsize.y
+                                + self.game_board.cellsize.y,
+                        ),
+                    ),
+                    1.0,
+                    Color32::from_black_alpha(100),
+                    Stroke::new(2.0, Color32::WHITE),
+                    egui::StrokeKind::Outside,
+                );
             handle_mouse_input(
                 &mut self.game_board,
                 &mut self.selected_material,
