@@ -40,12 +40,12 @@ pub struct EFrameApp {
 impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
-            width: 25,
-            height: 12,
+            width: 100,
+            height: 48,
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
-            cellsize: Vec2::new(50.0, 50.0),
+            cellsize: Vec2::new(20.0, 20.0),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -66,7 +66,7 @@ impl Default for EFrameApp {
             // Materials need to be hosted on github Pages or somewhere where they can be accessed by an url
             panic!("Work in progress on WASM, sowwy :'( !!!");
         }
-        
+
         let mut materials: Vec<Material> = vec![];
         for path in paths {
             let materials_per_phase = fs::read(path.unwrap().path().display().to_string()).unwrap();
@@ -182,8 +182,14 @@ impl eframe::App for EFrameApp {
                 .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
                 .with_clip_rect(ctx.screen_rect())
                 .rect(
-                    Rect::from_center_size(
-                        ((board.hover_pos().unwrap_or(pos2(-1024.0, -1024.0)).to_vec2() / vec2(self.game_board.cellsize.x, self.game_board.cellsize.y)).floor() * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y)).to_pos2() - vec2(7.5, 0.0),
+                    Rect::from_min_size(
+                        (((board
+                            .hover_pos()
+                            .unwrap_or(pos2(-1024.0, -1024.0))
+                        .to_vec2().floor()
+                            / vec2(self.game_board.cellsize.x, self.game_board.cellsize.y).floor()).floor())
+                            * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
+                        .to_pos2().floor()+ vec2(7.5, 45.0),
                         Vec2::new(
                             self.game_board.brushsize as f32 * self.game_board.cellsize.x
                                 + self.game_board.cellsize.x,
