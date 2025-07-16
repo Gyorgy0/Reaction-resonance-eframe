@@ -41,7 +41,7 @@ impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
             width: 512,
-            height: 384,
+            height: 256,
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
@@ -63,8 +63,7 @@ impl Default for EFrameApp {
 
         #[cfg(target_arch = "wasm32")]
         {
-            // Materials need to be hosted on github Pages or somewhere where they can be accessed by an url
-            panic!("Work in progress on WASM, sowwy :'( !!!");
+            
         }
 
         let mut materials: Vec<Material> = vec![];
@@ -79,7 +78,7 @@ impl Default for EFrameApp {
             game_board,
             materials: materials.clone(),
             texture,
-            selected_material: materials[4].clone(),
+            selected_material: materials[2].clone(),
             is_stopped: false,
             frame: 0,
             rng: SeedableRng::from_seed(&states[..]),
