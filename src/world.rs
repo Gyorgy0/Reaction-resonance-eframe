@@ -60,6 +60,11 @@ impl Board {
 }
 
 #[inline(always)]
+pub fn get_index(x: i32, y: i32, width: i32) -> usize {
+    y as usize * width as usize + x as usize
+}
+
+#[inline(always)]
 pub fn update_board(
     game_board: &mut Board,
     is_stopped: bool,

@@ -11,12 +11,12 @@ pub fn handle_mouse_input(
 ) {
     let col_count: i32 = game_board.width as i32;
     let cursor_position = response.hover_pos().unwrap_or(pos2(-1024.0, -1024.0));
-    let x = (cursor_position.x - 7.5 + game_board.cellsize.x) / game_board.cellsize.x;
-    let y = (cursor_position.y - 45.0 + game_board.cellsize.y) / game_board.cellsize.y;
+    let x = ((cursor_position.x - 7.5) / game_board.cellsize.x).floor();
+    let y = ((cursor_position.y - 45.0) / game_board.cellsize.y).floor();
     if response.dragged_by(PointerButton::Primary) || response.clicked_by(PointerButton::Primary) {
         let material = selected_material.clone();
-        for i in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
-            for j in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
+        for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
+            for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
                     .get(((i + (y as i32)) * col_count + (j + x as i32)) as usize)
@@ -38,8 +38,8 @@ pub fn handle_mouse_input(
         || response.clicked_by(PointerButton::Secondary)
     {
         let material = VOID.clone();
-        for i in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
-            for j in -(game_board.brushsize / 2) - 1..game_board.brushsize / 2 {
+        for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
+            for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
                     .get(((i + (y as i32)) * col_count + (j + x as i32)) as usize)

@@ -1,6 +1,6 @@
 use crate::{
     chemistry::Material_Type,
-    world::{Board, Material},
+    world::{get_index, Board, Material},
 };
 use egui::Color32;
 use serde::{Deserialize, Serialize};
@@ -491,7 +491,6 @@ impl Board {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
                     let rnd = rng.gen_range(-1_f32, 1_f32);
                     self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.x.signum()
@@ -504,7 +503,7 @@ impl Board {
                     if self.is_in_bounds(j, orientation.signum() * _k)
                         && self
                             .contents
-                            .get((i * col_count + j + (orientation.signum() * _k)) as usize)
+                            .get((get_index(i, j + (orientation.signum() * _k), col_count)))
                             .unwrap_or(&self.contents[cellpos])
                             .material
                             .density

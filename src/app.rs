@@ -45,7 +45,7 @@ impl Default for EFrameApp {
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
-            cellsize: Vec2::new(20.0, 20.0),
+            cellsize: Vec2::new(30.0, 30.0),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -183,13 +183,21 @@ impl eframe::App for EFrameApp {
                 .with_clip_rect(ctx.screen_rect())
                 .rect(
                     Rect::from_min_size(
-                        (((board
+                        ((((board
                             .hover_pos()
                             .unwrap_or(pos2(-1024.0, -1024.0))
-                        .to_vec2().floor()
-                            / vec2(self.game_board.cellsize.x, self.game_board.cellsize.y).floor()).floor())
+                            .to_vec2()
+                            - vec2(7.5, 45.0))
+                            / vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
+                        .floor())
                             * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
-                        .to_pos2().floor()+ vec2(7.5, 45.0),
+                        .to_pos2()
+                        .floor()
+                            + vec2(7.5, 45.0)
+                            - vec2(
+                                self.game_board.cellsize.x * self.game_board.brushsize as f32 * 0.5,
+                                self.game_board.cellsize.y * self.game_board.brushsize as f32 * 0.5,
+                            ),
                         Vec2::new(
                             self.game_board.brushsize as f32 * self.game_board.cellsize.x
                                 + self.game_board.cellsize.x,
