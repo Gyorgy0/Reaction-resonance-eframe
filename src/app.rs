@@ -40,12 +40,12 @@ pub struct EFrameApp {
 impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
-            width: 100,
-            height: 48,
+            width: 512,
+            height: 384,
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
-            cellsize: Vec2::new(30.0, 30.0),
+            cellsize: Vec2::new(2.5, 2.5),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -79,7 +79,7 @@ impl Default for EFrameApp {
             game_board,
             materials: materials.clone(),
             texture,
-            selected_material: materials[0].clone(),
+            selected_material: materials[4].clone(),
             is_stopped: false,
             frame: 0,
             rng: SeedableRng::from_seed(&states[..]),
@@ -187,13 +187,13 @@ impl eframe::App for EFrameApp {
                             .hover_pos()
                             .unwrap_or(pos2(-1024.0, -1024.0))
                             .to_vec2()
-                            - vec2(7.5, 45.0))
+                            - board.interact_rect.min.to_vec2())
                             / vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
                         .floor())
                             * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
                         .to_pos2()
                         .floor()
-                            + vec2(7.5, 45.0)
+                            + board.interact_rect.min.to_vec2()
                             - vec2(
                                 self.game_board.cellsize.x * self.game_board.brushsize as f32 * 0.5,
                                 self.game_board.cellsize.y * self.game_board.brushsize as f32 * 0.5,
@@ -214,7 +214,6 @@ impl eframe::App for EFrameApp {
                 &mut self.game_board,
                 &mut self.selected_material,
                 board.clone(),
-                ctx.clone(),
             );
             handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
             update_board(

@@ -4,6 +4,7 @@ use crate::{
 };
 use egui::Color32;
 use serde::{Deserialize, Serialize};
+use web_sys::js_sys::Reflect::get;
 use xorshift::{Rng, Xorshift128};
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
@@ -74,10 +75,11 @@ impl Board {
                     if self.contents[cellpos].material.density
                         > self
                             .contents
-                            .get(
-                                ((i + (self.gravity.signum() as i32 * _k)) * col_count + j)
-                                    as usize,
-                            )
+                            .get(get_index(
+                                j,
+                                i + (self.gravity.signum() as i32 * _k),
+                                col_count,
+                            ))
                             .unwrap_or(&self.contents[cellpos])
                             .material
                             .density
@@ -88,7 +90,11 @@ impl Board {
                     // Checks if the particle falls inside bounds
                     else if self
                         .contents
-                        .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
+                        .get(get_index(
+                            j,
+                            i + (self.gravity.signum() as i32 * _k),
+                            col_count,
+                        ))
                         .is_none()
                     {
                         self.contents[cellpos].speed.y -= self.gravity * framedelta;
@@ -97,23 +103,29 @@ impl Board {
                     // Checks, whether there is another denser particle in the path of the falling particle
                     else if self
                         .contents
-                        .get(((i + (self.gravity.signum() as i32 * _k)) * col_count + j) as usize)
+                        .get(get_index(
+                            j,
+                            i + (self.gravity.signum() as i32 * _k),
+                            col_count,
+                        ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
                         .phase
                         == Phase::Solid
                         || self
                             .contents
-                            .get(
-                                ((i + (self.gravity.signum() as i32 * _k)
-                                    + self.gravity.signum() as i32)
-                                    * col_count
-                                    + j) as usize,
-                            )
+                            .get(get_index(
+                                j,
+                                i + (self.gravity.signum() as i32 * _k)
+                                    + self.gravity.signum() as i32,
+                                col_count,
+                            ))
                             .unwrap_or(
-                                &self.contents[((i + (self.gravity.signum() as i32 * _k))
-                                    * col_count
-                                    + j) as usize],
+                                &self.contents[get_index(
+                                    j,
+                                    i + (self.gravity.signum() as i32 * _k),
+                                    col_count,
+                                )],
                             )
                             .material
                             .phase
@@ -126,26 +138,32 @@ impl Board {
                 if ychange != 0 {
                     self.contents.swap(
                         cellpos,
-                        ((i + (self.gravity.signum() as i32 * ychange)) * col_count + j) as usize,
+                        get_index(j, i + (self.gravity.signum() as i32 * ychange), col_count),
                     );
                     self.contents[((i + (self.gravity.signum() as i32 * ychange)) * col_count + j) as usize].updated = false;
                 }
                 // This decides where the particle falls (left or right)
-                // Generates u32 between 0 and 2
                 let rnd = rng.gen_range(0, 2);
-                //let rnd = ((rng.next_u32() as f32 / u32::MAX as f32) * 2_f32) as u32;
 
                 if self.contents[cellpos].updated
                     && self
                         .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j + 1) as usize)
+                        .get(get_index(
+                            j + 1,
+                            i + self.gravity.signum() as i32,
+                            col_count,
+                        ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
                         .density
                         < self.contents[cellpos].material.density
                     && self
                         .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j + 1) as usize)
+                        .get(get_index(
+                            j + 1,
+                            i + self.gravity.signum() as i32,
+                            col_count,
+                        ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
                         .phase
@@ -165,23 +183,30 @@ impl Board {
                 {
                     self.contents.swap(
                         cellpos,
-                        (((i + self.gravity.signum() as i32) * col_count) + j + 1) as usize,
+                        get_index(j + 1, i + self.gravity.signum() as i32, col_count),
                     );
-                    self.contents
-                        [(((i + self.gravity.signum() as i32) * col_count) + j + 1) as usize]
+                    self.contents[get_index(j + 1, i + self.gravity.signum() as i32, col_count)]
                         .updated = false;
                 }
                 if self.contents[cellpos].updated
                     && self
                         .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j - 1) as usize)
+                        .get(get_index(
+                            j - 1,
+                            i + self.gravity.signum() as i32,
+                            col_count,
+                        ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
                         .density
                         < self.contents[cellpos].material.density
                     && self
                         .contents
-                        .get((((i + self.gravity.signum() as i32) * col_count) + j - 1) as usize)
+                        .get(get_index(
+                            j - 1,
+                            i + self.gravity.signum() as i32,
+                            col_count,
+                        ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
                         .phase
@@ -201,10 +226,9 @@ impl Board {
                 {
                     self.contents.swap(
                         cellpos,
-                        (((i + self.gravity.signum() as i32) * col_count) + j - 1) as usize,
+                        get_index(j - 1, i + self.gravity.signum() as i32, col_count),
                     );
-                    self.contents
-                        [(((i + self.gravity.signum() as i32) * col_count) + j - 1) as usize]
+                    self.contents[get_index(j - 1, i + self.gravity.signum() as i32, col_count)]
                         .updated = false;
                 }
                 // This marks that the particle's position has been calculated
@@ -299,8 +323,6 @@ impl Board {
                 if self.contents[cellpos].speed.x.abs() > 1.0 {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
-                    // Rand range: (-1.0..1.0)
-                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
                     let rnd = rng.gen_range(-1_f32, 1_f32);
                     if rnd.abs()
                         >= (1_f32

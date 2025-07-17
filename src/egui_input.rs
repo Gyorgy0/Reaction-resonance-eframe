@@ -7,23 +7,24 @@ pub fn handle_mouse_input(
     game_board: &mut Board,
     selected_material: &mut Material,
     response: Response,
-    ctx: egui::Context,
 ) {
     let col_count: i32 = game_board.width as i32;
     let cursor_position = response.hover_pos().unwrap_or(pos2(-1024.0, -1024.0));
-    let x = ((cursor_position.x - 7.5) / game_board.cellsize.x).floor();
-    let y = ((cursor_position.y - 45.0) / game_board.cellsize.y).floor();
+    let pos = ((cursor_position - response.interact_rect.min) / game_board.cellsize)
+        .floor()
+        .to_pos2();
     if response.dragged_by(PointerButton::Primary) || response.clicked_by(PointerButton::Primary) {
         let material = selected_material.clone();
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
-                    .get(((i + (y as i32)) * col_count + (j + x as i32)) as usize)
+                    .get(((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize)
                     .is_some()
-                    && game_board.is_in_bounds(x as i32, j)
+                    && game_board.is_in_bounds(pos.x as i32, j)
                 {
-                    game_board.contents[((i + (y as i32)) * col_count + (j + x as i32)) as usize] =
+                    game_board.contents
+                        [((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize] =
                         Particle {
                             material: material.clone(),
                             speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
@@ -42,11 +43,12 @@ pub fn handle_mouse_input(
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
-                    .get(((i + (y as i32)) * col_count + (j + x as i32)) as usize)
+                    .get(((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize)
                     .is_some()
-                    && game_board.is_in_bounds(x as i32, j)
+                    && game_board.is_in_bounds(pos.x as i32, j)
                 {
-                    game_board.contents[((i + (y as i32)) * col_count + (j + x as i32)) as usize] =
+                    game_board.contents
+                        [((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize] =
                         Particle {
                             material: material.clone(),
                             speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
@@ -59,7 +61,7 @@ pub fn handle_mouse_input(
         }
     };
     // Brush resizing with mouse scroll
-    let mouse_scroll = ctx.input(|input| input.raw_scroll_delta);
+    let mouse_scroll = response.ctx.input(|input| input.raw_scroll_delta);
     if mouse_scroll.y.abs() >= 0.1
         && ((game_board.brushsize > 1 && mouse_scroll.y.signum() == -1.0)
             || (game_board.brushsize < 256 && mouse_scroll.y.signum() == 1.0))
