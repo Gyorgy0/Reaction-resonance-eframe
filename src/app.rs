@@ -7,13 +7,14 @@ use crate::{
     chemistry::Material_Type,
     egui_input::{handle_key_inputs, handle_mouse_input},
     physics::Phase,
-    world::{update_board, Board, Material},
+    world::{update_board, Board, Material, Particle},
 };
 use egui::{
     emath::GuiRounding, load, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image,
     LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals,
 };
 use env_logger::fmt::style::{Color, RgbColor};
+use reqwest;
 use serde::Serialize;
 use xorshift::{SeedableRng, Xorshift128};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -63,8 +64,12 @@ impl Default for EFrameApp {
 
         #[cfg(target_arch = "wasm32")]
         {
-            
         }
+
+        let client = reqwest::blocking::Client::new();
+        let request = client.get("https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/gas.json").header("Accept", "application/json").header("User-Agent", "Reaction-resonance-appa").send().unwrap().text_with_charset("UTF-8");
+        //println!("{:?}", request.unwrap());
+        let res_json:Vec<Material> = serde_json::from_str(request.unwrap().as_str()).unwrap();
 
         let mut materials: Vec<Material> = vec![];
         for path in paths {
@@ -78,7 +83,7 @@ impl Default for EFrameApp {
             game_board,
             materials: materials.clone(),
             texture,
-            selected_material: materials[2].clone(),
+            selected_material: res_json.first().unwrap().clone(),//materials[2].clone(),
             is_stopped: false,
             frame: 0,
             rng: SeedableRng::from_seed(&states[..]),
