@@ -6,16 +6,15 @@ use std::{
 use crate::{
     chemistry::Material_Type,
     egui_input::{handle_key_inputs, handle_mouse_input},
+    http_request::get_req,
     physics::Phase,
-    world::{update_board, Board, Material, Particle},
+    world::{update_board, Board, Material, Particle, VOID},
 };
 use egui::{
     emath::GuiRounding, load, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image,
     LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals,
 };
 use env_logger::fmt::style::{Color, RgbColor};
-use reqwest;
-use serde::Serialize;
 use xorshift::{SeedableRng, Xorshift128};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -60,16 +59,7 @@ impl Default for EFrameApp {
         (0..16 as usize).into_iter().for_each(|num| {
             states[num] = rand::random();
         });
-        let paths = fs::read_dir("src/materials/").unwrap();
-
-        #[cfg(target_arch = "wasm32")]
-        {
-        }
-
-        let client = reqwest::blocking::Client::new();
-        let request = client.get("https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/gas.json").header("Accept", "application/json").header("User-Agent", "Reaction-resonance-appa").send().unwrap().text_with_charset("UTF-8");
-        //println!("{:?}", request.unwrap());
-        let res_json:Vec<Material> = serde_json::from_str(request.unwrap().as_str()).unwrap();
+        /*let paths = fs::read_dir("src/materials/").unwrap();
 
         let mut materials: Vec<Material> = vec![];
         for path in paths {
@@ -78,12 +68,19 @@ impl Default for EFrameApp {
                 serde_json::from_slice(&materials_per_phase.as_slice()).unwrap();
             materials.append(&mut serialized_materials);
         }
+        let res_json = materials[2].clone();*/
+        #[cfg(target_arch = "wasm32")]
+        {
+            use crate::http_request::get_req;
+            get_req();
+        }
+        get_req();
         Self {
             fullscreen: false,
             game_board,
-            materials: materials.clone(),
+            materials: vec![VOID.clone()].clone(),
             texture,
-            selected_material: res_json.first().unwrap().clone(),//materials[2].clone(),
+            selected_material: VOID.clone(),
             is_stopped: false,
             frame: 0,
             rng: SeedableRng::from_seed(&states[..]),
