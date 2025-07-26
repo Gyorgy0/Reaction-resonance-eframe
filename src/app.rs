@@ -12,7 +12,8 @@ use crate::{
 };
 use egui::{
     emath::GuiRounding, load, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image,
-    LayerId, Pos2, Rect, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals,
+    LayerId, Margin, Pos2, Rect, Response, Sense, Stroke, Style, TextureHandle, TextureOptions,
+    Vec2, Visuals,
 };
 use env_logger::fmt::style::{Color, RgbColor};
 use xorshift::{SeedableRng, Xorshift128};
@@ -45,7 +46,7 @@ impl Default for EFrameApp {
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
-            cellsize: Vec2::new(2.5, 2.5),
+            cellsize: Vec2::new(2.0, 2.0),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -59,7 +60,7 @@ impl Default for EFrameApp {
         (0..16 as usize).into_iter().for_each(|num| {
             states[num] = rand::random();
         });
-        /*let paths = fs::read_dir("src/materials/").unwrap();
+        let paths = fs::read_dir("src/materials/").unwrap();
 
         let mut materials: Vec<Material> = vec![];
         for path in paths {
@@ -68,7 +69,7 @@ impl Default for EFrameApp {
                 serde_json::from_slice(&materials_per_phase.as_slice()).unwrap();
             materials.append(&mut serialized_materials);
         }
-        let res_json = materials[2].clone();*/
+        let selected_material = materials[2].clone();
         #[cfg(target_arch = "wasm32")]
         {
             use crate::http_request::get_req;
@@ -78,9 +79,9 @@ impl Default for EFrameApp {
         Self {
             fullscreen: false,
             game_board,
-            materials: vec![VOID.clone()].clone(),
+            materials: materials,
             texture,
-            selected_material: VOID.clone(),
+            selected_material: selected_material,
             is_stopped: false,
             frame: 0,
             rng: SeedableRng::from_seed(&states[..]),
@@ -112,7 +113,7 @@ impl eframe::App for EFrameApp {
 
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
             #[cfg(target_arch = "wasm32")]
             if ui.button("Fullscreen").clicked() {
                 let Some(window) = web_sys::window() else {
@@ -156,7 +157,16 @@ impl eframe::App for EFrameApp {
                 }
             }
             ui.label("FPS: ".to_owned() + &ui.input(|i| (1.0 / i.unstable_dt).to_string()));
-
+        });
+        egui::TopBottomPanel::bottom(Id::new("bottom panel")).show(ctx, |ui| {
+            egui::ScrollArea::new([false, true]).show(ui, |ui| {
+                ui.vertical(|ui| {
+                    if ui.button("asd").clicked() {}
+                    if ui.button("asd").clicked() {}
+                });
+            });
+        });
+        egui::CentralPanel::default().show(ctx, |ui| {
             let mut pixels: Vec<u8> = self.game_board.draw_board();
             let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied(
                 [
@@ -170,53 +180,126 @@ impl eframe::App for EFrameApp {
                 .set(frameimage.clone(), TextureOptions::NEAREST);
             let sized_texture =
                 load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
-            let board = ui.add(
-                Image::new(Image::source(&Image::from_texture(sized_texture), ui.ctx()))
-                    .fit_to_exact_size(Vec2::new(
-                        self.game_board.width as f32 * self.game_board.cellsize.x,
-                        self.game_board.height as f32 * self.game_board.cellsize.y,
-                    ))
-                    .sense(Sense::click_and_drag()),
-            );
-            ui.painter()
-                .clone()
-                .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
-                .with_clip_rect(ctx.screen_rect())
-                .rect(
-                    Rect::from_min_size(
-                        ((((board
-                            .hover_pos()
-                            .unwrap_or(pos2(-1024.0, -1024.0))
-                            .to_vec2()
-                            - board.interact_rect.min.to_vec2())
-                            / vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
-                        .floor())
-                            * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
-                        .to_pos2()
-                        .floor()
-                            + board.interact_rect.min.to_vec2()
-                            - vec2(
-                                self.game_board.cellsize.x * self.game_board.brushsize as f32 * 0.5,
-                                self.game_board.cellsize.y * self.game_board.brushsize as f32 * 0.5,
+            let binding = Image::from_texture(sized_texture);
+            let board_display = Image::new(Image::source(&binding, ui.ctx()))
+                .fit_to_exact_size(Vec2::new(
+                    self.game_board.width as f32 * self.game_board.cellsize.x,
+                    self.game_board.height as f32 * self.game_board.cellsize.y,
+                ))
+                .sense(Sense::click_and_drag());
+            let width = ui.max_rect().width();
+            let height = ui.max_rect().height();
+            if width
+                < (height * (self.game_board.width as f32 / self.game_board.height as f32)).ceil()
+            {
+                ui.horizontal_centered(|ui| {
+                    let board = ui.add(board_display);
+                    self.game_board.cellsize = vec2(
+                        width / self.game_board.width as f32,
+                        width / self.game_board.width as f32,
+                    );
+                    ui.painter()
+                        .clone()
+                        .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
+                        .with_clip_rect(ctx.screen_rect())
+                        .rect(
+                            Rect::from_min_size(
+                                ((((board
+                                    .hover_pos()
+                                    .unwrap_or(pos2(-1024.0, -1024.0))
+                                    .to_vec2()
+                                    - board.interact_rect.min.to_vec2())
+                                    / vec2(
+                                        self.game_board.cellsize.x,
+                                        self.game_board.cellsize.y,
+                                    ))
+                                .floor())
+                                    * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
+                                .to_pos2()
+                                .floor()
+                                    + board.interact_rect.min.to_vec2()
+                                    - vec2(
+                                        self.game_board.cellsize.x
+                                            * self.game_board.brushsize as f32
+                                            * 0.5,
+                                        self.game_board.cellsize.y
+                                            * self.game_board.brushsize as f32
+                                            * 0.5,
+                                    ),
+                                Vec2::new(
+                                    self.game_board.brushsize as f32 * self.game_board.cellsize.x
+                                        + self.game_board.cellsize.x,
+                                    self.game_board.brushsize as f32 * self.game_board.cellsize.y
+                                        + self.game_board.cellsize.y,
+                                ),
                             ),
-                        Vec2::new(
-                            self.game_board.brushsize as f32 * self.game_board.cellsize.x
-                                + self.game_board.cellsize.x,
-                            self.game_board.brushsize as f32 * self.game_board.cellsize.y
-                                + self.game_board.cellsize.y,
-                        ),
-                    ),
-                    1.0,
-                    Color32::from_black_alpha(100),
-                    Stroke::new(2.0, Color32::WHITE),
-                    egui::StrokeKind::Outside,
-                );
-            handle_mouse_input(
-                &mut self.game_board,
-                &mut self.selected_material,
-                board.clone(),
-            );
-            handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
+                            1.0,
+                            Color32::from_black_alpha(100),
+                            Stroke::new(2.0, Color32::WHITE),
+                            egui::StrokeKind::Outside,
+                        );
+                    handle_mouse_input(
+                        &mut self.game_board,
+                        &mut self.selected_material,
+                        board.clone(),
+                    );
+                    handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
+                });
+            } else {
+                ui.vertical_centered(|ui| {
+                    let board = ui.add(board_display);
+                    self.game_board.cellsize = vec2(
+                        height / self.game_board.height as f32,
+                        height / self.game_board.height as f32,
+                    );
+                    ui.painter()
+                        .clone()
+                        .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
+                        .with_clip_rect(ctx.screen_rect())
+                        .rect(
+                            Rect::from_min_size(
+                                ((((board
+                                    .hover_pos()
+                                    .unwrap_or(pos2(-1024.0, -1024.0))
+                                    .to_vec2()
+                                    - board.interact_rect.min.to_vec2())
+                                    / vec2(
+                                        self.game_board.cellsize.x,
+                                        self.game_board.cellsize.y,
+                                    ))
+                                .floor())
+                                    * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
+                                .to_pos2()
+                                .floor()
+                                    + board.interact_rect.min.to_vec2()
+                                    - vec2(
+                                        self.game_board.cellsize.x
+                                            * self.game_board.brushsize as f32
+                                            * 0.5,
+                                        self.game_board.cellsize.y
+                                            * self.game_board.brushsize as f32
+                                            * 0.5,
+                                    ),
+                                Vec2::new(
+                                    self.game_board.brushsize as f32 * self.game_board.cellsize.x
+                                        + self.game_board.cellsize.x,
+                                    self.game_board.brushsize as f32 * self.game_board.cellsize.y
+                                        + self.game_board.cellsize.y,
+                                ),
+                            ),
+                            1.0,
+                            Color32::from_black_alpha(100),
+                            Stroke::new(2.0, Color32::WHITE),
+                            egui::StrokeKind::Outside,
+                        );
+                    handle_mouse_input(
+                        &mut self.game_board,
+                        &mut self.selected_material,
+                        board.clone(),
+                    );
+                    handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
+                });
+            }
             update_board(
                 &mut self.game_board,
                 self.is_stopped,
