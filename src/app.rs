@@ -1,6 +1,7 @@
 use std::{
     default,
-    fs::{self, File}, sync::Arc,
+    fs::{self, File},
+    sync::Arc,
 };
 
 use crate::{
@@ -11,7 +12,7 @@ use crate::{
     world::{update_board, Board, Material, Particle, VOID},
 };
 use egui::{
-    emath::GuiRounding, load, mutex::Mutex, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image, LayerId, Margin, Pos2, Rect, Response, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
+    emath::GuiRounding, load, mutex::Mutex, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image, LayerId, Margin, Pos2, Rect, Response, RichText, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
 };
 use env_logger::fmt::style::{Color, RgbColor};
 use log::debug;
@@ -36,7 +37,7 @@ pub struct EFrameApp {
     #[serde(skip)]
     rng: Xorshift128,
     #[serde(skip)]
-    response_text: std::sync::Arc<std::sync::Mutex<String>>,
+    response_text: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
 }
 
 impl Default for EFrameApp {
@@ -73,11 +74,10 @@ impl Default for EFrameApp {
                 materials.append(&mut serialized_materials);
             }
         }
-        let response_text = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
+        let response_text = std::sync::Arc::new(std::sync::Mutex::new(vec![]));
         #[cfg(target_arch = "wasm32")]
         {
             use crate::http_request::get_req;
-            //materials = serde_json::from_str(&get_req()).unwrap();
             get_req(response_text.clone());
         }
         let selected_material = VOID.clone();
@@ -119,6 +119,19 @@ impl eframe::App for EFrameApp {
 
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        #[cfg(target_arch = "wasm32")]
+        // Passed values of http requests
+        {
+            if !self.response_text.lock().unwrap().is_empty() {
+                debug!("{:?}", self.response_text.lock().unwrap());
+                let mut materials_response: Vec<Material> =
+                    serde_json::from_str(&self.response_text.lock().unwrap().pop().unwrap())
+                        .unwrap();
+                self.materials.append(&mut materials_response);
+                self.selected_material = self.materials.last().unwrap().clone();
+                debug!("{:?}", self.response_text.lock().unwrap());
+            }
+        }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
             #[cfg(target_arch = "wasm32")]
             if ui.button("Fullscreen").clicked() {
@@ -164,23 +177,24 @@ impl eframe::App for EFrameApp {
             }
             ui.label("FPS: ".to_owned() + &ui.input(|i| (1.0 / i.unstable_dt).to_string()));
         });
-        #[cfg(target_arch = "wasm32")]
-        // Passed values of http requests
-        {
-            if !self.response_text.lock().unwrap().is_empty() {
-            let materials_response: Vec<Material> = serde_json::from_str(&self.response_text.lock().unwrap()).unwrap();
-            self.materials = materials_response;
-            self.selected_material = self.materials[0].clone();
-            }
-        }
-        egui::TopBottomPanel::bottom(Id::new("bottom panel")).show(ctx, |ui| {
-            egui::ScrollArea::new([false, true]).show(ui, |ui| {
-                ui.vertical(|ui| {
-                    if ui.button("asd").clicked() {}
-                    if ui.button("asd").clicked() {}
+        egui::TopBottomPanel::bottom(Id::new("bottom panel"))
+            .exact_height(50.0)
+            .show(ctx, |ui| {
+                egui::ScrollArea::new([false, true]).show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        self.materials.iter().for_each(|material| {
+                            if ui
+                                .add(
+                                    egui::Button::new(RichText::new(material.name.clone()).size(20.0).color(Color32::WHITE).strong()).min_size(vec2(Default::default(), 35.0)).stroke(Stroke::new(1.0, material.color))
+                                )
+                                .clicked()
+                            {
+                                self.selected_material = material.clone();
+                            }
+                        });
+                    });
                 });
             });
-        });
         egui::CentralPanel::default().show(ctx, |ui| {
             let mut pixels: Vec<u8> = self.game_board.draw_board();
             let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied(

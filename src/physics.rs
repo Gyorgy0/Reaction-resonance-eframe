@@ -469,13 +469,14 @@ impl Board {
                             .material
                             .density
                             <= self.contents[cellpos].material.density
-                        && (self
-                            .contents
-                            .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
-                            .unwrap_or(&self.contents[cellpos])
-                            .material
-                            .phase
-                            != Phase::Solid
+                        && (std::mem::discriminant(
+                            &self
+                                .contents
+                                .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
+                                .unwrap_or(&self.contents[cellpos])
+                                .material
+                                .phase,
+                        ) != std::mem::discriminant(&Phase::Solid)
                             || std::mem::discriminant(
                                 &self
                                     .contents
@@ -487,13 +488,17 @@ impl Board {
                                     .material
                                     .phase,
                             ) != std::mem::discriminant(&(Phase::Powder { coarseness: 0_f32 }))
-                            || self
-                                .contents
-                                .get(((i + (orientation.signum() * _k)) * col_count + j) as usize)
-                                .unwrap_or(&self.contents[cellpos])
-                                .material
-                                .phase
-                                != (Phase::Liquid { viscosity: 0_f32 }))
+                            || std::mem::discriminant(
+                                &self
+                                    .contents
+                                    .get(
+                                        ((i + (orientation.signum() * _k)) * col_count + j)
+                                            as usize,
+                                    )
+                                    .unwrap_or(&self.contents[cellpos])
+                                    .material
+                                    .phase,
+                            ) != std::mem::discriminant(&Phase::Liquid { viscosity: 0_f32 }))
                     {
                         self.contents.swap(
                             cellpos,
@@ -502,9 +507,6 @@ impl Board {
                         self.contents
                             [(((i + (orientation.signum() * _k)) * col_count) + j) as usize]
                             .updated = true;
-                    } else {
-                        self.contents[cellpos].speed.y *= -1.0;
-                        break;
                     }
                 }
                 orientation = 0;
@@ -525,18 +527,19 @@ impl Board {
                     if self.is_in_bounds(j, orientation.signum() * _k)
                         && self
                             .contents
-                            .get((get_index(i, j + (orientation.signum() * _k), col_count)))
+                            .get((i * col_count + j + (orientation.signum() * _k)) as usize)
                             .unwrap_or(&self.contents[cellpos])
                             .material
                             .density
                             <= self.contents[cellpos].material.density
-                        && (self
-                            .contents
-                            .get((i * col_count + j + (orientation.signum() * _k)) as usize)
-                            .unwrap_or(&self.contents[cellpos])
-                            .material
-                            .phase
-                            != Phase::Solid
+                        && (std::mem::discriminant(
+                            &self
+                                .contents
+                                .get((i * col_count + j + (orientation.signum() * _k)) as usize)
+                                .unwrap_or(&self.contents[cellpos])
+                                .material
+                                .phase,
+                        ) != std::mem::discriminant(&Phase::Solid)
                             || std::mem::discriminant(
                                 &self
                                     .contents
@@ -561,9 +564,6 @@ impl Board {
                         self.contents
                             [((i * col_count) + j + (orientation.signum() * _k)) as usize]
                             .updated = true;
-                    } else {
-                        self.contents[cellpos].speed.x *= -1.0;
-                        break;
                     }
                 }
                 // This marks that the particle's position has been calculated
