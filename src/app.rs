@@ -12,7 +12,9 @@ use crate::{
     world::{update_board, Board, Material, Particle, VOID},
 };
 use egui::{
-    emath::GuiRounding, load, mutex::Mutex, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image, LayerId, Margin, Pos2, Rect, Response, RichText, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
+    emath::GuiRounding, load, mutex::Mutex, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id,
+    Image, LayerId, Margin, Pos2, Rect, Response, RichText, Sense, Stroke, Style, TextureHandle,
+    TextureOptions, Vec2, Visuals,
 };
 use env_logger::fmt::style::{Color, RgbColor};
 use log::debug;
@@ -133,48 +135,78 @@ impl eframe::App for EFrameApp {
             }
         }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
-            #[cfg(target_arch = "wasm32")]
-            if ui.button("Fullscreen").clicked() {
-                let Some(window) = web_sys::window() else {
-                    return;
-                };
-                let Some(document) = window.document() else {
-                    return;
-                };
-                if self.fullscreen {
-                    let _ = document.exit_fullscreen();
+            ui.horizontal(|ui| {
+                if ui.button(RichText::new("Fullscreen").size(20.0)).clicked() {
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        let Some(window) = web_sys::window() else {
+                            return;
+                        };
+                        let Some(document) = window.document() else {
+                            return;
+                        };
+                        if self.fullscreen {
+                            let _ = document.exit_fullscreen();
 
-                    let Ok(screen) = window.screen() else {
-                        return;
-                    };
-                    let _ = screen.orientation().unlock();
+                            let Ok(screen) = window.screen() else {
+                                return;
+                            };
+                            let _ = screen.orientation().unlock();
 
-                    self.fullscreen = false;
-                } else {
-                    let Some(element) = document.document_element() else {
-                        return;
-                    };
-                    let _ = element.request_fullscreen();
+                            self.fullscreen = false;
+                        } else {
+                            let Some(element) = document.document_element() else {
+                                return;
+                            };
+                            let _ = element.request_fullscreen();
 
-                    let Ok(screen) = window.screen() else {
-                        return;
-                    };
-                    let _ = screen
-                        .orientation()
-                        .lock(web_sys::OrientationLockType::Landscape);
-                    self.fullscreen = true;
+                            let Ok(screen) = window.screen() else {
+                                return;
+                            };
+                            let _ = screen
+                                .orientation()
+                                .lock(web_sys::OrientationLockType::Landscape);
+                            self.fullscreen = true;
+                        }
+                    }
+                    #[cfg(not(target_arch = "wasm32"))]
+                    {
+                        if !self.fullscreen {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(true));
+                            self.fullscreen = true;
+                        } else {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
+                            self.fullscreen = false
+                        }
+                    }
                 }
-            }
-            #[cfg(not(target_arch = "wasm32"))]
-            if ui.button("Fullscreen").clicked() {
-                if !self.fullscreen {
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(true));
-                    self.fullscreen = true;
-                } else {
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
-                    self.fullscreen = false
+                ui.horizontal(|ui| {
+                    if ui.button(RichText::new("<").size(20.0)).clicked() {
+                        if self.game_board.brushsize > 2 {
+                            self.game_board.brushsize -= 2;
+                        }
+                    }
+                    ui.label(
+                        RichText::new(format!("Brush size: {:?}", self.game_board.brushsize))
+                            .size(20.0),
+                    );
+                    if ui.button(RichText::new(">").size(20.0)).clicked() {
+                        if self.game_board.brushsize < 256 {
+                            self.game_board.brushsize += 2;
+                        }
+                    }
+                });
+                if ui
+                    .button(
+                        RichText::new("Reset")
+                            .size(20.0)
+                            .background_color(Color32::DARK_RED),
+                    )
+                    .clicked()
+                {
+                    self.game_board.create_board();
                 }
-            }
+            });
             ui.label("FPS: ".to_owned() + &ui.input(|i| (1.0 / i.unstable_dt).to_string()));
         });
         egui::TopBottomPanel::bottom(Id::new("bottom panel"))
@@ -185,7 +217,14 @@ impl eframe::App for EFrameApp {
                         self.materials.iter().for_each(|material| {
                             if ui
                                 .add(
-                                    egui::Button::new(RichText::new(material.name.clone()).size(20.0).color(Color32::WHITE).strong()).min_size(vec2(Default::default(), 35.0)).stroke(Stroke::new(1.0, material.color))
+                                    egui::Button::new(
+                                        RichText::new(material.name.clone())
+                                            .size(20.0)
+                                            .color(Color32::WHITE)
+                                            .strong(),
+                                    )
+                                    .min_size(vec2(Default::default(), 35.0))
+                                    .stroke(Stroke::new(1.0, material.color)),
                                 )
                                 .clicked()
                             {
