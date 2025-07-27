@@ -182,12 +182,12 @@ impl eframe::App for EFrameApp {
                 }
                 ui.horizontal(|ui| {
                     if ui.button(RichText::new("<").size(20.0)).clicked() {
-                        if self.game_board.brushsize > 2 {
+                        if self.game_board.brushsize > 0 {
                             self.game_board.brushsize -= 2;
                         }
                     }
                     ui.label(
-                        RichText::new(format!("Brush size: {:?}", self.game_board.brushsize))
+                        RichText::new(format!("Brush size: {:03}", self.game_board.brushsize))
                             .size(20.0),
                     );
                     if ui.button(RichText::new(">").size(20.0)).clicked() {
