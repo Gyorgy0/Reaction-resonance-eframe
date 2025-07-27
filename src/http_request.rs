@@ -1,19 +1,16 @@
-use egui::TextBuffer;
+use eframe::glow::FRACTIONAL_EVEN;
+use egui::{response, text, TextBuffer};
+use ehttp::Response;
+use futures::TryFutureExt;
 use log::debug;
 use serde_json::json;
+use std::sync::{mpsc::channel, Arc, Mutex};
 
-pub fn get_req() {
-    /*let request = ehttp::Request::get("https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/gas.json");
+pub fn get_req(response_text: Arc<Mutex<String>>) {
+    let request = ehttp::Request::get("https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/liquid.json");
+    let response_text_clone = Arc::clone(&response_text);
     ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
-        debug!("{:?}", result.unwrap().text().unwrap());
-    });*/
-    let request = ehttp::Request::get(
-        "https://api.github.com/repos/Gyorgy0/Reaction-resonance-release/contents/materials",
-    );
-    ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
-        let binding = result.unwrap();
-        let resp = binding.text().unwrap();
-        let asd: serde_json::Value = serde_json::from_str(resp).unwrap();
-        println!("{:?}", asd);
+        let mut response = result.unwrap();
+        *response_text_clone.lock().unwrap() = response.text().unwrap().to_owned();
     });
 }

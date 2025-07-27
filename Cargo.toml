@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-async-std = "1.13.1"
 eframe = { version = "0.31.0", features = ["glow", "persistence", "wayland"] }
 egui = { version = "0.31.0", features = ["serde"] }
 ehttp = "0.5.0"
 env_logger = "0.11.6"
+eventuals = "0.6.7"
 futures = { version = "0.3.31", features = ["compat"] }
 getrandom = { version = "0.3.3", features = ["wasm_js"] }
 log = "0.4.25"
@@ -18,6 +18,7 @@ rayon = "1.10.0"
 reqwest-wasm = { version = "0.11.16", features = ["blocking"] }
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.140"
+tokio = { version = "1.47.0", features = ["sync"] }
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
 web-sys = { version = "0.3.77", features = ["Element", "Document", "Window", "OrientationLockType", "Screen", "ScreenOrientation", "RequestInit", "Request", "Headers", "ReferrerPolicy"] }

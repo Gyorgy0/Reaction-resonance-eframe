@@ -1,6 +1,6 @@
 use std::{
     default,
-    fs::{self, File},
+    fs::{self, File}, sync::Arc,
 };
 
 use crate::{
@@ -11,11 +11,10 @@ use crate::{
     world::{update_board, Board, Material, Particle, VOID},
 };
 use egui::{
-    emath::GuiRounding, load, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image,
-    LayerId, Margin, Pos2, Rect, Response, Sense, Stroke, Style, TextureHandle, TextureOptions,
-    Vec2, Visuals,
+    emath::GuiRounding, load, mutex::Mutex, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id, Image, LayerId, Margin, Pos2, Rect, Response, Sense, Stroke, Style, TextureHandle, TextureOptions, Vec2, Visuals
 };
 use env_logger::fmt::style::{Color, RgbColor};
+use log::debug;
 use xorshift::{SeedableRng, Xorshift128};
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -36,6 +35,8 @@ pub struct EFrameApp {
     frame: u8,
     #[serde(skip)]
     rng: Xorshift128,
+    #[serde(skip)]
+    response_text: std::sync::Arc<std::sync::Mutex<String>>,
 }
 
 impl Default for EFrameApp {
@@ -60,22 +61,26 @@ impl Default for EFrameApp {
         (0..16 as usize).into_iter().for_each(|num| {
             states[num] = rand::random();
         });
-        let paths = fs::read_dir("src/materials/").unwrap();
-
         let mut materials: Vec<Material> = vec![];
-        for path in paths {
-            let materials_per_phase = fs::read(path.unwrap().path().display().to_string()).unwrap();
-            let mut serialized_materials: Vec<Material> =
-                serde_json::from_slice(&materials_per_phase.as_slice()).unwrap();
-            materials.append(&mut serialized_materials);
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let paths = fs::read_dir("src/materials/").unwrap();
+            for path in paths {
+                let materials_per_phase =
+                    fs::read(path.unwrap().path().display().to_string()).unwrap();
+                let mut serialized_materials: Vec<Material> =
+                    serde_json::from_slice(&materials_per_phase.as_slice()).unwrap();
+                materials.append(&mut serialized_materials);
+            }
         }
-        let selected_material = materials[2].clone();
+        let response_text = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
         #[cfg(target_arch = "wasm32")]
         {
             use crate::http_request::get_req;
-            get_req();
+            //materials = serde_json::from_str(&get_req()).unwrap();
+            get_req(response_text.clone());
         }
-        get_req();
+        let selected_material = VOID.clone();
         Self {
             fullscreen: false,
             game_board,
@@ -85,6 +90,7 @@ impl Default for EFrameApp {
             is_stopped: false,
             frame: 0,
             rng: SeedableRng::from_seed(&states[..]),
+            response_text: response_text.clone(),
         }
     }
 }
@@ -158,6 +164,15 @@ impl eframe::App for EFrameApp {
             }
             ui.label("FPS: ".to_owned() + &ui.input(|i| (1.0 / i.unstable_dt).to_string()));
         });
+        #[cfg(target_arch = "wasm32")]
+        // Passed values of http requests
+        {
+            if !self.response_text.lock().unwrap().is_empty() {
+            let materials_response: Vec<Material> = serde_json::from_str(&self.response_text.lock().unwrap()).unwrap();
+            self.materials = materials_response;
+            self.selected_material = self.materials[0].clone();
+            }
+        }
         egui::TopBottomPanel::bottom(Id::new("bottom panel")).show(ctx, |ui| {
             egui::ScrollArea::new([false, true]).show(ui, |ui| {
                 ui.vertical(|ui| {
