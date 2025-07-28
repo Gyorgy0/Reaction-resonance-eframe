@@ -26,7 +26,6 @@ impl Board {
         i: i32,
         j: i32,
         framedelta: f32,
-        rng: &mut Xorshift128,
     ) {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;

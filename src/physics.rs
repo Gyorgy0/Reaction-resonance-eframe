@@ -55,7 +55,6 @@ impl Board {
         i: i32,
         j: i32,
         framedelta: f32,
-        rng: &mut Xorshift128,
     ) {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;
@@ -143,7 +142,7 @@ impl Board {
                     self.contents[((i + (self.gravity.signum() as i32 * ychange)) * col_count + j) as usize].updated = false;
                 }
                 // This decides where the particle falls (left or right)
-                let rnd = rng.gen_range(0, 2);
+                let rnd = self.rngs[cellpos];
 
                 if self.contents[cellpos].updated
                     && self
@@ -168,7 +167,7 @@ impl Board {
                         .material
                         .phase
                         != Phase::Solid
-                    && self.contents[cellpos].seed
+                    && self.contents[cellpos].temperature // SEED needs to be implemented!!!
                         >= ((1_f32
                             - self.contents[cellpos]
                                 .material
@@ -179,7 +178,7 @@ impl Board {
                         .sqrt())
                         .powi(8)
                     && self.is_in_bounds(j, 1)
-                    && rnd == 0
+                    && rnd.signum() == -1.0
                 {
                     self.contents.swap(
                         cellpos,
@@ -211,7 +210,7 @@ impl Board {
                         .material
                         .phase
                         != Phase::Solid
-                    && self.contents[cellpos].seed
+                    && self.contents[cellpos].temperature // SEED needs to be implemented
                         >= ((1_f32
                             - self.contents[cellpos]
                                 .material
@@ -222,7 +221,7 @@ impl Board {
                         .sqrt())
                         .powi(8)
                     && self.is_in_bounds(j, -1)
-                    && rnd == 1
+                    && rnd.signum() == 1.0
                 {
                     self.contents.swap(
                         cellpos,
@@ -323,7 +322,7 @@ impl Board {
                 if self.contents[cellpos].speed.x.abs() > 1.0 {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
-                    let rnd = rng.gen_range(-1_f32, 1_f32);
+                    let rnd = self.rngs[cellpos];
                     if rnd.abs()
                         >= (1_f32
                             - self.contents[cellpos]
@@ -448,8 +447,7 @@ impl Board {
                     self.contents[cellpos].speed.y = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
-                    let rnd = rng.gen_range(-1_f32, 1_f32);
+                    let rnd = self.rngs[cellpos];
                     self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.y.signum()
                         * (self.contents[cellpos].speed.y.abs() + 1.0))
@@ -515,7 +513,7 @@ impl Board {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    let rnd = rng.gen_range(-1_f32, 1_f32);
+                    let rnd = self.rngs[cellpos];
                     self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.x.signum()
                         * (self.contents[cellpos].speed.x.abs() + 1.0))
@@ -596,8 +594,7 @@ impl Board {
                     self.contents[cellpos].speed.y = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
-                    let rnd = rng.gen_range(-1_f32, 1_f32);
+                    let rnd = self.rngs[cellpos];
                     self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.y.signum()
                         * (self.contents[cellpos].speed.y.abs() + 1.0))
@@ -661,8 +658,7 @@ impl Board {
                     self.contents[cellpos].speed.x = 0.0;
                 } else {
                     // Rand range: (-1.0..1.0)
-                    //let rnd = (rng.next_u32() as f32 / u32::MAX as f32) * 2_f32 - 1_f32;
-                    let rnd = rng.gen_range(-1_f32, 1_f32);
+                    let rnd = self.rngs[cellpos];
                     self.contents[cellpos].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[cellpos].speed.x.signum()
                         * (self.contents[cellpos].speed.x.abs() + 1.0))

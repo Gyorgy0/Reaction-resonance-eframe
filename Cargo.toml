@@ -27,6 +27,7 @@ xorshift = "0.1.3"
 
 [profile.release]
 opt-level = 's'
+debug = true
 # 20-30 fps improvement - long compile time
 #lto = true
 codegen-units = 1

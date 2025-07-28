@@ -18,7 +18,7 @@ use egui::{
 };
 use env_logger::fmt::style::{Color, RgbColor};
 use log::debug;
-use xorshift::{SeedableRng, Xorshift128};
+use rand::SeedableRng;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -37,7 +37,7 @@ pub struct EFrameApp {
     #[serde(skip)]
     frame: u8,
     #[serde(skip)]
-    rng: Xorshift128,
+    rng: rand::rngs::SmallRng,
     #[serde(skip)]
     response_text: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
 }
@@ -45,12 +45,15 @@ pub struct EFrameApp {
 impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
+            rng: rand::rngs::SmallRng::from_os_rng(),
             width: 512,
             height: 256,
             contents: vec![],
             gravity: 9.81,
             brushsize: 10,
             cellsize: Vec2::new(2.0, 2.0),
+            rngs: vec![],
+            seeds: vec![],
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -59,11 +62,6 @@ impl Default for EFrameApp {
             ColorImage::example(),
             TextureOptions::NEAREST,
         );
-        // Seeding the rng
-        let mut states: [u64; 16] = [0; 16];
-        (0..16 as usize).into_iter().for_each(|num| {
-            states[num] = rand::random();
-        });
         let mut materials: Vec<Material> = vec![];
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -91,7 +89,7 @@ impl Default for EFrameApp {
             selected_material: selected_material,
             is_stopped: false,
             frame: 0,
-            rng: SeedableRng::from_seed(&states[..]),
+            rng: rand::rngs::SmallRng::from_os_rng(),
             response_text: response_text.clone(),
         }
     }

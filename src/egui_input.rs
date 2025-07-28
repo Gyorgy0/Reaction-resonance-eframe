@@ -30,7 +30,6 @@ pub fn handle_mouse_input(
                             speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                             temperature: 20.0,
                             updated: true,
-                            seed: rand::random_range(0.0..1.0),
                         }
                 }
             }
@@ -54,7 +53,6 @@ pub fn handle_mouse_input(
                             speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                             temperature: 20.0,
                             updated: true,
-                            seed: rand::random_range(0.0..1.0),
                         }
                 }
             }
