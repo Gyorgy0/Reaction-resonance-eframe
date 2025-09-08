@@ -1,0 +1,1 @@
+cargo apk run --package "reaction-resonance-eframe" --lib

@@ -4,8 +4,6 @@ use crate::{
 };
 use egui::Color32;
 use serde::{Deserialize, Serialize};
-use web_sys::js_sys::Reflect::get;
-use xorshift::{Rng, Xorshift128};
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
 pub enum Phase {
@@ -50,12 +48,7 @@ impl Board {
         }
     }
     #[inline(always)]
-    pub(crate) fn solve_particle(
-        &mut self,
-        i: i32,
-        j: i32,
-        framedelta: f32,
-    ) {
+    pub(crate) fn solve_particle(&mut self, i: i32, j: i32, framedelta: f32) {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;
         match self.contents[cellpos].material.phase {
@@ -75,9 +68,9 @@ impl Board {
                         > self
                             .contents
                             .get(get_index(
-                                j,
-                                i + (self.gravity.signum() as i32 * _k),
-                                col_count,
+                                j as usize,
+                                (i + (self.gravity.signum() as i32 * _k)) as usize,
+                                col_count as usize,
                             ))
                             .unwrap_or(&self.contents[cellpos])
                             .material
@@ -90,9 +83,9 @@ impl Board {
                     else if self
                         .contents
                         .get(get_index(
-                            j,
-                            i + (self.gravity.signum() as i32 * _k),
-                            col_count,
+                            j as usize,
+                            (i + (self.gravity.signum() as i32 * _k)) as usize,
+                            col_count as usize,
                         ))
                         .is_none()
                     {
@@ -103,9 +96,9 @@ impl Board {
                     else if self
                         .contents
                         .get(get_index(
-                            j,
-                            i + (self.gravity.signum() as i32 * _k),
-                            col_count,
+                            j as usize,
+                            (i + (self.gravity.signum() as i32 * _k)) as usize,
+                            col_count as usize,
                         ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
@@ -114,16 +107,17 @@ impl Board {
                         || self
                             .contents
                             .get(get_index(
-                                j,
-                                i + (self.gravity.signum() as i32 * _k)
-                                    + self.gravity.signum() as i32,
-                                col_count,
+                                j as usize,
+                                (i + (self.gravity.signum() as i32 * _k)
+                                    + self.gravity.signum() as i32)
+                                    as usize,
+                                col_count as usize,
                             ))
                             .unwrap_or(
                                 &self.contents[get_index(
-                                    j,
-                                    i + (self.gravity.signum() as i32 * _k),
-                                    col_count,
+                                    j as usize,
+                                    (i + (self.gravity.signum() as i32 * _k)) as usize,
+                                    col_count as usize,
                                 )],
                             )
                             .material
@@ -137,7 +131,11 @@ impl Board {
                 if ychange != 0 {
                     self.contents.swap(
                         cellpos,
-                        get_index(j, i + (self.gravity.signum() as i32 * ychange), col_count),
+                        get_index(
+                            j as usize,
+                            (i + (self.gravity.signum() as i32 * ychange)) as usize,
+                            col_count as usize,
+                        ),
                     );
                     self.contents[((i + (self.gravity.signum() as i32 * ychange)) * col_count + j) as usize].updated = false;
                 }
@@ -148,9 +146,9 @@ impl Board {
                     && self
                         .contents
                         .get(get_index(
-                            j + 1,
-                            i + self.gravity.signum() as i32,
-                            col_count,
+                            (j + 1) as usize,
+                            (i + self.gravity.signum() as i32) as usize,
+                            col_count as usize,
                         ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
@@ -159,9 +157,9 @@ impl Board {
                     && self
                         .contents
                         .get(get_index(
-                            j + 1,
-                            i + self.gravity.signum() as i32,
-                            col_count,
+                            (j + 1) as usize,
+                            (i + self.gravity.signum() as i32) as usize,
+                            col_count as usize,
                         ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
@@ -182,18 +180,26 @@ impl Board {
                 {
                     self.contents.swap(
                         cellpos,
-                        get_index(j + 1, i + self.gravity.signum() as i32, col_count),
+                        get_index(
+                            (j + 1) as usize,
+                            (i + self.gravity.signum() as i32) as usize,
+                            col_count as usize,
+                        ),
                     );
-                    self.contents[get_index(j + 1, i + self.gravity.signum() as i32, col_count)]
-                        .updated = false;
+                    self.contents[get_index(
+                        (j + 1) as usize,
+                        (i + self.gravity.signum() as i32) as usize,
+                        col_count as usize,
+                    )]
+                    .updated = false;
                 }
                 if self.contents[cellpos].updated
                     && self
                         .contents
                         .get(get_index(
-                            j - 1,
-                            i + self.gravity.signum() as i32,
-                            col_count,
+                            (j - 1) as usize,
+                            (i + self.gravity.signum() as i32) as usize,
+                            col_count as usize,
                         ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
@@ -202,9 +208,9 @@ impl Board {
                     && self
                         .contents
                         .get(get_index(
-                            j - 1,
-                            i + self.gravity.signum() as i32,
-                            col_count,
+                            (j - 1) as usize,
+                            (i + self.gravity.signum() as i32) as usize,
+                            col_count as usize,
                         ))
                         .unwrap_or(&self.contents[cellpos])
                         .material
@@ -225,10 +231,18 @@ impl Board {
                 {
                     self.contents.swap(
                         cellpos,
-                        get_index(j - 1, i + self.gravity.signum() as i32, col_count),
+                        get_index(
+                            (j - 1) as usize,
+                            (i + self.gravity.signum() as i32) as usize,
+                            col_count as usize,
+                        ),
                     );
-                    self.contents[get_index(j - 1, i + self.gravity.signum() as i32, col_count)]
-                        .updated = false;
+                    self.contents[get_index(
+                        (j - 1) as usize,
+                        (i + self.gravity.signum() as i32) as usize,
+                        col_count as usize,
+                    )]
+                    .updated = false;
                 }
                 // This marks that the particle's position has been calculated
                 self.contents[cellpos].updated = true;
@@ -448,7 +462,7 @@ impl Board {
                 } else {
                     // Rand range: (-1.0..1.0)
                     let rnd = self.rngs[cellpos];
-                    self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs());
+                    self.contents[cellpos].speed.y += rnd.signum() * (rnd.abs() / 2_f32);
                     orientation = (self.contents[cellpos].speed.y.signum()
                         * (self.contents[cellpos].speed.y.abs() + 1.0))
                         as i32;

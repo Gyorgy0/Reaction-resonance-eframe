@@ -1,0 +1,1 @@
+ cargo clippy --fix --lib --allow-dirty

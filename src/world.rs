@@ -4,12 +4,8 @@ use egui::Color32;
 use egui::Vec2;
 use rand::distr::Distribution;
 use rand::distr::Uniform;
-use rand::Rng;
-use rand::RngCore;
-use rand::SeedableRng;
 use serde::Deserialize;
 use serde::Serialize;
-use xorshift::Xorshift128;
 
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct Material {
@@ -64,15 +60,19 @@ impl Board {
             (self.width as usize) * (self.height as usize)
         ];
         self.rngs = vec![0_f32; self.contents.len()];
-        self.rngs.iter_mut().for_each(|e| *e = distribution.sample(&mut self.rng));
+        self.rngs
+            .iter_mut()
+            .for_each(|e| *e = distribution.sample(&mut self.rng));
         self.seeds = vec![0_f32; self.contents.len()];
-        self.seeds.iter_mut().for_each(|e| *e = distribution.sample(&mut self.rng));
+        self.seeds
+            .iter_mut()
+            .for_each(|e| *e = distribution.sample(&mut self.rng));
     }
 }
 
 #[inline(always)]
-pub fn get_index(x: i32, y: i32, width: i32) -> usize {
-    y as usize * width as usize + x as usize
+pub fn get_index(x: usize, y: usize, width: usize) -> usize {
+    y * width + x
 }
 
 #[inline(always)]
@@ -84,10 +84,13 @@ pub fn update_board(
     rng: &mut rand::rngs::SmallRng,
 ) {
     let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
-    game_board.rngs.iter_mut().for_each(|e| *e = distribution.sample(rng));
+    game_board
+        .rngs
+        .iter_mut()
+        .for_each(|e| *e = distribution.sample(rng));
     let row_count = game_board.height as i32;
     let col_count: i32 = game_board.width as i32;
-    
+
     if !is_stopped {
         match *frame {
             0 => {

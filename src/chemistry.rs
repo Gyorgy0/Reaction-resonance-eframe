@@ -1,7 +1,6 @@
 use crate::physics::Phase;
 use crate::world::Board;
 use serde::{Deserialize, Serialize};
-use xorshift::Xorshift128;
 
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
@@ -21,12 +20,7 @@ pub(crate) enum Material_Type {
 
 impl Board {
     #[inline(always)]
-    pub(crate) fn solve_reactions(
-        &mut self,
-        i: i32,
-        j: i32,
-        framedelta: f32,
-    ) {
+    pub(crate) fn solve_reactions(&mut self, i: i32, j: i32, framedelta: f32) {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;
         if self.contents[cellpos].material.material_type == Material_Type::Fuel {

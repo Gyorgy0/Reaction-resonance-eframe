@@ -1,23 +1,11 @@
-use std::{
-    default,
-    fs::{self, File},
-    sync::Arc,
-};
-
 use crate::{
-    chemistry::Material_Type,
     egui_input::{handle_key_inputs, handle_mouse_input},
-    http_request::get_req,
-    physics::Phase,
-    world::{update_board, Board, Material, Particle, VOID},
+    world::{update_board, Board, Material, VOID},
 };
 use egui::{
-    emath::GuiRounding, load, mutex::Mutex, pos2, util::hash, vec2, Color32, ColorImage, Frame, Id,
-    Image, LayerId, Margin, Pos2, Rect, Response, RichText, Sense, Stroke, Style, TextureHandle,
-    TextureOptions, Vec2, Visuals,
+    load, pos2, util::hash, vec2, Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense,
+    Stroke, TextureHandle, TextureOptions, Vec2,
 };
-use env_logger::fmt::style::{Color, RgbColor};
-use log::debug;
 use rand::SeedableRng;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -65,12 +53,14 @@ impl Default for EFrameApp {
         let mut materials: Vec<Material> = vec![];
         #[cfg(not(target_arch = "wasm32"))]
         {
+            use std::fs;
+
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
                 let materials_per_phase =
                     fs::read(path.unwrap().path().display().to_string()).unwrap();
                 let mut serialized_materials: Vec<Material> =
-                    serde_json::from_slice(&materials_per_phase.as_slice()).unwrap();
+                    serde_json::from_slice(materials_per_phase.as_slice()).unwrap();
                 materials.append(&mut serialized_materials);
             }
         }
@@ -84,9 +74,9 @@ impl Default for EFrameApp {
         Self {
             fullscreen: false,
             game_board,
-            materials: materials,
+            materials,
             texture,
-            selected_material: selected_material,
+            selected_material,
             is_stopped: false,
             frame: 0,
             rng: rand::rngs::SmallRng::from_os_rng(),
@@ -123,13 +113,11 @@ impl eframe::App for EFrameApp {
         // Passed values of http requests
         {
             if !self.response_text.lock().unwrap().is_empty() {
-                debug!("{:?}", self.response_text.lock().unwrap());
                 let mut materials_response: Vec<Material> =
                     serde_json::from_str(&self.response_text.lock().unwrap().pop().unwrap())
                         .unwrap();
                 self.materials.append(&mut materials_response);
                 self.selected_material = self.materials.last().unwrap().clone();
-                debug!("{:?}", self.response_text.lock().unwrap());
             }
         }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
@@ -179,20 +167,18 @@ impl eframe::App for EFrameApp {
                     }
                 }
                 ui.horizontal(|ui| {
-                    if ui.button(RichText::new("<").size(20.0)).clicked() {
-                        if self.game_board.brushsize > 0 {
+                    if ui.button(RichText::new("<").size(20.0)).clicked()
+                        && self.game_board.brushsize > 0 {
                             self.game_board.brushsize -= 2;
                         }
-                    }
                     ui.label(
                         RichText::new(format!("Brush size: {:03}", self.game_board.brushsize))
                             .size(20.0),
                     );
-                    if ui.button(RichText::new(">").size(20.0)).clicked() {
-                        if self.game_board.brushsize < 256 {
+                    if ui.button(RichText::new(">").size(20.0)).clicked()
+                        && self.game_board.brushsize < 256 {
                             self.game_board.brushsize += 2;
                         }
-                    }
                 });
                 if ui
                     .button(

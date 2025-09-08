@@ -4,6 +4,7 @@
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
+    use reaction_resonance_eframe;
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
     let native_options = eframe::NativeOptions {
@@ -20,7 +21,7 @@ fn main() -> eframe::Result {
     )
 }
 
-// When compiling to webassembly
+// When compiling to WebAssembly
 #[cfg(target_arch = "wasm32")]
 fn main() {
     use eframe::wasm_bindgen::JsCast as _;
