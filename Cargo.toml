@@ -30,7 +30,7 @@ xorshift = "0.1.3"
 
 # Profile options:
 # opt-level = 'z' - optimize for size
-# opt-level = 's' - optimize for size
+# opt-level = 's' - optimize for performance
 # Note that, surprisingly enough, opt-level = "s" can sometimes result in smaller binaries than opt-level = "z". Always measure!
 # lto = true - performance improvement, but very long compile time
 # strip = true  # Automatically strip symbols from the binary.

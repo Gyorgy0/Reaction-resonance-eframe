@@ -30,12 +30,12 @@ pub struct Board {
     pub rng: rand::rngs::SmallRng,
     pub width: u16,
     pub height: u16,
-    pub contents: Vec<Particle>,
+    pub contents: Vec<Vec<Particle>>,
     pub gravity: f32,
     pub brushsize: i32,
     pub cellsize: Vec2,
-    pub rngs: Vec<f32>,
-    pub seeds: Vec<f32>,
+    pub rngs: Vec<Vec<f32>>,
+    pub seeds: Vec<Vec<f32>>,
 }
 
 pub static VOID: Material = Material {
@@ -51,28 +51,28 @@ impl Board {
     pub fn create_board(&mut self) {
         let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
         self.contents = vec![
-            Particle {
-                material: VOID.clone(),
-                speed: Vec2::new(0.0, 0.0),
-                temperature: 20.0,
-                updated: false,
-            };
-            (self.width as usize) * (self.height as usize)
+            vec![
+                Particle {
+                    material: VOID.clone(),
+                    speed: Vec2::new(0.0, 0.0),
+                    temperature: 20.0,
+                    updated: false,
+                };
+                self.width as usize
+            ];
+            self.height as usize
         ];
-        self.rngs = vec![0_f32; self.contents.len()];
-        self.rngs
-            .iter_mut()
-            .for_each(|e| *e = distribution.sample(&mut self.rng));
-        self.seeds = vec![0_f32; self.contents.len()];
-        self.seeds
-            .iter_mut()
-            .for_each(|e| *e = distribution.sample(&mut self.rng));
+        self.rngs = vec![vec![0_f32; self.width as usize]; self.height as usize];
+        self.rngs.iter_mut().for_each(|row| {
+            row.iter_mut()
+                .for_each(|e| *e = distribution.sample(&mut self.rng))
+        });
+        self.seeds = vec![vec![0_f32; self.width as usize]; self.height as usize];
+        self.seeds.iter_mut().for_each(|row| {
+            row.iter_mut()
+                .for_each(|e| *e = distribution.sample(&mut self.rng))
+        });
     }
-}
-
-#[inline(always)]
-pub fn get_index(x: usize, y: usize, width: usize) -> usize {
-    y * width + x
 }
 
 #[inline(always)]
@@ -87,7 +87,7 @@ pub fn update_board(
     game_board
         .rngs
         .iter_mut()
-        .for_each(|e| *e = distribution.sample(rng));
+        .for_each(|row| row.iter_mut().for_each(|e| *e = distribution.sample(rng)));
     let row_count = game_board.height as i32;
     let col_count: i32 = game_board.width as i32;
 

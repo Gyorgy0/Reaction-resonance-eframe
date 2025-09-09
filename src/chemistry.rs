@@ -21,7 +21,7 @@ pub(crate) enum Material_Type {
 impl Board {
     #[inline(always)]
     pub(crate) fn solve_reactions(&mut self, i: i32, j: i32, framedelta: f32) {
-        let col_count: i32 = self.width as i32;
+        /*let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;
         if self.contents[cellpos].material.material_type == Material_Type::Fuel {
             let rnd = rand::random_range(0_u8..4_u8);
@@ -80,6 +80,6 @@ impl Board {
                     self.contents[(((i - 1) * col_count) + j) as usize].clone();
                 self.contents[cellpos].material.phase = Phase::Plasma { energy: 70.0 };
             }
-        }
+        }*/
     }
 }

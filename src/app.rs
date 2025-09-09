@@ -1,10 +1,10 @@
 use crate::{
     egui_input::{handle_key_inputs, handle_mouse_input},
-    world::{update_board, Board, Material, VOID},
+    world::{Board, Material, VOID, update_board},
 };
 use egui::{
-    load, pos2, util::hash, vec2, Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense,
-    Stroke, TextureHandle, TextureOptions, Vec2,
+    Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureHandle,
+    TextureOptions, Vec2, load, pos2, util::hash, vec2,
 };
 use rand::SeedableRng;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -168,17 +168,19 @@ impl eframe::App for EFrameApp {
                 }
                 ui.horizontal(|ui| {
                     if ui.button(RichText::new("<").size(20.0)).clicked()
-                        && self.game_board.brushsize > 0 {
-                            self.game_board.brushsize -= 2;
-                        }
+                        && self.game_board.brushsize > 0
+                    {
+                        self.game_board.brushsize -= 2;
+                    }
                     ui.label(
                         RichText::new(format!("Brush size: {:03}", self.game_board.brushsize))
                             .size(20.0),
                     );
                     if ui.button(RichText::new(">").size(20.0)).clicked()
-                        && self.game_board.brushsize < 256 {
-                            self.game_board.brushsize += 2;
-                        }
+                        && self.game_board.brushsize < 256
+                    {
+                        self.game_board.brushsize += 2;
+                    }
                 });
                 if ui
                     .button(

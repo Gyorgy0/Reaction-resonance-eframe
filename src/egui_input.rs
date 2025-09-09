@@ -1,4 +1,4 @@
-use egui::{pos2, Key, PointerButton, Response, Vec2};
+use egui::{Key, PointerButton, Response, Vec2, pos2};
 use std::ops::Not;
 
 use crate::world::*;
@@ -19,12 +19,10 @@ pub fn handle_mouse_input(
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
-                    .get(((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize)
-                    .is_some()
-                    && game_board.is_in_bounds(pos.x as i32, j)
+                    .get((i + pos.y as i32) as usize)
+                    .is_some_and(|row| row.get((j + pos.x as i32) as usize).is_some())
                 {
-                    game_board.contents
-                        [((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize] =
+                    game_board.contents[(i + pos.y as i32) as usize][(j + pos.x as i32) as usize] =
                         Particle {
                             material: material.clone(),
                             speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
@@ -42,12 +40,10 @@ pub fn handle_mouse_input(
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
-                    .get(((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize)
-                    .is_some()
-                    && game_board.is_in_bounds(pos.x as i32, j)
+                    .get((i + pos.y as i32) as usize)
+                    .is_some_and(|row| row.get((j + pos.x as i32) as usize).is_some())
                 {
-                    game_board.contents
-                        [((i + (pos.y as i32)) * col_count + (j + pos.x as i32)) as usize] =
+                    game_board.contents[(i + pos.y as i32) as usize][(j + pos.x as i32) as usize] =
                         Particle {
                             material: material.clone(),
                             speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),

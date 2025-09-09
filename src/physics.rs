@@ -1,6 +1,6 @@
 use crate::{
     chemistry::Material_Type,
-    world::{get_index, Board, Material},
+    world::{Board, Material},
 };
 use egui::Color32;
 use serde::{Deserialize, Serialize};
@@ -41,17 +41,10 @@ impl Phase {
 
 impl Board {
     #[inline(always)]
-    pub(crate) fn is_in_bounds(&self, j: i32, orientation: i32) -> bool {
-        match j + orientation < self.width as i32 && j + orientation >= 0 {
-            true => true,
-            false => false,
-        }
-    }
-    #[inline(always)]
     pub(crate) fn solve_particle(&mut self, i: i32, j: i32, framedelta: f32) {
         let col_count: i32 = self.width as i32;
         let cellpos: usize = (i * col_count + j) as usize;
-        match self.contents[cellpos].material.phase {
+        /*match self.contents[cellpos].material.phase {
             Phase::Void => {}
 
             Phase::Solid => {}
@@ -728,6 +721,6 @@ impl Board {
                 // This marks that the particle's position has been calculated
                 self.contents[cellpos].updated = true;
             }
-        }
+        }*/
     }
 }
