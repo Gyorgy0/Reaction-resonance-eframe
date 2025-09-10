@@ -1,8 +1,4 @@
-use crate::{
-    chemistry::Material_Type,
-    world::{Board, Material},
-};
-use egui::Color32;
+use crate::world::Board;
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]

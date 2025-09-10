@@ -28,6 +28,8 @@ pub struct EFrameApp {
     rng: rand::rngs::SmallRng,
     #[serde(skip)]
     response_text: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
+    #[serde(skip)]
+    threadpool: rayon::ThreadPool,
 }
 
 impl Default for EFrameApp {
@@ -81,6 +83,10 @@ impl Default for EFrameApp {
             frame: 0,
             rng: rand::rngs::SmallRng::from_os_rng(),
             response_text: response_text.clone(),
+            threadpool: rayon::ThreadPoolBuilder::new()
+                .num_threads(0)
+                .build()
+                .unwrap(),
         }
     }
 }
@@ -221,13 +227,13 @@ impl eframe::App for EFrameApp {
                 });
             });
         egui::CentralPanel::default().show(ctx, |ui| {
-            let mut pixels: Vec<u8> = self.game_board.draw_board();
-            let frameimage: ColorImage = ColorImage::from_rgba_unmultiplied(
+            let pixels: Vec<Color32> = self.game_board.draw_board(&mut self.threadpool);
+            let frameimage: ColorImage = ColorImage::new(
                 [
                     self.game_board.width as usize,
                     self.game_board.height as usize,
                 ],
-                &mut pixels,
+                pixels,
             );
             self.texture = ctx.load_texture("Board", frameimage.clone(), TextureOptions::NEAREST);
             self.texture

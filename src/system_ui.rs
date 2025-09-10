@@ -1,5 +1,8 @@
 use std::fmt::{self};
 
+use egui::{Color32, IntoAtoms};
+use rayon::iter::ParallelIterator;
+
 use crate::chemistry::Material_Type;
 use crate::physics::Phase;
 use crate::world::Board;
@@ -36,11 +39,11 @@ impl fmt::Display for Material_Type {
 }
 
 impl Board {
-    pub fn draw_board(&self) -> Vec<u8> {
-        let f: Vec<u8> = self
+    pub fn draw_board(&mut self, threadpool: &mut rayon::ThreadPool) -> Vec<Color32> {
+        let f: Vec<Color32> = self
             .contents
             .iter()
-            .flat_map(|row| row.iter().flat_map(|pixel| pixel.material.color.to_array()))
+            .flat_map(|row| row.iter().map(|e| e.material.color))
             .collect();
         f
     }
