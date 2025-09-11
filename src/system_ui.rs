@@ -1,7 +1,7 @@
 use std::fmt::{self};
 
 use egui::{Color32, IntoAtoms};
-use rayon::iter::ParallelIterator;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::chemistry::Material_Type;
 use crate::physics::Phase;
@@ -39,7 +39,7 @@ impl fmt::Display for Material_Type {
 }
 
 impl Board {
-    pub fn draw_board(&mut self, threadpool: &mut rayon::ThreadPool) -> Vec<Color32> {
+    pub fn draw_board(&mut self) -> Vec<Color32> {
         let f: Vec<Color32> = self
             .contents
             .iter()

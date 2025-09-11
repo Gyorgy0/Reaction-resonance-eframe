@@ -35,12 +35,12 @@ xorshift = "0.1.3"
 # lto = true - performance improvement, but very long compile time
 # strip = true  # Automatically strip symbols from the binary.
 
-### FOR APKS
-#[profile.dev]
-#strip = true  # Automatically strip symbols from the binary.
-#opt-level = "z"  # Optimize for size.
-#lto = true
-#codegen-units = 1
+## FOR APKS
+[profile.dev]
+strip = true  # Automatically strip symbols from the binary.
+opt-level = "z"  # Optimize for size.
+lto = true
+codegen-units = 1
 
 [profile.release]
 opt-level = 's'

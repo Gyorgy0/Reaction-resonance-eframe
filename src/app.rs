@@ -28,8 +28,6 @@ pub struct EFrameApp {
     rng: rand::rngs::SmallRng,
     #[serde(skip)]
     response_text: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
-    #[serde(skip)]
-    threadpool: rayon::ThreadPool,
 }
 
 impl Default for EFrameApp {
@@ -53,7 +51,7 @@ impl Default for EFrameApp {
             TextureOptions::NEAREST,
         );
         let mut materials: Vec<Material> = vec![];
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
             use std::fs;
 
@@ -72,6 +70,12 @@ impl Default for EFrameApp {
             use crate::http_request::get_req;
             get_req(response_text.clone());
         }
+        #[cfg(target_os = "android")]
+        {
+            let powder_materials= include_str!("materials/powder.json");
+            let mut serialized_materials: Vec<Material> = serde_json::from_str(&powder_materials).unwrap();
+            materials.append(&mut serialized_materials);
+        }
         let selected_material = VOID.clone();
         Self {
             fullscreen: false,
@@ -83,10 +87,6 @@ impl Default for EFrameApp {
             frame: 0,
             rng: rand::rngs::SmallRng::from_os_rng(),
             response_text: response_text.clone(),
-            threadpool: rayon::ThreadPoolBuilder::new()
-                .num_threads(0)
-                .build()
-                .unwrap(),
         }
     }
 }
@@ -227,7 +227,7 @@ impl eframe::App for EFrameApp {
                 });
             });
         egui::CentralPanel::default().show(ctx, |ui| {
-            let pixels: Vec<Color32> = self.game_board.draw_board(&mut self.threadpool);
+            let pixels: Vec<Color32> = self.game_board.draw_board();
             let frameimage: ColorImage = ColorImage::new(
                 [
                     self.game_board.width as usize,

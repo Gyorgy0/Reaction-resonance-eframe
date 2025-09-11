@@ -95,19 +95,19 @@ pub fn update_board(
         match *frame {
             0 => {
                 (0..row_count * col_count).for_each(|count| {
-                    let i = count / col_count;
-                    let j = count % col_count;
+                    let i = (count / col_count) as usize;
+                    let j = (count % col_count) as usize;
                     game_board.solve_particle(i, j, framedelta);
-                    game_board.solve_reactions(i, j, framedelta);
+                    //game_board.solve_reactions(i, j, framedelta);
                 });
                 *frame = 1;
             }
             1 => {
                 (0..row_count * col_count).for_each(|count| {
-                    let i = count / col_count;
-                    let j = (col_count - 1) - (count % col_count);
+                    let i = (count / col_count) as usize;
+                    let j = ((col_count - 1) - (count % col_count)) as usize;
                     game_board.solve_particle(i, j, framedelta);
-                    game_board.solve_reactions(i, j, framedelta);
+                    //game_board.solve_reactions(i, j, framedelta);
                 });
                 *frame = 0;
             }
