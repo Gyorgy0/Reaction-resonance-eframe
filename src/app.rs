@@ -36,12 +36,12 @@ impl Default for EFrameApp {
             rng: rand::rngs::SmallRng::from_os_rng(),
             width: 512,
             height: 256,
-            contents: vec![],
+            contents: grid::Grid::from_vec(vec![], 0),
             gravity: 9.81,
             brushsize: 10,
             cellsize: Vec2::new(2.0, 2.0),
-            rngs: vec![],
-            seeds: vec![],
+            rngs: grid::Grid::from_vec(vec![], 0),
+            seeds: grid::Grid::from_vec(vec![], 0),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -72,8 +72,9 @@ impl Default for EFrameApp {
         }
         #[cfg(target_os = "android")]
         {
-            let powder_materials= include_str!("materials/powder.json");
-            let mut serialized_materials: Vec<Material> = serde_json::from_str(&powder_materials).unwrap();
+            let powder_materials = include_str!("materials/powder.json");
+            let mut serialized_materials: Vec<Material> =
+                serde_json::from_str(&powder_materials).unwrap();
             materials.append(&mut serialized_materials);
         }
         let selected_material = VOID.clone();

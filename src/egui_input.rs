@@ -19,16 +19,16 @@ pub fn handle_mouse_input(
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
-                    .get((i + pos.y as i32) as usize)
-                    .is_some_and(|row| row.get((j + pos.x as i32) as usize).is_some())
+                    .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
+                    .is_some()
                 {
-                    game_board.contents[(i + pos.y as i32) as usize][(j + pos.x as i32) as usize] =
-                        Particle {
-                            material: material.clone(),
-                            speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
-                            temperature: 20.0,
-                            updated: true,
-                        }
+                    game_board.contents
+                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)] = Particle {
+                        material: material.clone(),
+                        speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
+                        temperature: 20.0,
+                        updated: true,
+                    }
                 }
             }
         }
@@ -40,16 +40,16 @@ pub fn handle_mouse_input(
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 if game_board
                     .contents
-                    .get((i + pos.y as i32) as usize)
-                    .is_some_and(|row| row.get((j + pos.x as i32) as usize).is_some())
+                    .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
+                    .is_some()
                 {
-                    game_board.contents[(i + pos.y as i32) as usize][(j + pos.x as i32) as usize] =
-                        Particle {
-                            material: material.clone(),
-                            speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
-                            temperature: 20.0,
-                            updated: true,
-                        }
+                    game_board.contents
+                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)] = Particle {
+                        material: material.clone(),
+                        speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
+                        temperature: 20.0,
+                        updated: true,
+                    }
                 }
             }
         }

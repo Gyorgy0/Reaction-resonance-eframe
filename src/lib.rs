@@ -18,6 +18,7 @@ fn android_main(app: winit::platform::android::activity::AndroidApp) {
 
     let options = eframe::NativeOptions {
         android_app: Some(app),
+        vsync: false,
         ..Default::default()
     };
     eframe::run_native(

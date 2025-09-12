@@ -2,6 +2,7 @@ use crate::chemistry::Material_Type;
 use crate::physics::Phase;
 use egui::Color32;
 use egui::Vec2;
+use grid::Grid;
 use rand::distr::Distribution;
 use rand::distr::Uniform;
 use serde::Deserialize;
@@ -21,7 +22,7 @@ pub(crate) struct Material {
 pub struct Particle {
     pub material: Material, // Material of the particle
     pub speed: Vec2,        // Vectors of the particle (x, y)
-    pub temperature: f32,   // Temperature of the material
+    pub temperature: f32,   // Temperature of the materialy
     pub updated: bool,      // Is it updated?
 }
 
@@ -30,12 +31,12 @@ pub struct Board {
     pub rng: rand::rngs::SmallRng,
     pub width: u16,
     pub height: u16,
-    pub contents: Vec<Vec<Particle>>,
+    pub contents: Grid<Particle>,
     pub gravity: f32,
     pub brushsize: i32,
     pub cellsize: Vec2,
-    pub rngs: Vec<Vec<f32>>,
-    pub seeds: Vec<Vec<f32>>,
+    pub rngs: Grid<f32>,
+    pub seeds: Grid<f32>,
 }
 
 pub static VOID: Material = Material {
@@ -50,7 +51,7 @@ pub static VOID: Material = Material {
 impl Board {
     pub fn create_board(&mut self) {
         let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
-        self.contents = vec![
+        self.contents = Grid::from_vec(
             vec![
                 Particle {
                     material: VOID.clone(),
@@ -58,20 +59,24 @@ impl Board {
                     temperature: 20.0,
                     updated: false,
                 };
-                self.width as usize
-            ];
-            self.height as usize
-        ];
-        self.rngs = vec![vec![0_f32; self.width as usize]; self.height as usize];
-        self.rngs.iter_mut().for_each(|row| {
-            row.iter_mut()
-                .for_each(|e| *e = distribution.sample(&mut self.rng))
-        });
-        self.seeds = vec![vec![0_f32; self.width as usize]; self.height as usize];
-        self.seeds.iter_mut().for_each(|row| {
-            row.iter_mut()
-                .for_each(|e| *e = distribution.sample(&mut self.rng))
-        });
+                self.height as usize * self.width as usize
+            ],
+            self.width as usize,
+        );
+        self.rngs = grid::Grid::from_vec(
+            vec![0_f32; self.height as usize * self.width as usize],
+            self.width as usize,
+        );
+        self.rngs
+            .iter_mut()
+            .for_each(|e| *e = distribution.sample(&mut self.rng));
+        self.seeds = grid::Grid::from_vec(
+            vec![0_f32; self.height as usize * self.width as usize],
+            self.width as usize,
+        );
+        self.seeds
+            .iter_mut()
+            .for_each(|e| *e = distribution.sample(&mut self.rng));
     }
 }
 
@@ -87,7 +92,7 @@ pub fn update_board(
     game_board
         .rngs
         .iter_mut()
-        .for_each(|row| row.iter_mut().for_each(|e| *e = distribution.sample(rng)));
+        .for_each(|e| *e = distribution.sample(&mut game_board.rng));
     let row_count = game_board.height as i32;
     let col_count: i32 = game_board.width as i32;
 
@@ -98,7 +103,7 @@ pub fn update_board(
                     let i = (count / col_count) as usize;
                     let j = (count % col_count) as usize;
                     game_board.solve_particle(i, j, framedelta);
-                    //game_board.solve_reactions(i, j, framedelta);
+                    game_board.solve_reactions(i, j, framedelta);
                 });
                 *frame = 1;
             }
@@ -107,7 +112,7 @@ pub fn update_board(
                     let i = (count / col_count) as usize;
                     let j = ((col_count - 1) - (count % col_count)) as usize;
                     game_board.solve_particle(i, j, framedelta);
-                    //game_board.solve_reactions(i, j, framedelta);
+                    game_board.solve_reactions(i, j, framedelta);
                 });
                 *frame = 0;
             }
