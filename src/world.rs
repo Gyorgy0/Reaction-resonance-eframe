@@ -8,17 +8,30 @@ use rand::distr::Uniform;
 use serde::Deserialize;
 use serde::Serialize;
 
+#[rustfmt::skip]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
-pub(crate) struct Material {
-    pub name: String,                 // Name of the material
-    pub density: f32,                 // Mass of a cm^3 volume of the material
-    pub phase: Phase, // Phase of the material for, the implemented phases check the "Phase" enum
-    pub material_type: Material_Type, // Type of the material for, the implemented types check the "Type" enum
-    pub durability: i32, // Durability of a material - how much force it needs to disintegrate the material -> higher = more force
-    pub color: Color32,  // Color of the material
+pub(crate) struct Chunk {
+    pub size: u16,                 // Size of the chunk (it's width and height)
+    pub position: (i64, i64),      // Position of a chunk (absolute position of a chunk from (0,0))
+    pub particles: Grid<Particle>, // The particles that need to be simulated/loaded in/displayed
+    pub rngs: Grid<f32>,           // Rngs for particle behaviour
+    pub seeds: Grid<f32>,          // Seeds for the particles
+    pub unloaded_time: u64,        // The time elapsed from the last load-in
 }
 
-#[derive(Clone, Debug)]
+#[rustfmt::skip]
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+pub(crate) struct Material {
+    pub name: String,                   // Name of the material
+    pub density: f32,                   // Mass of a cm^3 volume of the material
+    pub phase: Phase,                   // Phase of the material for, the implemented phases check the "Phase" enum
+    pub material_type: Material_Type,   // Type of the material for, the implemented types check the "Type" enum
+    pub durability: i32,                // Durability of a material - how much force it needs to disintegrate the material -> higher = more force
+    pub color: Color32,                 // Color of the material
+}
+
+#[rustfmt::skip]
+#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Particle {
     pub material: Material, // Material of the particle
     pub speed: Vec2,        // Vectors of the particle (x, y)
@@ -26,6 +39,7 @@ pub struct Particle {
     pub updated: bool,      // Is it updated?
 }
 
+#[rustfmt::skip]
 #[derive(Clone)]
 pub struct Board {
     pub rng: rand::rngs::SmallRng,
@@ -81,13 +95,7 @@ impl Board {
 }
 
 #[inline(always)]
-pub fn update_board(
-    game_board: &mut Board,
-    is_stopped: bool,
-    frame: &mut u8,
-    framedelta: f32,
-    rng: &mut rand::rngs::SmallRng,
-) {
+pub fn update_board(game_board: &mut Board, is_stopped: bool, frame: &mut u8, framedelta: f32) {
     let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
     game_board
         .rngs

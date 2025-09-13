@@ -67,22 +67,18 @@ impl Board {
                         ychange = _k;
                     }
                     // Checks if the particle falls inside bounds
-                    else if self
-                        .contents
-                        .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
-                        .is_none()
-                    {
-                        self.contents[(i, j)].speed.y -= self.gravity * framedelta;
-                        break;
-                    }
                     // Checks, whether there is another denser particle in the path of the falling particle
                     else if self
                         .contents
                         .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
-                        .unwrap_or(&self.contents[(i, j)])
-                        .material
-                        .phase
-                        == Phase::Solid
+                        .is_none()
+                        || self
+                            .contents
+                            .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                            .unwrap_or(&self.contents[(i, j)])
+                            .material
+                            .phase
+                            == Phase::Solid
                         || self
                             .contents
                             .get(
@@ -206,22 +202,18 @@ impl Board {
                         ychange = _k;
                     }
                     // Checks if the particle falls inside bounds
-                    else if self
-                        .contents
-                        .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
-                        .is_none()
-                    {
-                        self.contents[(i, j)].speed.y -= self.gravity * framedelta;
-                        break;
-                    }
                     // Checks, whether there is another denser particle in the path of the falling particle
                     else if self
                         .contents
                         .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
-                        .unwrap_or(&self.contents[(i, j)])
-                        .material
-                        .phase
-                        == Phase::Solid
+                        .is_none()
+                        || self
+                            .contents
+                            .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                            .unwrap_or(&self.contents[(i, j)])
+                            .material
+                            .phase
+                            == Phase::Solid
                         || self
                             .contents
                             .get(

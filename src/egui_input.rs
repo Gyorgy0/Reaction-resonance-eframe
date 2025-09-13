@@ -21,6 +21,12 @@ pub fn handle_mouse_input(
                     .contents
                     .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
                     .is_some()
+                    && game_board
+                        .contents
+                        .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
+                        .unwrap()
+                        .material
+                        == VOID
                 {
                     game_board.contents
                         [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)] = Particle {

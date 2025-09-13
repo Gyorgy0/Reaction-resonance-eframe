@@ -1,7 +1,6 @@
 use std::fmt::{self};
 
-use egui::{Color32, IntoAtoms};
-use rayon::iter::ParallelIterator;
+use egui::Color32;
 
 use crate::chemistry::Material_Type;
 use crate::physics::Phase;

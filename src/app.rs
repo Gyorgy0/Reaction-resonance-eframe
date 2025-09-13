@@ -366,7 +366,6 @@ impl eframe::App for EFrameApp {
                 self.is_stopped,
                 &mut self.frame,
                 ctx.input(|time| time.unstable_dt),
-                &mut self.rng,
             );
             egui::Context::request_repaint(ctx);
         });
