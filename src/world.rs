@@ -1,5 +1,5 @@
-use crate::chemistry::Material_Type;
 use crate::physics::Phase;
+use crate::reactions::Material_Type;
 use egui::Color32;
 use egui::Vec2;
 use grid::Grid;

@@ -4,7 +4,8 @@
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
-    use reaction_resonance_eframe;
+    use reaction_resonance_eframe::EFrameApp;
+
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
     let native_options = eframe::NativeOptions {
@@ -17,7 +18,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "Reaction resonance",
         native_options,
-        Box::new(|cc| Ok(Box::new(reaction_resonance_eframe::EFrameApp::new(cc)))),
+        Box::new(|cc| Ok(Box::new(EFrameApp::new(cc)))),
     )
 }
 

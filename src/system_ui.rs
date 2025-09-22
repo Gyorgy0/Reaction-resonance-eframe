@@ -2,18 +2,24 @@ use std::fmt::{self};
 
 use egui::Color32;
 
-use crate::chemistry::Material_Type;
 use crate::physics::Phase;
+use crate::reactions::Material_Type;
 use crate::world::Board;
 
 impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Phase::Void => write!(f, ""),
-            Phase::Solid => write!(f, "Solid"),
-            Phase::Powder { coarseness: _ } => write!(f, "Powder"),
-            Phase::Liquid { viscosity: _ } => write!(f, "Liquid"),
-            Phase::Gas => write!(f, "Gas"),
+            Phase::Solid { melting_point: _ } => write!(f, "Solid"),
+            Phase::Powder {
+                coarseness: _,
+                melting_point: _,
+            } => write!(f, "Powder"),
+            Phase::Liquid {
+                viscosity: _,
+                boiling_point: _,
+            } => write!(f, "Liquid"),
+            Phase::Gas {} => write!(f, "Gas"),
             Phase::Plasma { energy: _ } => write!(f, "Plasma"),
         }
     }
