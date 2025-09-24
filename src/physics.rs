@@ -1,10 +1,6 @@
 use std::mem::discriminant;
 
-use crate::{
-    reactions::Material_Type,
-    world::{Board, Material},
-};
-use egui::Color32;
+use crate::world::{Board, VOID};
 use serde::{Deserialize, Serialize};
 
 #[rustfmt::skip]
@@ -622,14 +618,7 @@ impl Board {
                         energy: cellenergy - 1.0,
                     };
                 } else {
-                    self.contents[(i, j)].material = Material {
-                        name: "Void".to_string(),
-                        density: 0.0,
-                        phase: Phase::Void,
-                        material_type: Material_Type::Atmosphere,
-                        durability: -1,
-                        color: Color32::from_rgba_unmultiplied(0, 0, 0, 100),
-                    };
+                    self.contents[(i, j)].material = VOID.clone();
                 }
 
                 // Rng determines which side should the particle fall

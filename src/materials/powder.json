@@ -29,9 +29,9 @@
         "material_type": "Fuel",
         "durability": 50,
         "color": [
-            201,
-            189,
-            245,
+            232,
+            203,
+            137,
             255
         ]
     }
