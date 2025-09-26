@@ -1,5 +1,5 @@
 use crate::{physics::Phase, world::Board};
-use egui::{epaint::Hsva, Color32};
+use egui::{Color32, epaint::Hsva};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
@@ -79,8 +79,11 @@ impl Board {
                 }
             }
             Material_Type::RGB => {
-                if self.contents[(i, j)].material.color == Color32::from_rgba_unmultiplied(0, 0, 0, 0) {
-                    self.contents[(i,j)].material.color = Hsva::new((framecount%(256*4)) as f32 / 256.0, 1.0, 1.0, 1.0).into();
+                if self.contents[(i, j)].material.color
+                    == Color32::from_rgba_unmultiplied(0, 0, 0, 0)
+                {
+                    self.contents[(i, j)].material.color =
+                        Hsva::new((framecount % (256 * 4)) as f32 / 256.0, 1.0, 1.0, 1.0).into();
                 }
             }
             _ => {}
