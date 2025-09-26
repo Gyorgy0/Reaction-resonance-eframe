@@ -23,7 +23,7 @@ pub struct EFrameApp {
     #[serde(skip)]
     is_stopped: bool,
     #[serde(skip)]
-    frame: u8,
+    framecount: u64,
     #[serde(skip)]
     rng: rand::rngs::SmallRng,
     #[serde(skip)]
@@ -85,7 +85,7 @@ impl Default for EFrameApp {
             texture,
             selected_material,
             is_stopped: false,
-            frame: 0,
+            framecount: 0,
             rng: rand::rngs::SmallRng::from_os_rng(),
             response_text: response_text.clone(),
         }
@@ -364,7 +364,7 @@ impl eframe::App for EFrameApp {
             update_board(
                 &mut self.game_board,
                 self.is_stopped,
-                &mut self.frame,
+                &mut self.framecount,
                 ctx.input(|time| time.unstable_dt),
             );
             egui::Context::request_repaint(ctx);

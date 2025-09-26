@@ -95,7 +95,13 @@ impl Board {
 }
 
 #[inline(always)]
-pub fn update_board(game_board: &mut Board, is_stopped: bool, frame: &mut u8, framedelta: f32) {
+pub fn update_board(
+    game_board: &mut Board,
+    is_stopped: bool,
+    framecount: &mut u64,
+    framedelta: f32,
+) {
+    *framecount = framecount.wrapping_add(1);
     let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
     game_board
         .rngs
@@ -105,24 +111,22 @@ pub fn update_board(game_board: &mut Board, is_stopped: bool, frame: &mut u8, fr
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        match *frame {
+        match *framecount % 2 {
             0 => {
                 (0..row_count * col_count).for_each(|count| {
                     let i = (count / col_count) as usize;
                     let j = (count % col_count) as usize;
-                    game_board.solve_particle(i, j, framedelta);
-                    game_board.solve_reactions(i, j, framedelta);
+                    game_board.solve_particle(i, j, framedelta, *framecount);
+                    game_board.solve_reactions(i, j, framedelta, *framecount);
                 });
-                *frame = 1;
             }
             1 => {
                 (0..row_count * col_count).for_each(|count| {
                     let i = (count / col_count) as usize;
                     let j = ((col_count - 1) - (count % col_count)) as usize;
-                    game_board.solve_particle(i, j, framedelta);
-                    game_board.solve_reactions(i, j, framedelta);
+                    game_board.solve_particle(i, j, framedelta, *framecount);
+                    game_board.solve_reactions(i, j, framedelta, *framecount);
                 });
-                *frame = 0;
             }
             _ => {}
         }
