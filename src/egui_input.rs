@@ -1,4 +1,4 @@
-use egui::{Key, PointerButton, Response, Vec2, pos2};
+use egui::{lerp, pos2, Key, PointerButton, Response, Vec2};
 use std::ops::Not;
 
 use crate::world::*;
@@ -8,7 +8,6 @@ pub fn handle_mouse_input(
     selected_material: &mut Material,
     response: Response,
 ) {
-    let col_count: i32 = game_board.width as i32;
     let cursor_position = response.hover_pos().unwrap_or(pos2(-1024.0, -1024.0));
     let pos = ((cursor_position - response.interact_rect.min) / game_board.cellsize)
         .floor()
@@ -34,7 +33,8 @@ pub fn handle_mouse_input(
                         speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                         temperature: 20.0,
                         updated: true,
-                    }
+                    };
+                    game_board.contents[((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)].material.color = game_board.contents[((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)].material.color.gamma_multiply(lerp(0.9..=1.1, game_board.rngs[((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]));
                 }
             }
         }
@@ -55,7 +55,7 @@ pub fn handle_mouse_input(
                         speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                         temperature: 20.0,
                         updated: true,
-                    }
+                    };
                 }
             }
         }

@@ -1,4 +1,4 @@
-use std::fmt::{self, write};
+use std::fmt::{self};
 
 use egui::Color32;
 
@@ -37,7 +37,7 @@ impl fmt::Display for Material_Type {
             Material_Type::Fuel => write!(f, "Fuel"),
             Material_Type::Glass => write!(f, "Glass"),
             Material_Type::Oxidizer => write!(f, "Oxidizer"),
-            Material_Type::RGB => write!(f, ""),
+            Material_Type::Rgb => write!(f, ""),
             Material_Type::Solution => write!(f, "Solution"),
             Material_Type::Solvent => write!(f, "Solvent"),
         }

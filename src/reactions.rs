@@ -1,5 +1,5 @@
 use crate::{physics::Phase, world::Board};
-use egui::{Color32, epaint::Hsva};
+use egui::{epaint::Hsva, lerp, Color32};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
@@ -15,7 +15,7 @@ pub(crate) enum Material_Type {
     Fuel,       // Flammable material under normal circumstances
     Glass,      // Amorphous material formed from a molten material and it's cooled without proper crystalization
     Oxidizer,   // This material can enhance the explosive power of explosives or the burning of fuels by aiding their combustion
-    RGB,        // This material changes it's color based on elapsed time
+    Rgb,        // This material changes it's color based on elapsed time
     Solution,   // Material that contains other materials e.g. salts, on heat it leaves the dissolved materials behind
     Solvent,    // Dissolves certain materials
 }
@@ -78,12 +78,13 @@ impl Board {
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
                 }
             }
-            Material_Type::RGB => {
+            Material_Type::Rgb => {
                 if self.contents[(i, j)].material.color
                     == Color32::from_rgba_unmultiplied(0, 0, 0, 0)
                 {
                     self.contents[(i, j)].material.color =
                         Hsva::new((framecount % (256 * 4)) as f32 / 256.0, 1.0, 1.0, 1.0).into();
+                    self.contents[(i, j)].material.color = self.contents[(i,j)].material.color.gamma_multiply(lerp(0.9..=1.1, self.rngs[(i, j)]));
                 }
             }
             _ => {}
