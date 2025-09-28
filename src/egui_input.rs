@@ -1,7 +1,7 @@
-use egui::{lerp, pos2, Key, PointerButton, Response, Vec2};
+use egui::{Key, PointerButton, Response, Vec2, lerp, pos2};
 use std::ops::Not;
 
-use crate::world::*;
+use crate::{physics::Phase, world::*};
 
 pub fn handle_mouse_input(
     game_board: &mut Board,
@@ -20,12 +20,12 @@ pub fn handle_mouse_input(
                     .contents
                     .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
                     .is_some()
-                    && game_board
+                    && (game_board
                         .contents
                         .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
                         .unwrap()
                         .material
-                        == VOID
+                        == VOID || selected_material.phase == Phase::Void)
                 {
                     game_board.contents
                         [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)] = Particle {
@@ -34,7 +34,25 @@ pub fn handle_mouse_input(
                         temperature: 20.0,
                         updated: true,
                     };
-                    game_board.contents[((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)].material.color = game_board.contents[((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)].material.color.gamma_multiply(lerp(0.9..=1.1, game_board.rngs[((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]));
+                    game_board.contents
+                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]
+                        .material
+                        .material_color
+                        .color = game_board.contents
+                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]
+                        .material
+                        .material_color
+                        .color
+                        .linear_multiply(lerp(
+                            game_board.contents
+                                [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]
+                                .material
+                                .material_color
+                                .shinyness
+                                .clone(),
+                            game_board.rngs
+                                [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)],
+                        ));
                 }
             }
         }

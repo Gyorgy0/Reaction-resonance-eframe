@@ -54,6 +54,10 @@ impl Default for EFrameApp {
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
             use std::fs;
+            // This is for serializing particles with new fields and enums
+            /*let data = serde_json::to_string_pretty(&VOID).unwrap();
+            fs::write("src/new.json", data).unwrap();
+            */
 
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
@@ -217,7 +221,7 @@ impl eframe::App for EFrameApp {
                                             .strong(),
                                     )
                                     .min_size(vec2(Default::default(), 35.0))
-                                    .stroke(Stroke::new(1.0, material.color)),
+                                    .stroke(Stroke::new(1.0, material.material_color.color)),
                                 )
                                 .clicked()
                             {

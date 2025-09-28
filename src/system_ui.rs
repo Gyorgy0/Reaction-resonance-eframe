@@ -3,7 +3,7 @@ use std::fmt::{self};
 use egui::Color32;
 
 use crate::physics::Phase;
-use crate::reactions::Material_Type;
+use crate::reactions::MaterialType;
 use crate::world::Board;
 
 impl fmt::Display for Phase {
@@ -25,28 +25,32 @@ impl fmt::Display for Phase {
     }
 }
 
-impl fmt::Display for Material_Type {
+impl fmt::Display for MaterialType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Material_Type::Acid => write!(f, "Acid"),
-            Material_Type::Alloy => write!(f, "Alloy"),
-            Material_Type::Atmosphere => write!(f, "Atmosphere"),
-            Material_Type::Base => write!(f, "Base"),
-            Material_Type::Ceramic => write!(f, "Ceramic"),
-            Material_Type::Explosive => write!(f, "Explosive"),
-            Material_Type::Fuel => write!(f, "Fuel"),
-            Material_Type::Glass => write!(f, "Glass"),
-            Material_Type::Oxidizer => write!(f, "Oxidizer"),
-            Material_Type::Rgb => write!(f, ""),
-            Material_Type::Solution => write!(f, "Solution"),
-            Material_Type::Solvent => write!(f, "Solvent"),
+            MaterialType::Acid => write!(f, "Acid"),
+            MaterialType::Alloy => write!(f, "Alloy"),
+            MaterialType::Atmosphere => write!(f, "Atmosphere"),
+            MaterialType::Base => write!(f, "Base"),
+            MaterialType::Ceramic => write!(f, "Ceramic"),
+            MaterialType::Explosive => write!(f, "Explosive"),
+            MaterialType::Fuel => write!(f, "Fuel"),
+            MaterialType::Glass => write!(f, "Glass"),
+            MaterialType::Oxidizer => write!(f, "Oxidizer"),
+            MaterialType::Rgb => write!(f, ""),
+            MaterialType::Solution => write!(f, "Solution"),
+            MaterialType::Solvent => write!(f, "Solvent"),
         }
     }
 }
 
 impl Board {
     pub fn draw_board(&mut self) -> Vec<Color32> {
-        let f: Vec<Color32> = self.contents.iter().map(|px| px.material.color).collect();
+        let f: Vec<Color32> = self
+            .contents
+            .iter()
+            .map(|px| px.material.material_color.color)
+            .collect();
         f
     }
 }

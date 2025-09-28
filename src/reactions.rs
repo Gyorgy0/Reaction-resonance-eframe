@@ -1,11 +1,10 @@
 use crate::{physics::Phase, world::Board};
-use egui::{epaint::Hsva, lerp, Color32};
+use egui::{Color32, epaint::Hsva, lerp};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
 #[rustfmt::skip]
-pub(crate) enum Material_Type {
+pub(crate) enum MaterialType {
     Acid,       // Corrosive material - everything with a pH value lower than 7.0
     Alloy,      // Mixture of metals
     Atmosphere, // Mixture of materials that are always present in the simulation*/
@@ -24,7 +23,7 @@ impl Board {
     #[inline(always)]
     pub(crate) fn solve_reactions(&mut self, i: usize, j: usize, framedelta: f32, framecount: u64) {
         match self.contents[(i, j)].material.material_type {
-            Material_Type::Fuel => {
+            MaterialType::Fuel => {
                 let rnd = rand::random_range(0_u8..4_u8);
                 if std::mem::discriminant(
                     &self
@@ -78,13 +77,24 @@ impl Board {
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
                 }
             }
-            Material_Type::Rgb => {
-                if self.contents[(i, j)].material.color
+            MaterialType::Rgb => {
+                if self.contents[(i, j)].material.material_color.color
                     == Color32::from_rgba_unmultiplied(0, 0, 0, 0)
                 {
-                    self.contents[(i, j)].material.color =
-                        Hsva::new((framecount % (256 * 4)) as f32 / 256.0, 1.0, 1.0, 1.0).into();
-                    self.contents[(i, j)].material.color = self.contents[(i,j)].material.color.gamma_multiply(lerp(0.9..=1.1, self.rngs[(i, j)]));
+                    self.contents[(i, j)].material.material_color.color =
+                        Hsva::new(((framecount/4) % (355)) as f32 / (355.0), 1.0, 1.0, 1.0).into();
+                    self.contents[(i, j)].material.material_color.color = self.contents[(i, j)]
+                        .material
+                        .material_color
+                        .color
+                        .gamma_multiply(lerp(
+                            self.contents[(i, j)]
+                                .material
+                                .material_color
+                                .shinyness
+                                .clone(),
+                            self.rngs[(i, j)],
+                        ));
                 }
             }
             _ => {}
