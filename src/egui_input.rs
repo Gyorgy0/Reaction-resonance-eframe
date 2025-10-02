@@ -25,7 +25,8 @@ pub fn handle_mouse_input(
                         .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
                         .unwrap()
                         .material
-                        == VOID || selected_material.phase == Phase::Void)
+                        == VOID
+                        || selected_material.phase == Phase::Void)
                 {
                     game_board.contents
                         [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)] = Particle {
@@ -43,7 +44,7 @@ pub fn handle_mouse_input(
                         .material
                         .material_color
                         .color
-                        .linear_multiply(lerp(
+                        .gamma_multiply(lerp(
                             game_board.contents
                                 [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]
                                 .material

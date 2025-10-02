@@ -14,7 +14,7 @@ pub(crate) enum MaterialType {
     Fuel,       // Flammable material under normal circumstances
     Glass,      // Amorphous material formed from a molten material and it's cooled without proper crystalization
     Oxidizer,   // This material can enhance the explosive power of explosives or the burning of fuels by aiding their combustion
-    Rgb,        // This material changes it's color based on elapsed time
+    Decor,      // This material is indestructible and completely inert it's used for decoration purposes, mainly pixelart, map making, etc...
     Solution,   // Material that contains other materials e.g. salts, on heat it leaves the dissolved materials behind
     Solvent,    // Dissolves certain materials
 }
@@ -38,6 +38,20 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i, j + 1)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.material_color.color = self.contents[(i, j + 1)]
+                        .material
+                        .material_color
+                        .color
+                        .gamma_multiply(
+                            1.0 / lerp(
+                                self.contents[(i, j + 1)]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i, j + 1)],
+                            ),
+                        );
                 } else if std::mem::discriminant(
                     &self
                         .contents
@@ -51,6 +65,20 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i, j - 1)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.material_color.color = self.contents[(i, j - 1)]
+                        .material
+                        .material_color
+                        .color
+                        .gamma_multiply(
+                            1.0 / lerp(
+                                self.contents[(i, j - 1)]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i, j - 1)],
+                            ),
+                        );
                 } else if std::mem::discriminant(
                     &self
                         .contents
@@ -63,6 +91,20 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i + 1, j)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.material_color.color = self.contents[(i + 1, j)]
+                        .material
+                        .material_color
+                        .color
+                        .gamma_multiply(
+                            1.0 / lerp(
+                                self.contents[(i + 1, j)]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i + 1, j)],
+                            ),
+                        );
                 } else if std::mem::discriminant(
                     &self
                         .contents
@@ -75,14 +117,29 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i - 1, j)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.material_color.color = self.contents[(i - 1, j)]
+                        .material
+                        .material_color
+                        .color
+                        .gamma_multiply(
+                            1.0 / lerp(
+                                self.contents[(i - 1, j)]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i - 1, j)],
+                            ),
+                        );
                 }
             }
-            MaterialType::Rgb => {
+            MaterialType::Decor => {
                 if self.contents[(i, j)].material.material_color.color
                     == Color32::from_rgba_unmultiplied(0, 0, 0, 0)
                 {
                     self.contents[(i, j)].material.material_color.color =
-                        Hsva::new(((framecount/4) % (355)) as f32 / (355.0), 1.0, 1.0, 1.0).into();
+                        Hsva::new(((framecount / 4) % (355)) as f32 / (355.0), 1.0, 1.0, 1.0)
+                            .into();
                     self.contents[(i, j)].material.material_color.color = self.contents[(i, j)]
                         .material
                         .material_color
