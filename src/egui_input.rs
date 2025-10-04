@@ -16,44 +16,40 @@ pub fn handle_mouse_input(
         let material = selected_material.clone();
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
-                if game_board
-                    .contents
-                    .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
-                    .is_some()
+                let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
+                if game_board.contents.get(cellpos.0, cellpos.1).is_some()
                     && (game_board
                         .contents
-                        .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
+                        .get(cellpos.0, cellpos.1)
                         .unwrap()
                         .material
                         == VOID
                         || selected_material.phase == Phase::Void)
                 {
-                    game_board.contents
-                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)] = Particle {
+                    game_board.contents[cellpos] = Particle {
                         material: material.clone(),
                         speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                         temperature: 20.0,
                         updated: true,
+                        display_color: material.material_color.color,
                     };
-                    game_board.contents
-                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]
-                        .material
-                        .material_color
-                        .color = game_board.contents
-                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]
+                    game_board.contents[cellpos].display_color = game_board.contents[cellpos]
                         .material
                         .material_color
                         .color
                         .gamma_multiply(lerp(
-                            game_board.contents
-                                [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)]
+                            game_board.contents[cellpos]
                                 .material
                                 .material_color
                                 .shinyness
                                 .clone(),
-                            game_board.rngs
-                                [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)],
+                            game_board.rngs[cellpos],
                         ));
+                    game_board.contents[cellpos].display_color[3] = game_board.contents[cellpos]
+                        .material
+                        .material_color
+                        .color
+                        .a();
                 }
             }
         }
@@ -63,17 +59,14 @@ pub fn handle_mouse_input(
         let material = VOID.clone();
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
-                if game_board
-                    .contents
-                    .get((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)
-                    .is_some()
-                {
-                    game_board.contents
-                        [((i + pos.y as i32) as usize, (j + pos.x as i32) as usize)] = Particle {
+                let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
+                if game_board.contents.get(cellpos.0, cellpos.1).is_some() {
+                    game_board.contents[cellpos] = Particle {
                         material: material.clone(),
                         speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
                         temperature: 20.0,
                         updated: true,
+                        display_color: material.material_color.color,
                     };
                 }
             }

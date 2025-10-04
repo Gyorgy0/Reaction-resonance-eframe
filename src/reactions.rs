@@ -38,20 +38,20 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i, j + 1)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].material.material_color.color = self.contents[(i, j + 1)]
+                    self.contents[(i, j)].display_color = self.contents[(i, j + 1)]
                         .material
                         .material_color
                         .color
-                        .gamma_multiply(
-                            1.0 / lerp(
-                                self.contents[(i, j + 1)]
-                                    .material
-                                    .material_color
-                                    .shinyness
-                                    .clone(),
-                                self.rngs[(i, j + 1)],
-                            ),
-                        );
+                        .gamma_multiply(lerp(
+                            self.contents[(i, j + 1)]
+                                .material
+                                .material_color
+                                .shinyness
+                                .clone(),
+                            self.rngs[(i, j)],
+                        ));
+                    self.contents[(i, j)].display_color[3] =
+                        self.contents[(i, j)].material.material_color.color.a();
                 } else if std::mem::discriminant(
                     &self
                         .contents
@@ -65,20 +65,20 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i, j - 1)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].material.material_color.color = self.contents[(i, j - 1)]
+                    self.contents[(i, j)].display_color = self.contents[(i, j - 1)]
                         .material
                         .material_color
                         .color
-                        .gamma_multiply(
-                            1.0 / lerp(
-                                self.contents[(i, j - 1)]
-                                    .material
-                                    .material_color
-                                    .shinyness
-                                    .clone(),
-                                self.rngs[(i, j - 1)],
-                            ),
-                        );
+                        .gamma_multiply(lerp(
+                            self.contents[(i, j - 1)]
+                                .material
+                                .material_color
+                                .shinyness
+                                .clone(),
+                            self.rngs[(i, j)],
+                        ));
+                    self.contents[(i, j)].display_color[3] =
+                        self.contents[(i, j - 1)].material.material_color.color.a();
                 } else if std::mem::discriminant(
                     &self
                         .contents
@@ -91,20 +91,20 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i + 1, j)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].material.material_color.color = self.contents[(i + 1, j)]
+                    self.contents[(i, j)].display_color = self.contents[(i + 1, j)]
                         .material
                         .material_color
                         .color
-                        .gamma_multiply(
-                            1.0 / lerp(
-                                self.contents[(i + 1, j)]
-                                    .material
-                                    .material_color
-                                    .shinyness
-                                    .clone(),
-                                self.rngs[(i + 1, j)],
-                            ),
-                        );
+                        .gamma_multiply(lerp(
+                            self.contents[(i + 1, j)]
+                                .material
+                                .material_color
+                                .shinyness
+                                .clone(),
+                            self.rngs[(i, j)],
+                        ));
+                    self.contents[(i, j)].display_color[3] =
+                        self.contents[(i + 1, j)].material.material_color.color.a();
                 } else if std::mem::discriminant(
                     &self
                         .contents
@@ -117,34 +117,34 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i - 1, j)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].material.material_color.color = self.contents[(i - 1, j)]
+                    self.contents[(i, j)].display_color = self.contents[(i - 1, j)]
                         .material
                         .material_color
                         .color
-                        .gamma_multiply(
-                            1.0 / lerp(
-                                self.contents[(i - 1, j)]
-                                    .material
-                                    .material_color
-                                    .shinyness
-                                    .clone(),
-                                self.rngs[(i - 1, j)],
-                            ),
-                        );
+                        .gamma_multiply(lerp(
+                            self.contents[(i - 1, j)]
+                                .material
+                                .material_color
+                                .shinyness
+                                .clone(),
+                            self.rngs[(i, j)],
+                        ));
+                    self.contents[(i, j)].display_color[3] =
+                        self.contents[(i - 1, j)].material.material_color.color.a();
                 }
             }
             MaterialType::Decor => {
                 if self.contents[(i, j)].material.material_color.color
                     == Color32::from_rgba_unmultiplied(0, 0, 0, 0)
                 {
+                    self.contents[(i, j)].display_color =
+                        Hsva::new(((framecount / 4) % (355)) as f32 / (355.0), 1.0, 1.0, 1.0)
+                            .into();
                     self.contents[(i, j)].material.material_color.color =
                         Hsva::new(((framecount / 4) % (355)) as f32 / (355.0), 1.0, 1.0, 1.0)
                             .into();
-                    self.contents[(i, j)].material.material_color.color = self.contents[(i, j)]
-                        .material
-                        .material_color
-                        .color
-                        .gamma_multiply(lerp(
+                    self.contents[(i, j)].display_color =
+                        self.contents[(i, j)].display_color.gamma_multiply(lerp(
                             self.contents[(i, j)]
                                 .material
                                 .material_color

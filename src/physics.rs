@@ -619,6 +619,7 @@ impl Board {
                     };
                 } else {
                     self.contents[(i, j)].material = VOID.clone();
+                    self.contents[(i, j)].display_color = VOID.material_color.color;
                 }
 
                 // Rng determines which side should the particle fall

@@ -43,10 +43,11 @@ pub(crate) struct MaterialColor{
 #[rustfmt::skip]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Particle {
-    pub material: Material, // Material of the particle
-    pub speed: Vec2,        // Vectors of the particle (x, y)
-    pub temperature: f32,   // Temperature of the materialy
-    pub updated: bool,      // Is it updated?
+    pub material: Material,     // Material of the particle
+    pub speed: Vec2,            // Vectors of the particle (x, y)
+    pub temperature: f32,       // Temperature of the materialy
+    pub updated: bool,          // Is it updated?
+    pub display_color: Color32, // Displayed color
 }
 
 #[rustfmt::skip]
@@ -85,6 +86,7 @@ impl Board {
                     speed: Vec2::new(0.0, 0.0),
                     temperature: 20.0,
                     updated: false,
+                    display_color: VOID.material_color.color,
                 };
                 self.height as usize * self.width as usize
             ],

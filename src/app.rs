@@ -4,7 +4,7 @@ use crate::{
 };
 use egui::{
     Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureHandle,
-    TextureOptions, Vec2, load, pos2, util::hash, vec2,
+    TextureOptions, Theme, Vec2, load, pos2, util::hash, vec2,
 };
 use rand::SeedableRng;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -104,6 +104,7 @@ impl EFrameApp {
 
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
+        cc.egui_ctx.set_theme(Theme::Dark);
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
