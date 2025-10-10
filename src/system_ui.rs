@@ -33,11 +33,13 @@ impl fmt::Display for MaterialType {
             MaterialType::Atmosphere => write!(f, "Atmosphere"),
             MaterialType::Base => write!(f, "Base"),
             MaterialType::Ceramic => write!(f, "Ceramic"),
+            MaterialType::Cloner => write!(f, "Cloner"),
             MaterialType::Explosive => write!(f, "Explosive"),
             MaterialType::Fuel => write!(f, "Fuel"),
             MaterialType::Glass => write!(f, "Glass"),
             MaterialType::Oxidizer => write!(f, "Oxidizer"),
             MaterialType::Decor => write!(f, "Decor"),
+            MaterialType::Sink => write!(f, "Sink"),
             MaterialType::Solution => write!(f, "Solution"),
             MaterialType::Solvent => write!(f, "Solvent"),
         }

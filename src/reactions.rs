@@ -10,11 +10,13 @@ pub(crate) enum MaterialType {
     Atmosphere, // Mixture of materials that are always present in the simulation*/
     Base,       // Corrosive material - everything with a pH value higher than 7.0
     Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
+    Cloner,     // Material that clones the last new material it came in contact with
     Explosive,  // A material that generates a lot of energy and lot of gases
     Fuel,       // Flammable material under normal circumstances
     Glass,      // Amorphous material formed from a molten material and it's cooled without proper crystalization
     Oxidizer,   // This material can enhance the explosive power of explosives or the burning of fuels by aiding their combustion
     Decor,      // This material is indestructible and completely inert it's used for decoration purposes, mainly pixelart, map making, etc...
+    Sink,       // This material swallows any material it comes in contact with it
     Solution,   // Material that contains other materials e.g. salts, on heat it leaves the dissolved materials behind
     Solvent,    // Dissolves certain materials
 }
