@@ -1,4 +1,7 @@
-use crate::{physics::Phase, world::Board};
+use crate::{
+    physics::Phase,
+    world::{Board, VOID},
+};
 use egui::{Color32, epaint::Hsva, lerp};
 use serde::{Deserialize, Serialize};
 
@@ -154,6 +157,32 @@ impl Board {
                                 .clone(),
                             self.rngs[(i, j)],
                         ));
+                }
+            }
+            MaterialType::Sink => {
+                if std::mem::discriminant(&self.contents[(i, j + 1)].material.material_type)
+                    != std::mem::discriminant(&MaterialType::Sink)
+                {
+                    self.contents[(i, j + 1)].material = VOID.clone();
+                    self.contents[(i, j + 1)].display_color = VOID.material_color.color;
+                }
+                if std::mem::discriminant(&self.contents[(i, j - 1)].material.material_type)
+                    != std::mem::discriminant(&MaterialType::Sink)
+                {
+                    self.contents[(i, j - 1)].material = VOID.clone();
+                    self.contents[(i, j - 1)].display_color = VOID.material_color.color;
+                }
+                if std::mem::discriminant(&self.contents[(i + 1, j)].material.material_type)
+                    != std::mem::discriminant(&MaterialType::Sink)
+                {
+                    self.contents[(i + 1, j)].material = VOID.clone();
+                    self.contents[(i + 1, j)].display_color = VOID.material_color.color;
+                }
+                if std::mem::discriminant(&self.contents[(i - 1, j)].material.material_type)
+                    != std::mem::discriminant(&MaterialType::Sink)
+                {
+                    self.contents[(i - 1, j)].material = VOID.clone();
+                    self.contents[(i - 1, j)].display_color = VOID.material_color.color;
                 }
             }
             _ => {}
