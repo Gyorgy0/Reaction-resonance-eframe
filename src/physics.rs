@@ -258,7 +258,7 @@ impl Board {
                 let mut ychange = 0;
                 for _k in 0..self.contents[(i, j)].speed.y.abs() as i32 {
                     // Falling and checking if there is a particle with a larger density
-                    if self.contents[(i, j)].material.density
+                    if (self.contents[(i, j)].material.density
                         > self
                             .contents
                             .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
@@ -266,6 +266,26 @@ impl Board {
                             .material
                             .density
                         && self.contents[(i, j)].updated
+                        && discriminant(
+                            &self
+                                .contents
+                                .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .phase,
+                        ) != discriminant(&Phase::Solid {
+                            melting_point: 0_f32,
+                        }))
+                        || (discriminant(
+                            &self
+                                .contents
+                                .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .phase,
+                        ) == discriminant(&Phase::Solid {
+                            melting_point: 0_f32,
+                        }) && self.contents[(i, j)].updated)
                     {
                         ychange = _k;
                     }
@@ -275,7 +295,7 @@ impl Board {
                         .contents
                         .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
                         .is_none()
-                        || discriminant(
+                        && discriminant(
                             &self
                                 .contents
                                 .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
@@ -361,63 +381,28 @@ impl Board {
                             as i32;
                     }
                 }
-                if self
-                    .contents
-                    .get(i, j.wrapping_add(1))
-                    .unwrap_or(&self.contents[(i, j)])
-                    .material
-                    .density
-                    < self.contents[(i, j)].material.density
-                    && self
-                        .contents
-                        .get(i, j.wrapping_sub(1))
-                        .unwrap_or(&self.contents[(i, j)])
-                        .material
-                        .density
-                        > self.contents[(i, j)].material.density
-                {
-                    self.contents[(i, j)].speed.x = self.contents[(i, j)].speed.x.abs();
-                    orientation = (self.contents[(i, j)].speed.x.abs() + 1.0) as i32;
-                } else if self
-                    .contents
-                    .get(i, j.wrapping_add(1))
-                    .unwrap_or(&self.contents[(i, j)])
-                    .material
-                    .density
-                    > self.contents[(i, j)].material.density
-                    && self
-                        .contents
-                        .get(i, j.wrapping_sub(1))
-                        .unwrap_or(&self.contents[(i, j)])
-                        .material
-                        .density
-                        < self.contents[(i, j)].material.density
-                {
-                    self.contents[(i, j)].speed.x = -self.contents[(i, j)].speed.x.abs();
-                    orientation = -(self.contents[(i, j)].speed.x.abs() + 1.0) as i32;
-                } else if self
-                    .contents
-                    .get(i, j.wrapping_add(1))
-                    .unwrap_or(&self.contents[(i, j)])
-                    .material
-                    .density
-                    <= self.contents[(i, j)].material.density
-                    && self
-                        .contents
-                        .get(i, j.wrapping_sub(1))
-                        .unwrap_or(&self.contents[(i, j)])
-                        .material
-                        .density
-                        <= self.contents[(i, j)].material.density
-                {
-                    orientation = (self.contents[(i, j)].speed.x.signum()
-                        * (self.contents[(i, j)].speed.x.abs() + 1.0))
-                        as i32;
-                }
 
                 for _k in 0..orientation.abs() {
                     // This condition checks, whether the particle can fall to the determined side
                     if self
+                        .contents
+                        .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
+                        .is_some()
+                        && discriminant(
+                            &self
+                                .contents
+                                .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .phase,
+                        ) == discriminant(
+                            &(Phase::Solid {
+                                melting_point: 0_f32,
+                            }),
+                        )
+                    {
+                        continue;
+                    } else if self
                         .contents
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
@@ -429,17 +414,6 @@ impl Board {
                             .density
                             <= self.contents[(i, j)].material.density
                         && (discriminant(
-                            &self
-                                .contents
-                                .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                .unwrap_or(&self.contents[(i, j)])
-                                .material
-                                .phase,
-                        ) != discriminant(
-                            &(Phase::Solid {
-                                melting_point: 0_f32,
-                            }),
-                        ) || discriminant(
                             &self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
@@ -489,7 +463,7 @@ impl Board {
                     // This condition checks, whether the particle can fall to the determined side
                     if self
                         .contents
-                        .get(i + (orientation.signum() * _k) as usize, j)
+                        .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                         .is_some()
                         && std::mem::discriminant(
                             &self
@@ -509,15 +483,15 @@ impl Board {
                         .is_some()
                         && (self
                             .contents
-                            .get(i + (orientation.signum() * _k) as usize, j)
+                            .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                             .unwrap_or(&self.contents[(i, j)])
                             .material
                             .density
                             <= self.contents[(i, j)].material.density)
-                        || (std::mem::discriminant(
+                        && (std::mem::discriminant(
                             &self
                                 .contents
-                                .get(i + (orientation.signum() * _k) as usize, j)
+                                .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
                                 .material
                                 .phase,
@@ -529,7 +503,7 @@ impl Board {
                         ) || std::mem::discriminant(
                             &self
                                 .contents
-                                .get(i + (orientation.signum() * _k) as usize, j)
+                                .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
                                 .material
                                 .phase,
@@ -587,7 +561,7 @@ impl Board {
                             .material
                             .density
                             <= self.contents[(i, j)].material.density
-                        || (std::mem::discriminant(
+                        && (std::mem::discriminant(
                             &self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
@@ -656,28 +630,35 @@ impl Board {
                     // This condition checks, whether the particle can fall to the determined side
                     if self
                         .contents
-                        .get(i + (orientation.signum() * _k) as usize, j)
+                        .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                         .is_some()
-                        && self
-                            .contents
-                            .get(i + (orientation.signum() * _k) as usize, j)
-                            .unwrap_or(&self.contents[(i, j)])
-                            .material
-                            .density
-                            <= self.contents[(i, j)].material.density
-                        || (std::mem::discriminant(
+                        && std::mem::discriminant(
                             &self
                                 .contents
-                                .get(i + (orientation.signum() * _k) as usize, j)
+                                .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
                                 .material
                                 .phase,
-                        ) != std::mem::discriminant(&Phase::Solid {
+                        ) == std::mem::discriminant(&Phase::Solid {
                             melting_point: 0_f32,
-                        }) || std::mem::discriminant(
+                        })
+                    {
+                        continue;
+                    } else if self
+                        .contents
+                        .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
+                        .is_some()
+                        && (self
+                            .contents
+                            .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
+                            .unwrap_or(&self.contents[(i, j)])
+                            .material
+                            .density
+                            <= self.contents[(i, j)].material.density)
+                        && (std::mem::discriminant(
                             &self
                                 .contents
-                                .get(i + (orientation.signum() * _k) as usize, j)
+                                .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
                                 .material
                                 .phase,
@@ -689,7 +670,7 @@ impl Board {
                         ) || std::mem::discriminant(
                             &self
                                 .contents
-                                .get(i + (orientation.signum() * _k) as usize, j)
+                                .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
                                 .material
                                 .phase,
@@ -698,9 +679,12 @@ impl Board {
                             boiling_point: 0_f32,
                         }))
                     {
-                        self.contents
-                            .swap((i, j), (i + (orientation.signum() * _k) as usize, j));
-                        self.contents[(i + (orientation.signum() * _k) as usize, j)].updated = true;
+                        self.contents.swap(
+                            (i, j),
+                            (i.wrapping_add((orientation.signum() * _k) as usize), j),
+                        );
+                        self.contents[(i.wrapping_add((orientation.signum() * _k) as usize), j)]
+                            .updated = true;
                     }
                 }
                 orientation = 0;
@@ -722,6 +706,22 @@ impl Board {
                         .contents
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
+                        && std::mem::discriminant(
+                            &self
+                                .contents
+                                .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .phase,
+                        ) == std::mem::discriminant(&Phase::Solid {
+                            melting_point: 0_f32,
+                        })
+                    {
+                        continue;
+                    } else if self
+                        .contents
+                        .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
+                        .is_some()
                         && self
                             .contents
                             .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
@@ -730,15 +730,6 @@ impl Board {
                             .density
                             <= self.contents[(i, j)].material.density
                         || (std::mem::discriminant(
-                            &self
-                                .contents
-                                .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                .unwrap_or(&self.contents[(i, j)])
-                                .material
-                                .phase,
-                        ) != std::mem::discriminant(&Phase::Solid {
-                            melting_point: 0_f32,
-                        }) || std::mem::discriminant(
                             &self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
