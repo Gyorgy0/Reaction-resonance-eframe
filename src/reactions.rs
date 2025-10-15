@@ -1,11 +1,11 @@
 use crate::{
     physics::Phase,
-    world::{Board, VOID},
+    world::{Board, Material, VOID},
 };
 use egui::{Color32, epaint::Hsva, lerp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 #[rustfmt::skip]
 pub(crate) enum MaterialType {
     Acid,       // Corrosive material - everything with a pH value lower than 7.0
@@ -13,7 +13,7 @@ pub(crate) enum MaterialType {
     Atmosphere, // Mixture of materials that are always present in the simulation*/
     Base,       // Corrosive material - everything with a pH value higher than 7.0
     Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
-    Cloner,     // Material that clones the last new material it came in contact with
+    Cloner {cloned_material: Option<Box<Material>>},     // Material that clones the last new material it came in contact with
     Explosive,  // A material that generates a lot of energy and lot of gases
     Fuel,       // Flammable material under normal circumstances
     Glass,      // Amorphous material formed from a molten material and it's cooled without proper crystalization
@@ -24,10 +24,22 @@ pub(crate) enum MaterialType {
     Solvent,    // Dissolves certain materials
 }
 
+impl MaterialType {
+    fn get_coarseness(&self) -> Option<Box<Material>> {
+        let mut returnval: Option<Box<Material>> = Option::None;
+        if let MaterialType::Cloner {
+            cloned_material
+        } = self
+        {
+            returnval = cloned_material.clone()
+        };
+        returnval
+    }
+}
 impl Board {
     #[inline(always)]
     pub(crate) fn solve_reactions(&mut self, i: usize, j: usize, framedelta: f32, framecount: u64) {
-        match self.contents[(i, j)].material.material_type {
+        match &self.contents[(i, j)].material.material_type {
             MaterialType::Fuel => {
                 let rnd = rand::random_range(0_u8..4_u8);
                 if std::mem::discriminant(
@@ -136,6 +148,12 @@ impl Board {
                         ));
                     self.contents[(i, j)].display_color[3] =
                         self.contents[(i - 1, j)].material.material_color.color.a();
+                }
+            }
+            MaterialType::Cloner { cloned_material: _ } =>
+            {
+                if self.contents[(i,j)].material.material_type.get_coarseness().is_none() {
+
                 }
             }
             MaterialType::Decor => {

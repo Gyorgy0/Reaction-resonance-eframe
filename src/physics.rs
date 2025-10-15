@@ -49,7 +49,7 @@ impl Phase {
 impl Board {
     #[inline(always)]
     pub(crate) fn solve_particle(&mut self, i: usize, j: usize, framedelta: f32, framecount: u64) {
-        match self.contents[(i, j)].material.phase {
+        match &self.contents[(i, j)].material.phase {
             Phase::Void => {}
 
             Phase::Solid { melting_point: _ } => {}
