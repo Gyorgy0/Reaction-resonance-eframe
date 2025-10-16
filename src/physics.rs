@@ -72,6 +72,18 @@ impl Board {
                             .unwrap_or(&self.contents[(i, j)])
                             .material
                             .density
+                        && std::mem::discriminant(
+                            &self
+                                .contents
+                                .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .phase,
+                        ) != std::mem::discriminant(
+                            &(Phase::Solid {
+                                melting_point: 0_f32,
+                            }),
+                        )
                         && self.contents[(i, j)].updated
                     {
                         ychange = _k;
@@ -258,7 +270,7 @@ impl Board {
                 let mut ychange = 0;
                 for _k in 0..self.contents[(i, j)].speed.y.abs() as i32 {
                     // Falling and checking if there is a particle with a larger density
-                    if (self.contents[(i, j)].material.density
+                    if self.contents[(i, j)].material.density
                         > self
                             .contents
                             .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
@@ -275,17 +287,7 @@ impl Board {
                                 .phase,
                         ) != discriminant(&Phase::Solid {
                             melting_point: 0_f32,
-                        }))
-                        || (discriminant(
-                            &self
-                                .contents
-                                .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
-                                .unwrap_or(&self.contents[(i, j)])
-                                .material
-                                .phase,
-                        ) == discriminant(&Phase::Solid {
-                            melting_point: 0_f32,
-                        }) && self.contents[(i, j)].updated)
+                        })
                     {
                         ychange = _k;
                     }
@@ -692,7 +694,6 @@ impl Board {
                 if self.contents[(i, j)].speed.x.abs() > 1.0 {
                     self.contents[(i, j)].speed.x = 0.0;
                 } else {
-                    // Rand range: (-1.0..1.0)
                     let rnd = self.rngs[(i, j)] * self.seeds[(i, j)];
                     self.contents[(i, j)].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[(i, j)].speed.x.signum()
@@ -729,7 +730,7 @@ impl Board {
                             .material
                             .density
                             <= self.contents[(i, j)].material.density
-                        || (std::mem::discriminant(
+                        && (std::mem::discriminant(
                             &self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))

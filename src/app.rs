@@ -54,9 +54,13 @@ impl Default for EFrameApp {
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
             use std::fs;
-            // This is for serializing particles with new fields and enums - testing purposes
             /*
-            let option:Option<u8> = Option::None;
+            use crate::reactions::MaterialType;
+            // This is for serializing particles with new fields and enums - testing purposes
+
+            let option = MaterialType::Cloner {
+                cloned_material: Option::None,
+            };
             let data = serde_json::to_string_pretty(&option).unwrap();
             println!("{:?}", data);
             fs::write("src/new.json", data).unwrap();

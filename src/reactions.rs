@@ -1,3 +1,5 @@
+use std::{mem::discriminant, ops::Deref};
+
 use crate::{
     physics::Phase,
     world::{Board, Material, VOID},
@@ -25,12 +27,9 @@ pub(crate) enum MaterialType {
 }
 
 impl MaterialType {
-    fn get_coarseness(&self) -> Option<Box<Material>> {
+    fn get_cloned_material(&self) -> Option<Box<Material>> {
         let mut returnval: Option<Box<Material>> = Option::None;
-        if let MaterialType::Cloner {
-            cloned_material
-        } = self
-        {
+        if let MaterialType::Cloner { cloned_material } = self {
             returnval = cloned_material.clone()
         };
         returnval
@@ -45,22 +44,22 @@ impl Board {
                 if std::mem::discriminant(
                     &self
                         .contents
-                        .get(i, j + 1)
+                        .get(i, j.wrapping_add(1))
                         .unwrap_or(&self.contents[(i, j)])
                         .material
                         .phase,
                 ) == std::mem::discriminant(&(Phase::Plasma { energy: 0_f32 }))
-                    && self.contents.get(i, j + 1).is_some()
+                    && self.contents.get(i, j.wrapping_add(1)).is_some()
                     && rnd == 0
                 {
-                    self.contents[(i, j)] = self.contents[(i, j + 1)].clone();
+                    self.contents[(i, j)] = self.contents[(i, j.wrapping_add(1))].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].display_color = self.contents[(i, j + 1)]
+                    self.contents[(i, j)].display_color = self.contents[(i, j.wrapping_add(1))]
                         .material
                         .material_color
                         .color
                         .gamma_multiply(lerp(
-                            self.contents[(i, j + 1)]
+                            self.contents[(i, j.wrapping_add(1))]
                                 .material
                                 .material_color
                                 .shinyness
@@ -72,88 +71,314 @@ impl Board {
                 } else if std::mem::discriminant(
                     &self
                         .contents
-                        .get(i, j - 1)
+                        .get(i, j.saturating_sub(1))
                         .unwrap_or(&self.contents[(i, j)])
                         .material
                         .phase,
                 ) == std::mem::discriminant(&(Phase::Plasma { energy: 0_f32 }))
-                    && self.contents.get(i, j - 1).is_some()
+                    && self.contents.get(i, j.saturating_sub(1)).is_some()
                     && rnd == 1
                 {
-                    self.contents[(i, j)] = self.contents[(i, j - 1)].clone();
+                    self.contents[(i, j)] = self.contents[(i, j.saturating_sub(1))].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].display_color = self.contents[(i, j - 1)]
+                    self.contents[(i, j)].display_color = self.contents[(i, j.saturating_sub(1))]
                         .material
                         .material_color
                         .color
                         .gamma_multiply(lerp(
-                            self.contents[(i, j - 1)]
+                            self.contents[(i, j.saturating_sub(1))]
                                 .material
                                 .material_color
                                 .shinyness
                                 .clone(),
                             self.rngs[(i, j)],
                         ));
-                    self.contents[(i, j)].display_color[3] =
-                        self.contents[(i, j - 1)].material.material_color.color.a();
+                    self.contents[(i, j)].display_color[3] = self.contents
+                        [(i, j.saturating_sub(1))]
+                        .material
+                        .material_color
+                        .color
+                        .a();
                 } else if std::mem::discriminant(
                     &self
                         .contents
-                        .get(i + 1, j)
+                        .get(i.wrapping_add(1), j)
                         .unwrap_or(&self.contents[(i, j)])
                         .material
                         .phase,
                 ) == std::mem::discriminant(&(Phase::Plasma { energy: 0_f32 }))
                     && rnd == 2
                 {
-                    self.contents[(i, j)] = self.contents[(i + 1, j)].clone();
+                    self.contents[(i, j)] = self.contents[(i.wrapping_add(1), j)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].display_color = self.contents[(i + 1, j)]
+                    self.contents[(i, j)].display_color = self.contents[(i.wrapping_add(1), j)]
                         .material
                         .material_color
                         .color
                         .gamma_multiply(lerp(
-                            self.contents[(i + 1, j)]
+                            self.contents[(i.wrapping_add(1), j)]
                                 .material
                                 .material_color
                                 .shinyness
                                 .clone(),
                             self.rngs[(i, j)],
                         ));
-                    self.contents[(i, j)].display_color[3] =
-                        self.contents[(i + 1, j)].material.material_color.color.a();
+                    self.contents[(i, j)].display_color[3] = self.contents[(i.wrapping_add(1), j)]
+                        .material
+                        .material_color
+                        .color
+                        .a();
                 } else if std::mem::discriminant(
                     &self
                         .contents
-                        .get(i - 1, j)
+                        .get(i.saturating_sub(1), j)
                         .unwrap_or(&self.contents[(i, j)])
                         .material
                         .phase,
                 ) == std::mem::discriminant(&(Phase::Plasma { energy: 0_f32 }))
                     && rnd == 3
                 {
-                    self.contents[(i, j)] = self.contents[(i - 1, j)].clone();
+                    self.contents[(i, j)] = self.contents[(i.saturating_sub(1), j)].clone();
                     self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
-                    self.contents[(i, j)].display_color = self.contents[(i - 1, j)]
+                    self.contents[(i, j)].display_color = self.contents[(i.saturating_sub(1), j)]
                         .material
                         .material_color
                         .color
                         .gamma_multiply(lerp(
-                            self.contents[(i - 1, j)]
+                            self.contents[(i.saturating_sub(1), j)]
                                 .material
                                 .material_color
                                 .shinyness
                                 .clone(),
                             self.rngs[(i, j)],
                         ));
-                    self.contents[(i, j)].display_color[3] =
-                        self.contents[(i - 1, j)].material.material_color.color.a();
+                    self.contents[(i, j)].display_color[3] = self.contents
+                        [(i.saturating_sub(1), j)]
+                        .material
+                        .material_color
+                        .color
+                        .a();
                 }
             }
-            MaterialType::Cloner { cloned_material: _ } =>
-            {
-                if self.contents[(i,j)].material.material_type.get_coarseness().is_none() {
-
+            MaterialType::Cloner { cloned_material: _ } => {
+                if self.contents[(i, j)]
+                    .material
+                    .material_type
+                    .get_cloned_material()
+                    .is_none()
+                {
+                    if self
+                        .contents
+                        .get(i, j.wrapping_add(1))
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        != VOID
+                        && discriminant(
+                            &self
+                                .contents
+                                .get(i, j.wrapping_add(1))
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .material_type,
+                        ) != discriminant(&MaterialType::Cloner {
+                            cloned_material: Option::None,
+                        })
+                    {
+                        self.contents[(i, j)].material.material_type = MaterialType::Cloner {
+                            cloned_material: Option::Some(Box::new(
+                                self.contents[(i, j.wrapping_add(1))].material.clone(),
+                            )),
+                        };
+                    } else if self
+                        .contents
+                        .get(i, j.saturating_sub(1))
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        != VOID
+                        && discriminant(
+                            &self
+                                .contents
+                                .get(i, j.saturating_sub(1))
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .material_type,
+                        ) != discriminant(&MaterialType::Cloner {
+                            cloned_material: Option::None,
+                        })
+                    {
+                        self.contents[(i, j)].material.material_type = MaterialType::Cloner {
+                            cloned_material: Option::Some(Box::new(
+                                self.contents[(i, j.saturating_sub(1))].material.clone(),
+                            )),
+                        };
+                    } else if self
+                        .contents
+                        .get(i.wrapping_add(1), j)
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        != VOID
+                        && discriminant(
+                            &self
+                                .contents
+                                .get(i.wrapping_add(1), j)
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .material_type,
+                        ) != discriminant(&MaterialType::Cloner {
+                            cloned_material: Option::None,
+                        })
+                    {
+                        self.contents[(i, j)].material.material_type = MaterialType::Cloner {
+                            cloned_material: Option::Some(Box::new(
+                                self.contents[(i.wrapping_add(1), j)].material.clone(),
+                            )),
+                        };
+                    } else if self
+                        .contents
+                        .get(i.saturating_sub(1), j)
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        != VOID
+                        && discriminant(
+                            &self
+                                .contents
+                                .get(i.saturating_sub(1), j)
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material
+                                .material_type,
+                        ) != discriminant(&MaterialType::Cloner {
+                            cloned_material: Option::None,
+                        })
+                    {
+                        self.contents[(i, j)].material.material_type = MaterialType::Cloner {
+                            cloned_material: Option::Some(Box::new(
+                                self.contents[(i.saturating_sub(1), j)].material.clone(),
+                            )),
+                        };
+                    }
+                } else if self.contents[(i, j)]
+                    .material
+                    .material_type
+                    .get_cloned_material()
+                    .is_some()
+                {
+                    let material = self.contents[(i, j)]
+                        .material
+                        .material_type
+                        .get_cloned_material()
+                        .unwrap();
+                    if self
+                        .contents
+                        .get(i, j.wrapping_add(1))
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        == VOID
+                    {
+                        self.contents[(i, j.wrapping_add(1))].material = *material.clone();
+                        self.contents[(i, j.wrapping_add(1))].display_color =
+                            material.material_color.color.clone();
+                        self.contents[(i, j.wrapping_add(1))].display_color = self.contents
+                            [(i, j.wrapping_add(1))]
+                            .display_color
+                            .gamma_multiply(lerp(
+                                self.contents[(i, j.wrapping_add(1))]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i, j.wrapping_add(1))],
+                            ));
+                        self.contents[(i, j.wrapping_add(1))].display_color[3] = self.contents
+                            [(i, j.wrapping_add(1))]
+                            .material
+                            .material_color
+                            .color
+                            .a();
+                    }
+                    if self
+                        .contents
+                        .get(i, j.saturating_sub(1))
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        == VOID
+                    {
+                        self.contents[(i, j.saturating_sub(1))].material = *material.clone();
+                        self.contents[(i, j.saturating_sub(1))].display_color =
+                            material.material_color.color.clone();
+                        self.contents[(i, j.saturating_sub(1))].display_color = self.contents
+                            [(i, j.saturating_sub(1))]
+                            .display_color
+                            .gamma_multiply(lerp(
+                                self.contents[(i, j.saturating_sub(1))]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i, j.saturating_sub(1))],
+                            ));
+                        self.contents[(i, j.saturating_sub(1))].display_color[3] = self.contents
+                            [(i, j.saturating_sub(1))]
+                            .material
+                            .material_color
+                            .color
+                            .a();
+                    }
+                    if self
+                        .contents
+                        .get(i.wrapping_add(1), j)
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        == VOID
+                    {
+                        self.contents[(i.wrapping_add(1), j)].material = *material.clone();
+                        self.contents[(i.wrapping_add(1), j)].display_color =
+                            material.material_color.color.clone();
+                        self.contents[(i.wrapping_add(1), j)].display_color = self.contents
+                            [(i.wrapping_add(1), j)]
+                            .display_color
+                            .gamma_multiply(lerp(
+                                self.contents[(i.wrapping_add(1), j)]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i.wrapping_add(1), j)],
+                            ));
+                        self.contents[(i.wrapping_add(1), j)].display_color[3] = self.contents
+                            [(i.wrapping_add(1), j)]
+                            .material
+                            .material_color
+                            .color
+                            .a();
+                    }
+                    if self
+                        .contents
+                        .get(i.saturating_sub(1), j)
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        == VOID
+                    {
+                        self.contents[(i.saturating_sub(1), j)].material = *material.clone();
+                        self.contents[(i.saturating_sub(1), j)].display_color =
+                            material.material_color.color.clone();
+                        self.contents[(i.saturating_sub(1), j)].display_color = self.contents
+                            [(i.saturating_sub(1), j)]
+                            .display_color
+                            .gamma_multiply(lerp(
+                                self.contents[(i.saturating_sub(1), j)]
+                                    .material
+                                    .material_color
+                                    .shinyness
+                                    .clone(),
+                                self.rngs[(i.saturating_sub(1), j)],
+                            ));
+                        self.contents[(i.saturating_sub(1), j)].display_color[3] = self.contents
+                            [(i.saturating_sub(1), j)]
+                            .material
+                            .material_color
+                            .color
+                            .a();
+                    }
                 }
             }
             MaterialType::Decor => {
@@ -178,29 +403,55 @@ impl Board {
                 }
             }
             MaterialType::Sink => {
-                if std::mem::discriminant(&self.contents[(i, j + 1)].material.material_type)
-                    != std::mem::discriminant(&MaterialType::Sink)
+                if std::mem::discriminant(
+                    &self
+                        .contents
+                        .get(i, j.wrapping_add(1))
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        .material_type,
+                ) != std::mem::discriminant(&MaterialType::Sink)
                 {
-                    self.contents[(i, j + 1)].material = VOID.clone();
-                    self.contents[(i, j + 1)].display_color = VOID.material_color.color;
+                    self.contents[(i, j.wrapping_add(1))].material = VOID.clone();
+                    self.contents[(i, j.wrapping_add(1))].display_color = VOID.material_color.color;
                 }
-                if std::mem::discriminant(&self.contents[(i, j - 1)].material.material_type)
-                    != std::mem::discriminant(&MaterialType::Sink)
+                if std::mem::discriminant(
+                    &self
+                        .contents
+                        .get(i, j.saturating_sub(1))
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        .material_type,
+                ) != std::mem::discriminant(&MaterialType::Sink)
                 {
-                    self.contents[(i, j - 1)].material = VOID.clone();
-                    self.contents[(i, j - 1)].display_color = VOID.material_color.color;
+                    self.contents[(i, j.saturating_sub(1))].material = VOID.clone();
+                    self.contents[(i, j.saturating_sub(1))].display_color =
+                        VOID.material_color.color;
                 }
-                if std::mem::discriminant(&self.contents[(i + 1, j)].material.material_type)
-                    != std::mem::discriminant(&MaterialType::Sink)
+                if std::mem::discriminant(
+                    &self
+                        .contents
+                        .get(i.wrapping_add(1), j)
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        .material_type,
+                ) != std::mem::discriminant(&MaterialType::Sink)
                 {
-                    self.contents[(i + 1, j)].material = VOID.clone();
-                    self.contents[(i + 1, j)].display_color = VOID.material_color.color;
+                    self.contents[(i.wrapping_add(1), j)].material = VOID.clone();
+                    self.contents[(i.wrapping_add(1), j)].display_color = VOID.material_color.color;
                 }
-                if std::mem::discriminant(&self.contents[(i - 1, j)].material.material_type)
-                    != std::mem::discriminant(&MaterialType::Sink)
+                if std::mem::discriminant(
+                    &self
+                        .contents
+                        .get(i.saturating_sub(1), j)
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        .material_type,
+                ) != std::mem::discriminant(&MaterialType::Sink)
                 {
-                    self.contents[(i - 1, j)].material = VOID.clone();
-                    self.contents[(i - 1, j)].display_color = VOID.material_color.color;
+                    self.contents[(i.saturating_sub(1), j)].material = VOID.clone();
+                    self.contents[(i.saturating_sub(1), j)].display_color =
+                        VOID.material_color.color;
                 }
             }
             _ => {}
