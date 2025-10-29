@@ -369,15 +369,10 @@ impl Board {
                             - self.contents[(i, j)]
                                 .material
                                 .phase
-                                .get_viscosity()
-                                .sqrt()
-                                .sqrt()
-                                .sqrt())
-                        .powi(16)
+                                .get_viscosity()).powi(16)
                     {
                         self.contents[(i, j)].speed.x += rnd.signum()
-                            * (rnd.abs() + self.contents[(i, j)].material.phase.get_viscosity())
-                                .powi(4);
+                            * (rnd.abs() + self.contents[(i, j)].material.phase.get_viscosity().sqrt());
                         orientation = (self.contents[(i, j)].speed.x.signum()
                             * (self.contents[(i, j)].speed.x.abs() + 1.0))
                             as i32;
