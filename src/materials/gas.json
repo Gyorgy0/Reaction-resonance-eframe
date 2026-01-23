@@ -3,7 +3,9 @@
         "name": "Methane",
         "density": 0.657,
         "phase": {
-            "Gas": {}
+            "Gas": {
+                "boiling_point": 373.15
+            }
         },
         "material_type": "Fuel",
         "durability": -1,

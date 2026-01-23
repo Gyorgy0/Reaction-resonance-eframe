@@ -9,14 +9,14 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 android_logger = "0.15.1"
-eframe = { version = "0.32.3", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
-egui = { version = "0.32.3", features = ["serde"] }
-ehttp = "0.5.0"
+eframe = { version = "0.33.3", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
+egui = { version = "0.33.3", features = ["serde"] }
+ehttp = "0.6.0"
 env_logger = "0.11.6"
-getrandom = { version = "0.3.3", features = ["wasm_js"] }
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
 grid = { version = "1.0.0", features = ["serde"] }
 log = "0.4.25"
-quadtree = "0.4.0"
+quadtree = "0.5.0"
 rand = "0.9.2"
 rand_core = "0.9.3"
 rayon = "1.10.0"
@@ -26,7 +26,7 @@ tokio = { version = "1.47.0", features = ["sync"] }
 wasm-bindgen = "0.2.103"
 wasm-bindgen-futures = "0.4.51"
 web-sys = { version = "0.3.77", features = ["Element", "Document", "Window", "OrientationLockType", "Screen", "ScreenOrientation", "RequestInit", "Request", "Headers", "ReferrerPolicy"] }
-wide = "0.7.33"
+wide = "1.1.1"
 winit = { version = "0.30.12", features = ["android-native-activity"] }
 
 # Profile options:

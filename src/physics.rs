@@ -9,8 +9,8 @@ pub enum Phase {
     Void,
     Solid { melting_point: f32 },
     Powder { coarseness: f32, melting_point: f32 },     // Coarseness is the average diameter of a powder particle (between 0 and 1) (in cm), -> the smaller the diameter, the powder becomes more "clumpier"
-    Liquid { viscosity: f32, boiling_point: f32 },      // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1.0, the bigger the viscosity, the thicker the fluid is
-    Gas {},                                             // Not fully implemented
+    Liquid { viscosity: f32, melting_point: f32, boiling_point: f32 },      // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1.0, the bigger the viscosity, the thicker the fluid is
+    Gas {boiling_point: f32},                                             // Not fully implemented
     Plasma { energy: f32 },
 }
 
@@ -30,6 +30,7 @@ impl Phase {
         let mut returnval: f32 = 0.0;
         if let Phase::Liquid {
             viscosity,
+            melting_point: _,
             boiling_point: _,
         } = self
         {
@@ -263,6 +264,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             Phase::Liquid {
                 viscosity: _,
+                melting_point: _,
                 boiling_point: _,
             } => {
                 // Gravity simulation
@@ -342,6 +344,7 @@ impl Board {
                         ) == discriminant(
                             &(Phase::Liquid {
                                 viscosity: 0_f32,
+                                melting_point: 0_f32,
                                 boiling_point: 0_f32,
                             }),
                         )
@@ -365,14 +368,11 @@ impl Board {
                 } else {
                     let rnd = self.rngs[(i, j)];
                     if rnd.abs()
-                        >= (1_f32
-                            - self.contents[(i, j)]
-                                .material
-                                .phase
-                                .get_viscosity()).powi(16)
+                        >= (1_f32 - self.contents[(i, j)].material.phase.get_viscosity()).powi(16)
                     {
                         self.contents[(i, j)].speed.x += rnd.signum()
-                            * (rnd.abs() + self.contents[(i, j)].material.phase.get_viscosity().sqrt());
+                            * (rnd.abs()
+                                + self.contents[(i, j)].material.phase.get_viscosity().sqrt());
                         orientation = (self.contents[(i, j)].speed.x.signum()
                             * (self.contents[(i, j)].speed.x.abs() + 1.0))
                             as i32;
@@ -441,7 +441,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // GAS PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Gas {} => {
+            Phase::Gas {boiling_point: _} => {
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis
@@ -506,6 +506,7 @@ impl Board {
                                 .phase,
                         ) != std::mem::discriminant(&Phase::Liquid {
                             viscosity: 0_f32,
+                            melting_point: 0_f32,
                             boiling_point: 0_f32,
                         }))
                     {
@@ -580,6 +581,7 @@ impl Board {
                         ) != std::mem::discriminant(
                             &(Phase::Liquid {
                                 viscosity: 0_f32,
+                                melting_point: 0_f32,
                                 boiling_point: 0_f32,
                             }),
                         ))
@@ -673,6 +675,7 @@ impl Board {
                                 .phase,
                         ) != std::mem::discriminant(&Phase::Liquid {
                             viscosity: 0_f32,
+                            melting_point: 0_f32,
                             boiling_point: 0_f32,
                         }))
                     {
@@ -747,6 +750,7 @@ impl Board {
                         ) != std::mem::discriminant(
                             &(Phase::Liquid {
                                 viscosity: 0_f32,
+                                melting_point: 0_f32,
                                 boiling_point: 0_f32,
                             }),
                         ))

@@ -5,6 +5,7 @@
         "phase": {
             "Liquid": {
                 "viscosity": 1.0,
+                "melting_point": 273.15,
                 "boiling_point": 373.15
             }
         },
@@ -29,6 +30,7 @@
         "phase": {
             "Liquid": {
                 "viscosity": 2.5,
+                "melting_point": 272.15,
                 "boiling_point": 373.15
             }
         },
@@ -53,6 +55,7 @@
         "phase": {
             "Liquid": {
                 "viscosity": 10000.0,
+                "melting_point": 220.0,
                 "boiling_point": 373.15
             }
         },

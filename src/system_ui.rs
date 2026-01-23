@@ -17,9 +17,10 @@ impl fmt::Display for Phase {
             } => write!(f, "Powder"),
             Phase::Liquid {
                 viscosity: _,
+                melting_point: _,
                 boiling_point: _,
             } => write!(f, "Liquid"),
-            Phase::Gas {} => write!(f, "Gas"),
+            Phase::Gas {boiling_point: _} => write!(f, "Gas"),
             Phase::Plasma { energy: _ } => write!(f, "Plasma"),
         }
     }
@@ -33,6 +34,7 @@ impl fmt::Display for MaterialType {
             MaterialType::Atmosphere => write!(f, "Atmosphere"),
             MaterialType::Base => write!(f, "Base"),
             MaterialType::Ceramic => write!(f, "Ceramic"),
+            MaterialType::CAutomata => write!(f, "Cellular automaton"),
             MaterialType::Cloner { cloned_material: _ } => write!(f, "Cloner"),
             MaterialType::Explosive => write!(f, "Explosive"),
             MaterialType::Fuel => write!(f, "Fuel"),

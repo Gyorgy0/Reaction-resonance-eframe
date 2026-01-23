@@ -14,6 +14,7 @@ pub(crate) enum MaterialType {
     Alloy,      // Mixture of metals
     Atmosphere, // Mixture of materials that are always present in the simulation*/
     Base,       // Corrosive material - everything with a pH value higher than 7.0
+    CAutomata,  // Cellular automaton material defined by 3 rules (birth, survival, neighborhood)
     Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
     Cloner {cloned_material: Option<Box<Material>>},     // Material that clones the last new material it came in contact with
     Explosive,  // A material that generates a lot of energy and lot of gases
