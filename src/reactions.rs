@@ -23,7 +23,7 @@ pub(crate) enum MaterialType {
     Oxidizer,   // This material can enhance the explosive power of explosives or the burning of fuels by aiding their combustion
     Decor,      // This material is indestructible and completely inert it's used for decoration purposes, mainly pixelart, map making, etc...
     Sink,       // This material swallows any material it comes in contact with it
-    Solution,   // Material that contains other materials e.g. salts, on heat it leaves the dissolved materials behind
+    Solution,   // Material that contains other materials e.g. salts, if heated it leaves the dissolved materials behind
     Solvent,    // Dissolves certain materials
 }
 
