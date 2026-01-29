@@ -1,5 +1,5 @@
 use crate::{
-    egui_input::{handle_key_inputs, handle_mouse_input},
+    egui_input::{handle_key_inputs /*handle_mouse_input*/},
     world::{Board, Material, VOID, update_board},
 };
 use egui::{
@@ -39,7 +39,7 @@ impl Default for EFrameApp {
             contents: grid::Grid::from_vec(vec![], 0),
             gravity: 9.81,
             brushsize: 10,
-            cellsize: Vec2::new(2.0, 2.0),
+            cellsize: Vec2::new(2_f32, 2_f32),
             rngs: grid::Grid::from_vec(vec![], 0),
             seeds: grid::Grid::from_vec(vec![], 0),
         };
@@ -141,7 +141,10 @@ impl eframe::App for EFrameApp {
         }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                if ui.button(RichText::new("Fullscreen").size(20.0)).clicked() {
+                if ui
+                    .button(RichText::new("Fullscreen").size(20_f32))
+                    .clicked()
+                {
                     #[cfg(target_arch = "wasm32")]
                     {
                         let Some(window) = web_sys::window() else {
@@ -186,16 +189,16 @@ impl eframe::App for EFrameApp {
                     }
                 }
                 ui.horizontal(|ui| {
-                    if ui.button(RichText::new("<").size(20.0)).clicked()
+                    if ui.button(RichText::new("<").size(20_f32)).clicked()
                         && self.game_board.brushsize > 0
                     {
                         self.game_board.brushsize -= 2;
                     }
                     ui.label(
                         RichText::new(format!("Brush size: {:03}", self.game_board.brushsize))
-                            .size(20.0),
+                            .size(20_f32),
                     );
-                    if ui.button(RichText::new(">").size(20.0)).clicked()
+                    if ui.button(RichText::new(">").size(20_f32)).clicked()
                         && self.game_board.brushsize < 256
                     {
                         self.game_board.brushsize += 2;
@@ -204,7 +207,7 @@ impl eframe::App for EFrameApp {
                 if ui
                     .button(
                         RichText::new("Reset")
-                            .size(20.0)
+                            .size(20_f32)
                             .background_color(Color32::DARK_RED),
                     )
                     .clicked()
@@ -212,24 +215,24 @@ impl eframe::App for EFrameApp {
                     self.game_board.create_board();
                 }
             });
-            ui.label("FPS: ".to_owned() + &ui.input(|i| (1.0 / i.unstable_dt).to_string()));
+            ui.label("FPS: ".to_owned() + &ui.input(|i| (1_f32 / i.unstable_dt).to_string()));
         });
-        egui::TopBottomPanel::bottom(Id::new("bottom panel"))
-            .exact_height(50.0)
+        egui::TopBottomPanel::bottom(Id::new("materials"))
+            .exact_height(50_f32)
             .show(ctx, |ui| {
-                egui::ScrollArea::new([false, true]).show(ui, |ui| {
+                egui::ScrollArea::new([true, false]).show(ui, |ui| {
                     ui.horizontal(|ui| {
                         self.materials.iter().for_each(|material| {
                             if ui
                                 .add(
                                     egui::Button::new(
                                         RichText::new(material.name.clone())
-                                            .size(20.0)
+                                            .size(20_f32)
                                             .color(Color32::WHITE)
                                             .strong(),
                                     )
-                                    .min_size(vec2(Default::default(), 35.0))
-                                    .stroke(Stroke::new(1.0, material.material_color.color)),
+                                    .min_size(vec2(Default::default(), 35_f32))
+                                    .stroke(Stroke::new(1_f32, material.material_color.color)),
                                 )
                                 .clicked()
                             {
@@ -237,7 +240,31 @@ impl eframe::App for EFrameApp {
                             }
                         });
                     });
+                    ui.add(egui::Separator::default().spacing(10_f32));
                 });
+            });
+        egui::SidePanel::right(Id::new("material categories"))
+            .resizable(false)
+            .default_width(32_f32)
+            .show_separator_line(false)
+            .show(ctx, |ui| {
+                egui::ScrollArea::new([false, true])
+                    .max_height(f32::INFINITY)
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.vertical(|ui| {
+                                for i in 1..=55 {
+                                    ui.add(egui::Button::new(RichText::new("Pwdr"))).clicked();
+                                }
+                            });
+                            ui.add(
+                                egui::Separator::default()
+                                    .spacing(10_f32)
+                                    .vertical()
+                                    .grow(f32::INFINITY),
+                            );
+                        });
+                    });
             });
         egui::CentralPanel::default().show(ctx, |ui| {
             let pixels: Vec<Color32> = self.game_board.draw_board();
@@ -274,12 +301,12 @@ impl eframe::App for EFrameApp {
                     ui.painter()
                         .clone()
                         .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
-                        .with_clip_rect(ctx.screen_rect())
+                        .with_clip_rect(ctx.content_rect())
                         .rect(
                             Rect::from_min_size(
                                 ((((board
                                     .hover_pos()
-                                    .unwrap_or(pos2(-1024.0, -1024.0))
+                                    .unwrap_or(pos2(-1024_f32, -1024_f32))
                                     .to_vec2()
                                     - board.interact_rect.min.to_vec2())
                                     / vec2(
@@ -306,16 +333,16 @@ impl eframe::App for EFrameApp {
                                         + self.game_board.cellsize.y,
                                 ),
                             ),
-                            1.0,
+                            1_f32,
                             Color32::from_black_alpha(100),
-                            Stroke::new(2.0, Color32::WHITE),
+                            Stroke::new(2_f32, Color32::WHITE),
                             egui::StrokeKind::Outside,
                         );
-                    handle_mouse_input(
+                    /*handle_mouse_input(
                         &mut self.game_board,
                         &mut self.selected_material,
                         board.clone(),
-                    );
+                    );*/
                     handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
                 });
             } else {
@@ -328,12 +355,12 @@ impl eframe::App for EFrameApp {
                     ui.painter()
                         .clone()
                         .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
-                        .with_clip_rect(ctx.screen_rect())
+                        .with_clip_rect(ctx.content_rect())
                         .rect(
                             Rect::from_min_size(
                                 ((((board
                                     .hover_pos()
-                                    .unwrap_or(pos2(-1024.0, -1024.0))
+                                    .unwrap_or(pos2(-1024_f32, -1024_f32))
                                     .to_vec2()
                                     - board.interact_rect.min.to_vec2())
                                     / vec2(
@@ -360,16 +387,16 @@ impl eframe::App for EFrameApp {
                                         + self.game_board.cellsize.y,
                                 ),
                             ),
-                            1.0,
+                            1_f32,
                             Color32::from_black_alpha(100),
-                            Stroke::new(2.0, Color32::WHITE),
+                            Stroke::new(2_f32, Color32::WHITE),
                             egui::StrokeKind::Outside,
                         );
-                    handle_mouse_input(
+                    /*handle_mouse_input(
                         &mut self.game_board,
                         &mut self.selected_material,
                         board.clone(),
-                    );
+                    );*/
                     handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
                 });
             }

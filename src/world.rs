@@ -7,6 +7,8 @@ use egui::Vec2;
 use grid::Grid;
 use rand::distr::Distribution;
 use rand::distr::Uniform;
+use rayon::iter::IndexedParallelIterator;
+use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -25,6 +27,7 @@ pub(crate) struct Chunk {
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct Material {
     pub name: String,                       // Name of the material
+    pub id: u64,                            // ID of the material
     pub density: f32,                       // Mass of a cm^3 volume of the material
     pub phase: Phase,                       // Phase of the material for, the implemented phases check the "Phase" enum
     pub material_type: MaterialType,        // Type of the material for, the implemented types check the "Type" enum
@@ -36,18 +39,34 @@ pub(crate) struct Material {
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct MaterialColor{
     pub color: Color32,                 // Color of the material
-    pub shinyness: RangeInclusive<f32>, // Shinyness of the material (<1.0 - darker colors)
-                                        //                           (>1.0 - lighter colors)
+    pub shinyness: RangeInclusive<f32>, // Shinyness of the material (<1_f32 - darker colors)
+                                        //                           (>1_f32 - lighter colors)
 }
 
 #[rustfmt::skip]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Particle {
-    pub material: Material,     // Material of the particle
+    //pub material: Material,     // Material of the particle
+    pub material_id: u64,       // ID of material
     pub speed: Vec2,            // Vectors of the particle (x, y)
     pub temperature: f32,       // Temperature of the materialy
-    pub updated: bool,          // Is it updated?
     pub display_color: Color32, // Displayed color
+}
+impl Particle {
+    fn new() -> Self {
+        Self {
+            /*material: VOID.clone(),*/ material_id: 0,
+            speed: Vec2::new(0_f32, 0_f32),
+            temperature: 0_f32,
+            display_color: VOID.material_color.color,
+        }
+    }
+}
+
+impl Default for Particle {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[rustfmt::skip]
@@ -66,13 +85,14 @@ pub struct Board {
 
 pub static VOID: Material = Material {
     name: String::new(),
-    density: 0.0,
+    id: 0,
+    density: 0_f32,
     phase: Phase::Void,
     material_type: MaterialType::Atmosphere,
     durability: -1,
     material_color: MaterialColor {
         color: Color32::from_rgba_premultiplied(0, 0, 0, 100),
-        shinyness: 1.0..=1.0,
+        shinyness: 1_f32..=1_f32,
     },
 };
 
@@ -82,10 +102,10 @@ impl Board {
         self.contents = Grid::from_vec(
             vec![
                 Particle {
-                    material: VOID.clone(),
-                    speed: Vec2::new(0.0, 0.0),
-                    temperature: 20.0,
-                    updated: false,
+                    //material: VOID.clone(),
+                    material_id: 0,
+                    speed: Vec2::new(0_f32, 0_f32),
+                    temperature: 20_f32,
                     display_color: VOID.material_color.color,
                 };
                 self.height as usize * self.width as usize
@@ -126,24 +146,13 @@ pub fn update_board(
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        match *framecount % 2 {
-            0 => {
-                (0..row_count * col_count).for_each(|count| {
-                    let i = (count / col_count) as usize;
-                    let j = (count % col_count) as usize;
-                    game_board.solve_particle(i, j, framedelta, *framecount);
-                    game_board.solve_reactions(i, j, framedelta, *framecount);
-                });
-            }
-            1 => {
-                (0..row_count * col_count).for_each(|count| {
-                    let i = (count / col_count) as usize;
-                    let j = ((col_count - 1) - (count % col_count)) as usize;
-                    game_board.solve_particle(i, j, framedelta, *framecount);
-                    game_board.solve_reactions(i, j, framedelta, *framecount);
-                });
-            }
-            _ => {}
-        }
+        let prev_board: Grid<Particle> = Grid::new(row_count as usize, col_count as usize);
+        (0..row_count * col_count).into_iter().for_each(|count| {
+            let i = (count / col_count) as usize;
+            let j = (count % col_count) as usize;
+
+            game_board.solve_particle(&prev_board, i, j, framedelta);
+            //game_board.solve_reactions(&prev_board, i, j, framedelta, *framecount);
+        });
     }
 }

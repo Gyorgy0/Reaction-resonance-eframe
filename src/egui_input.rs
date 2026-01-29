@@ -1,14 +1,14 @@
-use egui::{Key, PointerButton, Response, Vec2, lerp, pos2};
+use egui::{Key, Response};
 use std::ops::Not;
 
-use crate::{physics::Phase, world::*};
+use crate::world::*;
 
-pub fn handle_mouse_input(
+/*pub fn handle_mouse_input(
     game_board: &mut Board,
     selected_material: &mut Material,
     response: Response,
 ) {
-    let cursor_position = response.hover_pos().unwrap_or(pos2(-1024.0, -1024.0));
+    let cursor_position = response.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
     let pos = ((cursor_position - response.interact_rect.min) / game_board.cellsize)
         .floor()
         .to_pos2();
@@ -17,10 +17,10 @@ pub fn handle_mouse_input(
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if game_board.contents.get(cellpos.0, cellpos.1).is_some()
+                if game_board.contents.get(cellpos_f32, cellpos.1).is_some()
                     && (game_board
                         .contents
-                        .get(cellpos.0, cellpos.1)
+                        .get(cellpos_f32, cellpos.1)
                         .unwrap()
                         .material
                         == VOID
@@ -28,9 +28,9 @@ pub fn handle_mouse_input(
                 {
                     game_board.contents[cellpos] = Particle {
                         material: material.clone(),
-                        speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
-                        temperature: 20.0,
-                        updated: true,
+                        material_id: 0,
+                        speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
+                        temperature: 20_f32,
                         display_color: material.material_color.color,
                     };
                     game_board.contents[cellpos].display_color = game_board.contents[cellpos]
@@ -60,12 +60,12 @@ pub fn handle_mouse_input(
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if game_board.contents.get(cellpos.0, cellpos.1).is_some() {
+                if game_board.contents.get(cellpos_f32, cellpos.1).is_some() {
                     game_board.contents[cellpos] = Particle {
                         material: material.clone(),
-                        speed: Vec2::new(0.0, game_board.gravity.signum() * 1.0),
-                        temperature: 20.0,
-                        updated: true,
+                        material_id: 0,
+                        speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
+                        temperature: 20_f32,
                         display_color: material.material_color.color,
                     };
                 }
@@ -75,12 +75,12 @@ pub fn handle_mouse_input(
     // Brush resizing with mouse scroll
     let mouse_scroll = response.ctx.input(|input| input.raw_scroll_delta);
     if mouse_scroll.y.abs() >= 0.1
-        && ((game_board.brushsize > 1 && mouse_scroll.y.signum() == -1.0)
-            || (game_board.brushsize < 256 && mouse_scroll.y.signum() == 1.0))
+        && ((game_board.brushsize > 1 && mouse_scroll.y.signum() == -1_f32)
+            || (game_board.brushsize < 256 && mouse_scroll.y.signum() == 1_f32))
     {
         game_board.brushsize += 2 * (mouse_scroll.y.signum()) as i32;
     }
-}
+}*/
 
 pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response: Response) {
     if response.ctx.input(|i| i.key_pressed(Key::R)) {

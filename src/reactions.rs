@@ -1,19 +1,13 @@
-use std::{mem::discriminant, ops::Deref};
-
-use crate::{
-    physics::Phase,
-    world::{Board, Material, VOID},
-};
-use egui::{Color32, epaint::Hsva, lerp};
+use crate::world::{Board, Material};
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 #[rustfmt::skip]
 pub(crate) enum MaterialType {
-    Acid,       // Corrosive material - everything with a pH value lower than 7.0
+    Acid,       // Corrosive material - everything with a pH value lower than 7_f32
     Alloy,      // Mixture of metals
     Atmosphere, // Mixture of materials that are always present in the simulation*/
-    Base,       // Corrosive material - everything with a pH value higher than 7.0
+    Base,       // Corrosive material - everything with a pH value higher than 7_f32
     CAutomata,  // Cellular automaton material defined by 3 rules (birth, survival, neighborhood)
     Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
     Cloner {cloned_material: Option<Box<Material>>},     // Material that clones the last new material it came in contact with
@@ -37,8 +31,15 @@ impl MaterialType {
     }
 }
 impl Board {
-    #[inline(always)]
-    pub(crate) fn solve_reactions(&mut self, i: usize, j: usize, framedelta: f32, framecount: u64) {
+    /*#[inline(always)]
+    pub(crate) fn solve_reactions(
+        &mut self,
+        prev_board: &Grid<Particle>,
+        i: usize,
+        j: usize,
+        framedelta: f32,
+        framecount: u64,
+    ) {
         match &self.contents[(i, j)].material.material_type {
             MaterialType::Fuel => {
                 let rnd = rand::random_range(0_u8..4_u8);
@@ -54,7 +55,7 @@ impl Board {
                     && rnd == 0
                 {
                     self.contents[(i, j)] = self.contents[(i, j.wrapping_add(1))].clone();
-                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70_f32 };
                     self.contents[(i, j)].display_color = self.contents[(i, j.wrapping_add(1))]
                         .material
                         .material_color
@@ -81,7 +82,7 @@ impl Board {
                     && rnd == 1
                 {
                     self.contents[(i, j)] = self.contents[(i, j.saturating_sub(1))].clone();
-                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70_f32 };
                     self.contents[(i, j)].display_color = self.contents[(i, j.saturating_sub(1))]
                         .material
                         .material_color
@@ -111,7 +112,7 @@ impl Board {
                     && rnd == 2
                 {
                     self.contents[(i, j)] = self.contents[(i.wrapping_add(1), j)].clone();
-                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70_f32 };
                     self.contents[(i, j)].display_color = self.contents[(i.wrapping_add(1), j)]
                         .material
                         .material_color
@@ -140,7 +141,7 @@ impl Board {
                     && rnd == 3
                 {
                     self.contents[(i, j)] = self.contents[(i.saturating_sub(1), j)].clone();
-                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70.0 };
+                    self.contents[(i, j)].material.phase = Phase::Plasma { energy: 70_f32 };
                     self.contents[(i, j)].display_color = self.contents[(i.saturating_sub(1), j)]
                         .material
                         .material_color
@@ -387,10 +388,10 @@ impl Board {
                     == Color32::from_rgba_unmultiplied(0, 0, 0, 0)
                 {
                     self.contents[(i, j)].display_color =
-                        Hsva::new(((framecount / 4) % (355)) as f32 / (355.0), 1.0, 1.0, 1.0)
+                        Hsva::new(((framecount / 4) % (355)) as f32 / (355_f32), 1_f32, 1_f32, 1_f32)
                             .into();
                     self.contents[(i, j)].material.material_color.color =
-                        Hsva::new(((framecount / 4) % (355)) as f32 / (355.0), 1.0, 1.0, 1.0)
+                        Hsva::new(((framecount / 4) % (355)) as f32 / (355_f32), 1_f32, 1_f32, 1_f32)
                             .into();
                     self.contents[(i, j)].display_color =
                         self.contents[(i, j)].display_color.gamma_multiply(lerp(
@@ -457,5 +458,5 @@ impl Board {
             }
             _ => {}
         }
-    }
+    }*/
 }

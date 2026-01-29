@@ -20,7 +20,7 @@ impl fmt::Display for Phase {
                 melting_point: _,
                 boiling_point: _,
             } => write!(f, "Liquid"),
-            Phase::Gas {boiling_point: _} => write!(f, "Gas"),
+            Phase::Gas { boiling_point: _ } => write!(f, "Gas"),
             Phase::Plasma { energy: _ } => write!(f, "Plasma"),
         }
     }

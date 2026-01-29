@@ -1,6 +1,7 @@
 [
     {
         "name": "Water",
+        "id": 8,
         "density": 1.0,
         "phase": {
             "Liquid": {
@@ -26,6 +27,7 @@
     },
     {
         "name": "Milk",
+        "id": 9,
         "density": 1.033,
         "phase": {
             "Liquid": {
@@ -51,6 +53,7 @@
     },
     {
         "name": "Honey",
+        "id": 10,
         "density": 1.5,
         "phase": {
             "Liquid": {
