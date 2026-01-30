@@ -1,4 +1,6 @@
-use crate::world::{Board, Particle};
+use std::collections::HashMap;
+
+use crate::world::{Board, Material, Particle};
 use grid::Grid;
 use serde::{Deserialize, Serialize};
 
@@ -51,10 +53,14 @@ impl Board {
     pub(crate) fn solve_particle(
         &mut self,
         prev_board: &Grid<Particle>,
+        materials: &HashMap<u64, Material>,
         i: usize,
         j: usize,
         framedelta: f32,
     ) {
+        match materials.get(&prev_board[(i, j)].material_id).unwrap() {
+            _ => {}
+        }
         /*match &self.contents[(i, j)].material.phase {
             Phase::Void => {}
 

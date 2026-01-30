@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ops::RangeInclusive;
 
 use crate::physics::Phase;
@@ -132,6 +133,7 @@ impl Board {
 #[inline(always)]
 pub fn update_board(
     game_board: &mut Board,
+    materials: &HashMap<u64, Material>,
     is_stopped: bool,
     framecount: &mut u64,
     framedelta: f32,
@@ -151,7 +153,7 @@ pub fn update_board(
             let i = (count / col_count) as usize;
             let j = (count % col_count) as usize;
 
-            game_board.solve_particle(&prev_board, i, j, framedelta);
+            game_board.solve_particle(&prev_board, materials, i, j, framedelta);
             //game_board.solve_reactions(&prev_board, i, j, framedelta, *framecount);
         });
     }

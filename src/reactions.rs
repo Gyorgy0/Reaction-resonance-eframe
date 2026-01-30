@@ -1,7 +1,9 @@
 use crate::world::{Board, Material};
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
-#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize, EnumIter)]
 #[rustfmt::skip]
 pub(crate) enum MaterialType {
     Acid,       // Corrosive material - everything with a pH value lower than 7_f32

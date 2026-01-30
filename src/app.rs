@@ -1,5 +1,11 @@
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::{self, Display, format},
+};
+
 use crate::{
-    egui_input::{handle_key_inputs /*handle_mouse_input*/},
+    egui_input::handle_key_inputs,
+    reactions::MaterialType,
     world::{Board, Material, VOID, update_board},
 };
 use egui::{
@@ -7,6 +13,7 @@ use egui::{
     TextureOptions, Theme, Vec2, load, pos2, util::hash, vec2,
 };
 use rand::SeedableRng;
+use strum::IntoEnumIterator;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -17,7 +24,7 @@ pub struct EFrameApp {
     #[serde(skip)]
     game_board: Board,
     #[serde(skip)]
-    materials: Vec<Material>,
+    materials: HashMap<u64, Material>,
     #[serde(skip)]
     selected_material: Material,
     #[serde(skip)]
@@ -88,11 +95,15 @@ impl Default for EFrameApp {
                 serde_json::from_str(&powder_materials).unwrap();
             materials.append(&mut serialized_materials);
         }
+        let mut final_materials: HashMap<u64, Material> = HashMap::new();
+        for material in materials {
+            final_materials.insert(material.id, material);
+        }
         let selected_material = VOID.clone();
         Self {
             fullscreen: false,
             game_board,
-            materials,
+            materials: final_materials,
             texture,
             selected_material,
             is_stopped: false,
@@ -222,7 +233,7 @@ impl eframe::App for EFrameApp {
             .show(ctx, |ui| {
                 egui::ScrollArea::new([true, false]).show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        self.materials.iter().for_each(|material| {
+                        self.materials.values().for_each(|material| {
                             if ui
                                 .add(
                                     egui::Button::new(
@@ -253,9 +264,13 @@ impl eframe::App for EFrameApp {
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
                             ui.vertical(|ui| {
-                                for i in 1..=55 {
-                                    ui.add(egui::Button::new(RichText::new("Pwdr"))).clicked();
-                                }
+                                MaterialType::iter().for_each(|category| {
+                                    ui.add(egui::Button::new(RichText::new(format!(
+                                        "{}",
+                                        category
+                                    ))))
+                                    .clicked();
+                                });
                             });
                             ui.add(
                                 egui::Separator::default()
@@ -402,6 +417,7 @@ impl eframe::App for EFrameApp {
             }
             update_board(
                 &mut self.game_board,
+                &self.materials,
                 self.is_stopped,
                 &mut self.framecount,
                 ctx.input(|time| time.unstable_dt),
