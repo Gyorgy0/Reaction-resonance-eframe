@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    egui_input::handle_key_inputs,
+    egui_input::{handle_key_inputs, handle_mouse_input},
     reactions::MaterialType,
     world::{Board, Material, VOID, update_board},
 };
@@ -24,9 +24,9 @@ pub struct EFrameApp {
     #[serde(skip)]
     game_board: Board,
     #[serde(skip)]
-    materials: HashMap<u64, Material>,
+    materials: Vec<Material>,
     #[serde(skip)]
-    selected_material: Material,
+    selected_material: u64,
     #[serde(skip)]
     is_stopped: bool,
     #[serde(skip)]
@@ -95,15 +95,12 @@ impl Default for EFrameApp {
                 serde_json::from_str(&powder_materials).unwrap();
             materials.append(&mut serialized_materials);
         }
-        let mut final_materials: HashMap<u64, Material> = HashMap::new();
-        for material in materials {
-            final_materials.insert(material.id, material);
-        }
-        let selected_material = VOID.clone();
+        materials.sort_by_key(|material| material.id);
+        let selected_material = 0_u64;
         Self {
             fullscreen: false,
             game_board,
-            materials: final_materials,
+            materials,
             texture,
             selected_material,
             is_stopped: false,
@@ -233,7 +230,7 @@ impl eframe::App for EFrameApp {
             .show(ctx, |ui| {
                 egui::ScrollArea::new([true, false]).show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        self.materials.values().for_each(|material| {
+                        self.materials.iter().for_each(|material| {
                             if ui
                                 .add(
                                     egui::Button::new(
@@ -247,7 +244,7 @@ impl eframe::App for EFrameApp {
                                 )
                                 .clicked()
                             {
-                                self.selected_material = material.clone();
+                                self.selected_material = material.id;
                             }
                         });
                     });
@@ -353,11 +350,12 @@ impl eframe::App for EFrameApp {
                             Stroke::new(2_f32, Color32::WHITE),
                             egui::StrokeKind::Outside,
                         );
-                    /*handle_mouse_input(
+                    handle_mouse_input(
                         &mut self.game_board,
-                        &mut self.selected_material,
+                        &self.materials,
+                        self.selected_material,
                         board.clone(),
-                    );*/
+                    );
                     handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
                 });
             } else {
@@ -407,11 +405,12 @@ impl eframe::App for EFrameApp {
                             Stroke::new(2_f32, Color32::WHITE),
                             egui::StrokeKind::Outside,
                         );
-                    /*handle_mouse_input(
+                    handle_mouse_input(
                         &mut self.game_board,
-                        &mut self.selected_material,
+                        &self.materials,
+                        self.selected_material,
                         board.clone(),
-                    );*/
+                    );
                     handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
                 });
             }

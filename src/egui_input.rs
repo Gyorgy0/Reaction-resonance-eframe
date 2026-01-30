@@ -1,68 +1,70 @@
-use egui::{Key, Response};
-use std::ops::Not;
+use egui::{Key, Response, Vec2, lerp, pos2};
+use std::{cell, ops::Not};
 
 use crate::world::*;
 
-/*pub fn handle_mouse_input(
+pub fn handle_mouse_input(
     game_board: &mut Board,
-    selected_material: &mut Material,
+    materials: &Vec<Material>,
+    selected_material_id: u64,
     response: Response,
 ) {
     let cursor_position = response.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
     let pos = ((cursor_position - response.interact_rect.min) / game_board.cellsize)
         .floor()
         .to_pos2();
-    if response.dragged_by(PointerButton::Primary) || response.clicked_by(PointerButton::Primary) {
-        let material = selected_material.clone();
+    if response.dragged_by(egui::PointerButton::Primary)
+        || response.clicked_by(egui::PointerButton::Primary)
+    {
+        let material = selected_material_id.clone();
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if game_board.contents.get(cellpos_f32, cellpos.1).is_some()
+                if game_board.contents.get(cellpos.0, cellpos.1).is_some()
                     && (game_board
                         .contents
-                        .get(cellpos_f32, cellpos.1)
+                        .get(cellpos.0, cellpos.1)
                         .unwrap()
-                        .material
-                        == VOID
-                        || selected_material.phase == Phase::Void)
+                        .material_id
+                        == VOID.id
+                        || selected_material_id == VOID.id)
                 {
                     game_board.contents[cellpos] = Particle {
-                        material: material.clone(),
-                        material_id: 0,
+                        material_id: selected_material_id,
                         speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
                         temperature: 20_f32,
-                        display_color: material.material_color.color,
+                        display_color: materials[selected_material_id as usize]
+                            .material_color
+                            .color,
                     };
-                    game_board.contents[cellpos].display_color = game_board.contents[cellpos]
-                        .material
+                    game_board.contents[cellpos].display_color = materials
+                        [selected_material_id as usize]
                         .material_color
                         .color
                         .gamma_multiply(lerp(
-                            game_board.contents[cellpos]
-                                .material
+                            materials[selected_material_id as usize]
                                 .material_color
                                 .shinyness
                                 .clone(),
                             game_board.rngs[cellpos],
                         ));
-                    game_board.contents[cellpos].display_color[3] = game_board.contents[cellpos]
-                        .material
+                    game_board.contents[cellpos].display_color[3] = materials
+                        [selected_material_id as usize]
                         .material_color
                         .color
                         .a();
                 }
             }
         }
-    } else if response.dragged_by(PointerButton::Secondary)
-        || response.clicked_by(PointerButton::Secondary)
+    } else if response.dragged_by(egui::PointerButton::Secondary)
+        || response.clicked_by(egui::PointerButton::Secondary)
     {
         let material = VOID.clone();
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if game_board.contents.get(cellpos_f32, cellpos.1).is_some() {
+                if game_board.contents.get(cellpos.0, cellpos.1).is_some() {
                     game_board.contents[cellpos] = Particle {
-                        material: material.clone(),
                         material_id: 0,
                         speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
                         temperature: 20_f32,
@@ -80,7 +82,7 @@ use crate::world::*;
     {
         game_board.brushsize += 2 * (mouse_scroll.y.signum()) as i32;
     }
-}*/
+}
 
 pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response: Response) {
     if response.ctx.input(|i| i.key_pressed(Key::R)) {

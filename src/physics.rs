@@ -53,13 +53,54 @@ impl Board {
     pub(crate) fn solve_particle(
         &mut self,
         prev_board: &Grid<Particle>,
-        materials: &HashMap<u64, Material>,
+        materials: &Vec<Material>,
         i: usize,
         j: usize,
         framedelta: f32,
     ) {
-        match materials.get(&prev_board[(i, j)].material_id).unwrap() {
-            _ => {}
+        match materials[(prev_board[(i, j)].material_id as usize)].phase {
+            Phase::Void => {
+                self.contents[(i, j)] = prev_board[(i, j)];
+            }
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // SOLID PHYSICS
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            Phase::Solid { melting_point: _ } => {
+                self.contents[(i, j)] = prev_board[(i, j)];
+            }
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // POWDER PHYSICS
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            Phase::Powder {
+                coarseness: _,
+                melting_point: _,
+            } => {
+                self.contents[(i, j)] = prev_board[(i, j)].clone();
+                // Gravity simulation
+                self.contents[(i, j)].speed.y += self.gravity * framedelta;
+                let mut ychange = 0;
+                for _k in 0..self.contents[(i, j)].speed.y.abs() as i32 {
+                    if
+                    materials[prev_board.get(i + (self.gravity.signum() as i32 * _k) as usize, j).unwrap_or(&prev_board[(i,j)])
+                        .material_id as usize]
+                        .density
+                        < materials[prev_board[(i, j)].material_id as usize].density
+                    {
+                        ychange = _k;
+                    }
+                }
+                self.contents.swap(
+                    (i, j),
+                    (i + (self.gravity.signum() as i32 * ychange) as usize, j),
+                );
+            }
+            Phase::Liquid {
+                viscosity: _,
+                melting_point: _,
+                boiling_point: _,
+            } => {}
+            Phase::Gas { boiling_point: _ } => {}
+            Phase::Plasma { energy: _ } => {}
         }
         /*match &self.contents[(i, j)].material.phase {
             Phase::Void => {}

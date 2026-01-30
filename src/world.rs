@@ -45,9 +45,8 @@ pub(crate) struct MaterialColor{
 }
 
 #[rustfmt::skip]
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Particle {
-    //pub material: Material,     // Material of the particle
     pub material_id: u64,       // ID of material
     pub speed: Vec2,            // Vectors of the particle (x, y)
     pub temperature: f32,       // Temperature of the materialy
@@ -103,7 +102,6 @@ impl Board {
         self.contents = Grid::from_vec(
             vec![
                 Particle {
-                    //material: VOID.clone(),
                     material_id: 0,
                     speed: Vec2::new(0_f32, 0_f32),
                     temperature: 20_f32,
@@ -133,7 +131,7 @@ impl Board {
 #[inline(always)]
 pub fn update_board(
     game_board: &mut Board,
-    materials: &HashMap<u64, Material>,
+    materials: &Vec<Material>,
     is_stopped: bool,
     framecount: &mut u64,
     framedelta: f32,
@@ -148,7 +146,8 @@ pub fn update_board(
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        let prev_board: Grid<Particle> = Grid::new(row_count as usize, col_count as usize);
+        let prev_board: Grid<Particle> = game_board.contents.clone();
+        game_board.contents = Grid::new(game_board.height as usize, game_board.width as usize);
         (0..row_count * col_count).into_iter().for_each(|count| {
             let i = (count / col_count) as usize;
             let j = (count % col_count) as usize;
