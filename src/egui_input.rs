@@ -1,12 +1,15 @@
-use egui::{Key, Response, Vec2, lerp, pos2};
-use std::{cell, ops::Not};
+use egui::{Key, Rangef, Response, Vec2, lerp, pos2};
+use std::{
+    cell,
+    ops::{Not, RangeInclusive},
+};
 
 use crate::world::*;
 
 pub fn handle_mouse_input(
     game_board: &mut Board,
     materials: &Vec<Material>,
-    selected_material_id: u64,
+    selected_material_id: usize,
     response: Response,
 ) {
     let cursor_position = response.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
@@ -42,10 +45,16 @@ pub fn handle_mouse_input(
                         .material_color
                         .color
                         .gamma_multiply(lerp(
-                            materials[selected_material_id as usize]
-                                .material_color
-                                .shinyness
-                                .clone(),
+                            RangeInclusive::new(
+                                materials[selected_material_id as usize]
+                                    .material_color
+                                    .shinyness
+                                    .0,
+                                materials[selected_material_id as usize]
+                                    .material_color
+                                    .shinyness
+                                    .1,
+                            ),
                             game_board.rngs[cellpos],
                         ));
                     game_board.contents[cellpos].display_color[3] = materials

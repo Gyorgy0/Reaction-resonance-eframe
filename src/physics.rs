@@ -1,8 +1,10 @@
-use std::collections::HashMap;
-
-use crate::world::{Board, Material, Particle};
+use crate::world::{Board, Material, Particle, VOID};
 use grid::Grid;
 use serde::{Deserialize, Serialize};
+use std::cmp::{self, min_by};
+use std::collections::HashMap;
+use std::mem::discriminant;
+use std::ops::{Add, AddAssign};
 
 #[rustfmt::skip]
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
@@ -58,7 +60,7 @@ impl Board {
         j: usize,
         framedelta: f32,
     ) {
-        match materials[(prev_board[(i, j)].material_id as usize)].phase {
+        match materials[prev_board[(i, j)].material_id as usize].phase {
             Phase::Void => {
                 self.contents[(i, j)] = prev_board[(i, j)];
             }
@@ -75,24 +77,198 @@ impl Board {
                 coarseness: _,
                 melting_point: _,
             } => {
-                self.contents[(i, j)] = prev_board[(i, j)].clone();
+                self.contents[(i, j)] = prev_board[(i, j)];
                 // Gravity simulation
-                self.contents[(i, j)].speed.y += self.gravity * framedelta;
+                if self.contents[(i, j)].speed.y < 16_f32 {
+                    self.contents[(i, j)].speed.y += self.gravity * framedelta;
+                }
                 let mut ychange = 0;
                 for _k in 0..self.contents[(i, j)].speed.y.abs() as i32 {
-                    if
-                    materials[prev_board.get(i + (self.gravity.signum() as i32 * _k) as usize, j).unwrap_or(&prev_board[(i,j)])
-                        .material_id as usize]
-                        .density
-                        < materials[prev_board[(i, j)].material_id as usize].density
+                    // Falling and checking if there is a particle with a larger density
+                    if materials[self.contents[(i, j)].material_id].density
+                        > materials[self
+                            .contents
+                            .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                            .unwrap_or(&self.contents[(i, j)])
+                            .material_id]
+                            .density
+                        && std::mem::discriminant(
+                            &materials[self
+                                .contents
+                                .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material_id]
+                                .phase,
+                        ) != std::mem::discriminant(
+                            &(Phase::Solid {
+                                melting_point: 0_f32,
+                            }),
+                        )
                     {
                         ychange = _k;
                     }
+                    // Checks if the particle falls inside bounds
+                    // Checks, whether there is another denser particle in the path of the falling particle
+                    else if self
+                        .contents
+                        .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                        .is_none()
+                        || std::mem::discriminant(
+                            &materials[self
+                                .contents
+                                .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material_id]
+                                .phase,
+                        ) == std::mem::discriminant(
+                            &(Phase::Solid {
+                                melting_point: 0_f32,
+                            }),
+                        )
+                        || std::mem::discriminant(
+                            &materials[self
+                                .contents
+                                .get(
+                                    i + ((self.gravity.signum() as i32 * _k)
+                                        + self.gravity.signum() as i32)
+                                        as usize,
+                                    j,
+                                )
+                                .unwrap_or(&self.contents[(i, j)])
+                                .material_id]
+                                .phase,
+                        ) == std::mem::discriminant(
+                            &(Phase::Powder {
+                                coarseness: 0_f32,
+                                melting_point: 0_f32,
+                            }),
+                        )
+                    {
+                        self.contents[(i, j)].speed.y -= self.gravity * framedelta;
+                        break;
+                    }
                 }
-                self.contents.swap(
-                    (i, j),
-                    (i + (self.gravity.signum() as i32 * ychange) as usize, j),
-                );
+                if ychange != 0 {}
+                /*// This decides where the particle falls (left or right)
+                let rnd = self.rngs[(i, j)];
+                if self.contents[(i, j)].updated
+                    && self
+                        .contents
+                        .get(
+                            i + (self.gravity.signum() as i32) as usize,
+                            j.wrapping_add(1),
+                        )
+                        .is_some()
+                    && self
+                        .contents
+                        .get(
+                            i + (self.gravity.signum() as i32) as usize,
+                            j.wrapping_add(1),
+                        )
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        .density
+                        < self.contents[(i, j)].material.density
+                    && std::mem::discriminant(
+                        &self
+                            .contents
+                            .get(
+                                i + (self.gravity.signum() as i32) as usize,
+                                j.wrapping_add(1),
+                            )
+                            .unwrap_or(&self.contents[(i, j)])
+                            .material
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Solid {
+                            melting_point: 0_f32,
+                        }),
+                    )
+                    && self.contents[(i,j)].temperature // SEED needs to be implemented!!!
+                        >= ((1_f32
+                            - self.contents[(i,j)]
+                                .material
+                                .phase
+                                .get_coarseness()
+                                .sqrt()
+                                .sqrt())
+                        .sqrt())
+                        .powi(8)
+                    && rnd.signum() == -1.0
+                {
+                    self.contents.swap(
+                        (i, j),
+                        (
+                            i + (self.gravity.signum() as i32) as usize,
+                            j.wrapping_add(1),
+                        ),
+                    );
+                    self.contents[(
+                        i + (self.gravity.signum() as i32) as usize,
+                        j.wrapping_add(1),
+                    )]
+                        .updated = false;
+                }
+                if self.contents[(i, j)].updated
+                    && self
+                        .contents
+                        .get(
+                            i + (self.gravity.signum() as i32) as usize,
+                            j.wrapping_sub(1),
+                        )
+                        .is_some()
+                    && self
+                        .contents
+                        .get(
+                            i + (self.gravity.signum() as i32) as usize,
+                            j.wrapping_sub(1),
+                        )
+                        .unwrap_or(&self.contents[(i, j)])
+                        .material
+                        .density
+                        < self.contents[(i, j)].material.density
+                    && discriminant(
+                        &self
+                            .contents
+                            .get(
+                                i + (self.gravity.signum() as i32) as usize,
+                                j.wrapping_sub(1),
+                            )
+                            .unwrap_or(&self.contents[(i, j)])
+                            .material
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Solid {
+                            melting_point: 0_f32,
+                        }),
+                    )
+                    && self.contents[(i,j)].temperature // SEED needs to be implemented!!!
+                        >= ((1_f32
+                            - self.contents[(i,j)]
+                                .material
+                                .phase
+                                .get_coarseness()
+                                .sqrt()
+                                .sqrt())
+                        .sqrt())
+                        .powi(8)
+                    && rnd.signum() == 1.0
+                {
+                    self.contents.swap(
+                        (i, j),
+                        (
+                            i + (self.gravity.signum() as i32) as usize,
+                            j.wrapping_sub(1),
+                        ),
+                    );
+                    self.contents[(
+                        i + (self.gravity.signum() as i32) as usize,
+                        j.wrapping_sub(1),
+                    )]
+                        .updated = false;
+                }
+                // This marks that the particle's position has been calculated
+                self.contents[(i, j)].updated = true;*/
             }
             Phase::Liquid {
                 viscosity: _,

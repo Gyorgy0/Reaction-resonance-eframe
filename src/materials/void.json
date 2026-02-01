@@ -1,22 +1,22 @@
 [
-  {
-    "name": "VOID",
-    "id": 0,
-    "density": 0.0,
-    "phase": "Void",
-    "material_type": "Atmosphere",
-    "durability": -1,
-    "material_color": {
-      "color": [
-        0,
-        0,
-        0,
-        100
-      ],
-      "shinyness": {
-        "start": 1.0,
-        "end": 1.0
-      }
+    {
+        "name": "VOID",
+        "id": 0,
+        "density": 0.0,
+        "phase": "Void",
+        "material_type": "Atmosphere",
+        "durability": -1,
+        "material_color": {
+            "color": [
+                0,
+                0,
+                0,
+                100
+            ],
+            "shinyness": [
+                1.0,
+                1.0
+            ]
+        }
     }
-  }
 ]

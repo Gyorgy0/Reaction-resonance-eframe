@@ -3,16 +3,16 @@ use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-#[derive(PartialEq, Clone, Debug, Serialize, Deserialize, EnumIter)]
+#[derive(PartialEq,Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
 #[rustfmt::skip]
 pub(crate) enum MaterialType {
     Acid,       // Corrosive material - everything with a pH value lower than 7_f32
     Alloy,      // Mixture of metals
     Atmosphere, // Mixture of materials that are always present in the simulation*/
     Base,       // Corrosive material - everything with a pH value higher than 7_f32
-    CAutomata,  // Cellular automaton material defined by 3 rules (birth, survival, neighborhood)
+    CAutomata {neighbordhood: u8, birth: u8, survival: u8},  // Cellular automaton material defined by 3 rules (birth, survival, neighborhood)
     Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
-    Cloner {cloned_material: Option<Box<Material>>},     // Material that clones the last new material it came in contact with
+    Cloner,     // Material that clones the last new material it came in contact with
     Explosive,  // A material that generates a lot of energy and lot of gases
     Fuel,       // Flammable material under normal circumstances
     Glass,      // Amorphous material formed from a molten material and it's cooled without proper crystalization
@@ -24,13 +24,9 @@ pub(crate) enum MaterialType {
 }
 
 impl MaterialType {
-    fn get_cloned_material(&self) -> Option<Box<Material>> {
-        let mut returnval: Option<Box<Material>> = Option::None;
-        if let MaterialType::Cloner { cloned_material } = self {
-            returnval = cloned_material.clone()
-        };
-        returnval
-    }
+    pub fn get_neighborhood() {}
+    pub fn get_birth() {}
+    pub fn get_survival() {}
 }
 impl Board {
     /*#[inline(always)]

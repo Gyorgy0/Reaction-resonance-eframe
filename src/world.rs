@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::ops::RangeInclusive;
 
@@ -28,7 +29,7 @@ pub(crate) struct Chunk {
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct Material {
     pub name: String,                       // Name of the material
-    pub id: u64,                            // ID of the material
+    pub id: usize,                            // ID of the material
     pub density: f32,                       // Mass of a cm^3 volume of the material
     pub phase: Phase,                       // Phase of the material for, the implemented phases check the "Phase" enum
     pub material_type: MaterialType,        // Type of the material for, the implemented types check the "Type" enum
@@ -37,25 +38,25 @@ pub(crate) struct Material {
 }
 
 #[rustfmt::skip]
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct MaterialColor{
     pub color: Color32,                 // Color of the material
-    pub shinyness: RangeInclusive<f32>, // Shinyness of the material (<1_f32 - darker colors)
+    pub shinyness: (f32,f32),           // Shinyness of the material (<1_f32 - darker colors)
                                         //                           (>1_f32 - lighter colors)
 }
 
 #[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Particle {
-    pub material_id: u64,       // ID of material
+    pub material_id: usize,       // ID of material
     pub speed: Vec2,            // Vectors of the particle (x, y)
     pub temperature: f32,       // Temperature of the materialy
     pub display_color: Color32, // Displayed color
 }
 impl Particle {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
-            /*material: VOID.clone(),*/ material_id: 0,
+            material_id: 0,
             speed: Vec2::new(0_f32, 0_f32),
             temperature: 0_f32,
             display_color: VOID.material_color.color,
@@ -92,7 +93,7 @@ pub static VOID: Material = Material {
     durability: -1,
     material_color: MaterialColor {
         color: Color32::from_rgba_premultiplied(0, 0, 0, 100),
-        shinyness: 1_f32..=1_f32,
+        shinyness: (1_f32, 1_f32),
     },
 };
 

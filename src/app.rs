@@ -26,7 +26,7 @@ pub struct EFrameApp {
     #[serde(skip)]
     materials: Vec<Material>,
     #[serde(skip)]
-    selected_material: u64,
+    selected_material: usize,
     #[serde(skip)]
     is_stopped: bool,
     #[serde(skip)]
@@ -61,24 +61,21 @@ impl Default for EFrameApp {
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
             use std::fs;
-            /*
-            use crate::reactions::MaterialType;
-            // This is for serializing particles with new fields and enums - testing purposes
 
-            let option = MaterialType::Cloner {
-                cloned_material: Option::None,
-            };
+            use crate::reactions::MaterialType;
+            /*// This is for serializing particles with new fields and enums - testing purposes
+
+            let option = VOID.clone();
             let data = serde_json::to_string_pretty(&option).unwrap();
             println!("{:?}", data);
-            fs::write("src/new.json", data).unwrap();
-            */
+            fs::write("src/new.json", data).unwrap();*/
 
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
-                let materials_per_phase =
-                    fs::read(path.unwrap().path().display().to_string()).unwrap();
+                let materials_per_phase: Result<Vec<u8>, std::io::Error> =
+                    fs::read(path.unwrap().path().display().to_string().as_str());
                 let mut serialized_materials: Vec<Material> =
-                    serde_json::from_slice(materials_per_phase.as_slice()).unwrap();
+                    serde_json::from_slice(materials_per_phase.unwrap().as_slice()).unwrap();
                 materials.append(&mut serialized_materials);
             }
         }
@@ -96,7 +93,7 @@ impl Default for EFrameApp {
             materials.append(&mut serialized_materials);
         }
         materials.sort_by_key(|material| material.id);
-        let selected_material = 0_u64;
+        let selected_material = 0_usize;
         Self {
             fullscreen: false,
             game_board,
