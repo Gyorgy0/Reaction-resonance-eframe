@@ -1,10 +1,8 @@
+use std::{mem::discriminant, sync::atomic::AtomicBool};
+
 use crate::world::{Board, Material, Particle, VOID};
 use grid::Grid;
 use serde::{Deserialize, Serialize};
-use std::cmp::{self, min_by};
-use std::collections::HashMap;
-use std::mem::discriminant;
-use std::ops::{Add, AddAssign};
 
 #[rustfmt::skip]
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
@@ -12,14 +10,14 @@ pub enum Phase {
     Void,
     Solid { melting_point: f32 },
     Powder { coarseness: f32, melting_point: f32 },     // Coarseness is the average diameter of a powder particle (between 0 and 1) (in cm), -> the smaller the diameter, the powder becomes more "clumpier"
-    Liquid { viscosity: f32, melting_point: f32, boiling_point: f32 },      // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1_f32, the bigger the viscosity, the thicker the fluid is
+    Liquid { viscosity: f32, melting_point: f32, boiling_point: f32 },      // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1.0, the bigger the viscosity, the thicker the fluid is
     Gas {boiling_point: f32},                                             // Not fully implemented
     Plasma { energy: f32 },
 }
 
 impl Phase {
     fn get_coarseness(&self) -> f32 {
-        let mut returnval: f32 = 0_f32;
+        let mut returnval: f32 = 0.0;
         if let Phase::Powder {
             coarseness,
             melting_point: _,
@@ -30,19 +28,19 @@ impl Phase {
         returnval
     }
     fn get_viscosity(&self) -> f32 {
-        let mut returnval: f32 = 0_f32;
+        let mut returnval: f32 = 0.0;
         if let Phase::Liquid {
             viscosity,
             melting_point: _,
             boiling_point: _,
         } = self
         {
-            returnval = 1_f32 / *viscosity
+            returnval = 1.0 / *viscosity
         };
         returnval
     }
     fn get_energy(&self) -> f32 {
-        let mut returnval: f32 = 0_f32;
+        let mut returnval: f32 = 0.0;
         if let Phase::Plasma { energy } = self {
             returnval = *energy;
         };
@@ -54,22 +52,16 @@ impl Board {
     #[inline(always)]
     pub(crate) fn solve_particle(
         &mut self,
-        prev_board: &Grid<Particle>,
+        prev_board: &Grid<AtomicBool>,
         materials: &Vec<Material>,
         i: usize,
         j: usize,
         framedelta: f32,
     ) {
-        match materials[prev_board[(i, j)].material_id as usize].phase {
-            Phase::Void => {
-                self.contents[(i, j)] = prev_board[(i, j)];
-            }
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // SOLID PHYSICS
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Solid { melting_point: _ } => {
-                self.contents[(i, j)] = prev_board[(i, j)];
-            }
+        match &materials[self.contents[(i, j)].material_id].phase {
+            Phase::Void => {}
+
+            Phase::Solid { melting_point: _ } => {}
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // POWDER PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,11 +69,8 @@ impl Board {
                 coarseness: _,
                 melting_point: _,
             } => {
-                self.contents[(i, j)] = prev_board[(i, j)];
                 // Gravity simulation
-                if self.contents[(i, j)].speed.y < 16_f32 {
-                    self.contents[(i, j)].speed.y += self.gravity * framedelta;
-                }
+                self.contents[(i, j)].speed.y += self.gravity * framedelta;
                 let mut ychange = 0;
                 for _k in 0..self.contents[(i, j)].speed.y.abs() as i32 {
                     // Falling and checking if there is a particle with a larger density
@@ -104,6 +93,7 @@ impl Board {
                                 melting_point: 0_f32,
                             }),
                         )
+                        && self.contents[(i, j)].updated
                     {
                         ychange = _k;
                     }
@@ -148,8 +138,15 @@ impl Board {
                         break;
                     }
                 }
-                if ychange != 0 {}
-                /*// This decides where the particle falls (left or right)
+                if ychange != 0 {
+                    self.contents.swap(
+                        (i, j),
+                        (i + ((self.gravity.signum() as i32 * ychange) as usize), j),
+                    );
+                    self.contents[(i + ((self.gravity.signum() as i32 * ychange) as usize), j)]
+                        .updated = false;
+                }
+                // This decides where the particle falls (left or right)
                 let rnd = self.rngs[(i, j)];
                 if self.contents[(i, j)].updated
                     && self
@@ -159,25 +156,25 @@ impl Board {
                             j.wrapping_add(1),
                         )
                         .is_some()
-                    && self
+                    && materials[self
                         .contents
                         .get(
                             i + (self.gravity.signum() as i32) as usize,
                             j.wrapping_add(1),
                         )
                         .unwrap_or(&self.contents[(i, j)])
-                        .material
+                        .material_id]
                         .density
-                        < self.contents[(i, j)].material.density
+                        < materials[self.contents[(i, j)].material_id].density
                     && std::mem::discriminant(
-                        &self
+                        &materials[self
                             .contents
                             .get(
                                 i + (self.gravity.signum() as i32) as usize,
                                 j.wrapping_add(1),
                             )
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .phase,
                     ) != std::mem::discriminant(
                         &(Phase::Solid {
@@ -186,8 +183,8 @@ impl Board {
                     )
                     && self.contents[(i,j)].temperature // SEED needs to be implemented!!!
                         >= ((1_f32
-                            - self.contents[(i,j)]
-                                .material
+                            - materials[self.contents[(i,j)]
+                                .material_id]
                                 .phase
                                 .get_coarseness()
                                 .sqrt()
@@ -217,25 +214,25 @@ impl Board {
                             j.wrapping_sub(1),
                         )
                         .is_some()
-                    && self
+                    && materials[self
                         .contents
                         .get(
                             i + (self.gravity.signum() as i32) as usize,
                             j.wrapping_sub(1),
                         )
                         .unwrap_or(&self.contents[(i, j)])
-                        .material
+                        .material_id]
                         .density
-                        < self.contents[(i, j)].material.density
+                        < materials[self.contents[(i, j)].material_id].density
                     && discriminant(
-                        &self
+                        &materials[self
                             .contents
                             .get(
                                 i + (self.gravity.signum() as i32) as usize,
                                 j.wrapping_sub(1),
                             )
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .phase,
                     ) != std::mem::discriminant(
                         &(Phase::Solid {
@@ -244,8 +241,8 @@ impl Board {
                     )
                     && self.contents[(i,j)].temperature // SEED needs to be implemented!!!
                         >= ((1_f32
-                            - self.contents[(i,j)]
-                                .material
+                            - materials[self.contents[(i,j)]
+                                .material_id]
                                 .phase
                                 .get_coarseness()
                                 .sqrt()
@@ -268,30 +265,7 @@ impl Board {
                         .updated = false;
                 }
                 // This marks that the particle's position has been calculated
-                self.contents[(i, j)].updated = true;*/
-            }
-            Phase::Liquid {
-                viscosity: _,
-                melting_point: _,
-                boiling_point: _,
-            } => {}
-            Phase::Gas { boiling_point: _ } => {}
-            Phase::Plasma { energy: _ } => {}
-        }
-        /*match &self.contents[(i, j)].material.phase {
-            Phase::Void => {}
-
-            Phase::Solid { melting_point: _ } => {}
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // POWDER PHYSICS
-            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Powder {
-                coarseness: _,
-                melting_point: _,
-            } => {
-                // Gravity simulation
-                self.contents[(i, j)].speed.y += self.gravity * framedelta;
-                for _k in 0..self.contents[(i, j)].speed.y.abs() as i32 {}
+                self.contents[(i, j)].updated = true;
             }
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // LIQUID PHYSICS
@@ -306,20 +280,20 @@ impl Board {
                 let mut ychange = 0;
                 for _k in 0..self.contents[(i, j)].speed.y.abs() as i32 {
                     // Falling and checking if there is a particle with a larger density
-                    if self.contents[(i, j)].material.density
-                        > self
+                    if materials[self.contents[(i, j)].material_id].density
+                        > materials[self
                             .contents
                             .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .density
                         && self.contents[(i, j)].updated
                         && discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != discriminant(&Phase::Solid {
                             melting_point: 0_f32,
@@ -334,11 +308,11 @@ impl Board {
                         .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
                         .is_none()
                         && discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i + (self.gravity.signum() as i32 * _k) as usize, j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == discriminant(
                             &(Phase::Solid {
@@ -346,7 +320,7 @@ impl Board {
                             }),
                         )
                         || discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(
                                     i + (self.gravity.signum() as i32 * _k
@@ -355,7 +329,7 @@ impl Board {
                                     j,
                                 )
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == discriminant(
                             &(Phase::Powder {
@@ -364,7 +338,7 @@ impl Board {
                             }),
                         )
                         || discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(
                                     i + (self.gravity.signum() as i32 * _k
@@ -373,7 +347,7 @@ impl Board {
                                     j,
                                 )
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == discriminant(
                             &(Phase::Liquid {
@@ -397,18 +371,25 @@ impl Board {
                 }
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
-                if self.contents[(i, j)].speed.x.abs() > 1_f32 {
-                    self.contents[(i, j)].speed.x = 0_f32;
+                if self.contents[(i, j)].speed.x.abs() > 1.0 {
+                    self.contents[(i, j)].speed.x = 0.0;
                 } else {
                     let rnd = self.rngs[(i, j)];
                     if rnd.abs()
-                        >= (1_f32 - self.contents[(i, j)].material.phase.get_viscosity()).powi(16)
+                        >= (1_f32
+                            - materials[self.contents[(i, j)].material_id]
+                                .phase
+                                .get_viscosity())
+                        .powi(16)
                     {
                         self.contents[(i, j)].speed.x += rnd.signum()
                             * (rnd.abs()
-                                + self.contents[(i, j)].material.phase.get_viscosity().sqrt());
+                                + materials[self.contents[(i, j)].material_id]
+                                    .phase
+                                    .get_viscosity()
+                                    .sqrt());
                         orientation = (self.contents[(i, j)].speed.x.signum()
-                            * (self.contents[(i, j)].speed.x.abs() + 1_f32))
+                            * (self.contents[(i, j)].speed.x.abs() + 1.0))
                             as i32;
                     }
                 }
@@ -420,11 +401,11 @@ impl Board {
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
                         && discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == discriminant(
                             &(Phase::Solid {
@@ -437,19 +418,19 @@ impl Board {
                         .contents
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
-                        && self
+                        && materials[self
                             .contents
                             .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .density
-                            <= self.contents[(i, j)].material.density
+                            <= materials[self.contents[(i, j)].material_id].density
                         && (discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != discriminant(
                             &(Phase::Powder {
@@ -465,7 +446,7 @@ impl Board {
                         self.contents[(i, j.wrapping_add((orientation.signum() * _k) as usize))]
                             .updated = true;
                     } else {
-                        self.contents[(i, j)].speed.x *= -1_f32;
+                        self.contents[(i, j)].speed.x *= -1.0;
                         break;
                     }
                 }
@@ -475,18 +456,18 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // GAS PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Gas {boiling_point: _} => {
+            Phase::Gas { boiling_point: _ } => {
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis
-                if self.contents[(i, j)].speed.y.abs() > 1_f32 {
-                    self.contents[(i, j)].speed.y = 0_f32;
+                if self.contents[(i, j)].speed.y.abs() > 1.0 {
+                    self.contents[(i, j)].speed.y = 0.0;
                 } else {
-                    // Rand range: (-1_f32..1_f32)
+                    // Rand range: (-1.0..1.0)
                     let rnd = self.rngs[(i, j)];
                     self.contents[(i, j)].speed.y += rnd.signum() * (rnd.abs() / 2_f32);
                     orientation = (self.contents[(i, j)].speed.y.signum()
-                        * (self.contents[(i, j)].speed.y.abs() + 1_f32))
+                        * (self.contents[(i, j)].speed.y.abs() + 1.0))
                         as i32;
                 }
 
@@ -497,11 +478,11 @@ impl Board {
                         .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                         .is_some()
                         && std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == std::mem::discriminant(&Phase::Solid {
                             melting_point: 0_f32,
@@ -512,19 +493,19 @@ impl Board {
                         .contents
                         .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                         .is_some()
-                        && (self
+                        && (materials[self
                             .contents
                             .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .density
-                            <= self.contents[(i, j)].material.density)
+                            <= materials[self.contents[(i, j)].material_id].density)
                         && (std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(
                             &(Phase::Powder {
@@ -532,11 +513,11 @@ impl Board {
                                 melting_point: 0_f32,
                             }),
                         ) || std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(&Phase::Liquid {
                             viscosity: 0_f32,
@@ -554,13 +535,13 @@ impl Board {
                 }
                 orientation = 0;
                 // This calculates the position on the X axis
-                if self.contents[(i, j)].speed.x.abs() > 1_f32 {
-                    self.contents[(i, j)].speed.x = 0_f32;
+                if self.contents[(i, j)].speed.x.abs() > 1.0 {
+                    self.contents[(i, j)].speed.x = 0.0;
                 } else {
                     let rnd = self.rngs[(i, j)] * self.seeds[(i, j)];
                     self.contents[(i, j)].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[(i, j)].speed.x.signum()
-                        * (self.contents[(i, j)].speed.x.abs() + 1_f32))
+                        * (self.contents[(i, j)].speed.x.abs() + 1.0))
                         as i32;
                 }
 
@@ -571,11 +552,11 @@ impl Board {
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
                         && std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == std::mem::discriminant(&Phase::Solid {
                             melting_point: 0_f32,
@@ -586,19 +567,19 @@ impl Board {
                         .contents
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
-                        && self
+                        && materials[self
                             .contents
                             .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .density
-                            <= self.contents[(i, j)].material.density
+                            <= materials[self.contents[(i, j)].material_id].density
                         && (std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(
                             &(Phase::Powder {
@@ -606,11 +587,11 @@ impl Board {
                                 melting_point: 0_f32,
                             }),
                         ) || std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(
                             &(Phase::Liquid {
@@ -635,27 +616,27 @@ impl Board {
             // PLASMA PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             Phase::Plasma { energy: _f32 } => {
-                let cellenergy = self.contents[(i, j)].material.phase.get_energy();
-                if cellenergy > 1_f32 {
-                    self.contents[(i, j)].material.phase = Phase::Plasma {
-                        energy: cellenergy - 1_f32,
-                    };
+                let cellenergy = materials[self.contents[(i, j)].material_id]
+                    .phase
+                    .get_energy();
+                if cellenergy > 1.0 {
+                    self.contents[(i, j)].material_id = 7_usize;
                 } else {
-                    self.contents[(i, j)].material = VOID.clone();
+                    self.contents[(i, j)].material_id = 0_usize;
                     self.contents[(i, j)].display_color = VOID.material_color.color;
                 }
 
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis
-                if self.contents[(i, j)].speed.y.abs() > 1_f32 {
-                    self.contents[(i, j)].speed.y = 0_f32;
+                if self.contents[(i, j)].speed.y.abs() > 1.0 {
+                    self.contents[(i, j)].speed.y = 0.0;
                 } else {
-                    // Rand range: (-1_f32..1_f32)
+                    // Rand range: (-1.0..1.0)
                     let rnd = self.rngs[(i, j)];
                     self.contents[(i, j)].speed.y += rnd.signum() * (rnd.abs() / 2_f32);
                     orientation = (self.contents[(i, j)].speed.y.signum()
-                        * (self.contents[(i, j)].speed.y.abs() + 1_f32))
+                        * (self.contents[(i, j)].speed.y.abs() + 1.0))
                         as i32;
                 }
 
@@ -666,11 +647,11 @@ impl Board {
                         .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                         .is_some()
                         && std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == std::mem::discriminant(&Phase::Solid {
                             melting_point: 0_f32,
@@ -681,19 +662,19 @@ impl Board {
                         .contents
                         .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                         .is_some()
-                        && (self
+                        && (materials[self
                             .contents
                             .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .density
-                            <= self.contents[(i, j)].material.density)
+                            <= materials[self.contents[(i, j)].material_id].density)
                         && (std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(
                             &(Phase::Powder {
@@ -701,11 +682,11 @@ impl Board {
                                 melting_point: 0_f32,
                             }),
                         ) || std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(&Phase::Liquid {
                             viscosity: 0_f32,
@@ -723,13 +704,13 @@ impl Board {
                 }
                 orientation = 0;
                 // This calculates the position on the X axis
-                if self.contents[(i, j)].speed.x.abs() > 1_f32 {
-                    self.contents[(i, j)].speed.x = 0_f32;
+                if self.contents[(i, j)].speed.x.abs() > 1.0 {
+                    self.contents[(i, j)].speed.x = 0.0;
                 } else {
                     let rnd = self.rngs[(i, j)] * self.seeds[(i, j)];
                     self.contents[(i, j)].speed.x += rnd.signum() * (rnd.abs());
                     orientation = (self.contents[(i, j)].speed.x.signum()
-                        * (self.contents[(i, j)].speed.x.abs() + 1_f32))
+                        * (self.contents[(i, j)].speed.x.abs() + 1.0))
                         as i32;
                 }
 
@@ -740,11 +721,11 @@ impl Board {
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
                         && std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) == std::mem::discriminant(&Phase::Solid {
                             melting_point: 0_f32,
@@ -755,19 +736,19 @@ impl Board {
                         .contents
                         .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                         .is_some()
-                        && self
+                        && materials[self
                             .contents
                             .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                             .unwrap_or(&self.contents[(i, j)])
-                            .material
+                            .material_id]
                             .density
-                            <= self.contents[(i, j)].material.density
+                            <= materials[self.contents[(i, j)].material_id].density
                         && (std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(
                             &(Phase::Powder {
@@ -775,11 +756,11 @@ impl Board {
                                 melting_point: 0_f32,
                             }),
                         ) || std::mem::discriminant(
-                            &self
+                            &materials[self
                                 .contents
                                 .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
                                 .unwrap_or(&self.contents[(i, j)])
-                                .material
+                                .material_id]
                                 .phase,
                         ) != std::mem::discriminant(
                             &(Phase::Liquid {
@@ -800,7 +781,6 @@ impl Board {
                 // This marks that the particle's position has been calculated
                 self.contents[(i, j)].updated = true;
             }
-            _ => {}
-        }*/
+        }
     }
 }

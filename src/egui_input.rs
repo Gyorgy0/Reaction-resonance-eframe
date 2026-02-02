@@ -35,6 +35,7 @@ pub fn handle_mouse_input(
                     game_board.contents[cellpos] = Particle {
                         material_id: selected_material_id,
                         speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
+                        updated: false,
                         temperature: 20_f32,
                         display_color: materials[selected_material_id as usize]
                             .material_color
@@ -76,6 +77,7 @@ pub fn handle_mouse_input(
                     game_board.contents[cellpos] = Particle {
                         material_id: 0,
                         speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
+                        updated: false,
                         temperature: 20_f32,
                         display_color: material.material_color.color,
                     };

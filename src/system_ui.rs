@@ -38,6 +38,7 @@ impl fmt::Display for MaterialType {
                 neighbordhood: _,
                 birth: _,
                 survival: _,
+                stages: _,
             } => write!(f, "Cellular automaton"),
             MaterialType::Cloner => write!(f, "Cloner"),
             MaterialType::Explosive => write!(f, "Explosive"),

@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::ops::RangeInclusive;
+use std::sync::atomic::AtomicBool;
 
 use crate::physics::Phase;
 use crate::reactions::MaterialType;
@@ -48,10 +49,11 @@ pub(crate) struct MaterialColor{
 #[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Particle {
-    pub material_id: usize,       // ID of material
-    pub speed: Vec2,            // Vectors of the particle (x, y)
-    pub temperature: f32,       // Temperature of the materialy
-    pub display_color: Color32, // Displayed color
+    pub material_id: usize,         // ID of material
+    pub speed: Vec2,                // Vectors of the particle (x, y)
+    pub temperature: f32,           // Temperature of the particle
+    pub updated: bool,              // Is it updated?
+    pub display_color: Color32,     // Displayed color
 }
 impl Particle {
     pub fn new() -> Self {
@@ -59,6 +61,7 @@ impl Particle {
             material_id: 0,
             speed: Vec2::new(0_f32, 0_f32),
             temperature: 0_f32,
+            updated: false,
             display_color: VOID.material_color.color,
         }
     }
@@ -106,6 +109,7 @@ impl Board {
                     material_id: 0,
                     speed: Vec2::new(0_f32, 0_f32),
                     temperature: 20_f32,
+                    updated: false,
                     display_color: VOID.material_color.color,
                 };
                 self.height as usize * self.width as usize
@@ -148,13 +152,14 @@ pub fn update_board(
 
     if !is_stopped {
         let prev_board: Grid<Particle> = game_board.contents.clone();
-        game_board.contents = Grid::new(game_board.height as usize, game_board.width as usize);
+        let sync_board: Grid<AtomicBool> =
+            Grid::new(game_board.height as usize, game_board.width as usize);
         (0..row_count * col_count).into_iter().for_each(|count| {
             let i = (count / col_count) as usize;
             let j = (count % col_count) as usize;
 
-            game_board.solve_particle(&prev_board, materials, i, j, framedelta);
-            //game_board.solve_reactions(&prev_board, i, j, framedelta, *framecount);
+            game_board.solve_particle(&sync_board, materials, i, j, framedelta);
+            game_board.solve_reactions(&prev_board, materials, i, j, framedelta, *framecount);
         });
     }
 }
