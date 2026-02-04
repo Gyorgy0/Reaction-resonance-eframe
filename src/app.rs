@@ -1,12 +1,14 @@
 use std::{
-    collections::{HashMap, HashSet},
-    fmt::{self, Display, format},
+    clone,
+    mem::{Discriminant, discriminant},
+    u8,
 };
 
 use crate::{
     egui_input::{handle_key_inputs, handle_mouse_input},
-    reactions::MaterialType,
-    world::{Board, Material, VOID, update_board},
+    material::{Material, VOID},
+    reactions::{MaterialType, MaterialTypeIter},
+    world::{Board, update_board},
 };
 use egui::{
     Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureHandle,
@@ -26,7 +28,11 @@ pub struct EFrameApp {
     #[serde(skip)]
     materials: Vec<Material>,
     #[serde(skip)]
+    material_categories: Vec<Vec<Material>>,
+    #[serde(skip)]
     selected_material: usize,
+    #[serde(skip)]
+    selected_category: MaterialType,
     #[serde(skip)]
     is_stopped: bool,
     #[serde(skip)]
@@ -57,12 +63,11 @@ impl Default for EFrameApp {
             ColorImage::example(),
             TextureOptions::NEAREST,
         );
-        let mut materials: Vec<Material> = vec![];
+        let mut materials: Vec<Material> = vec![VOID.clone()];
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
             use std::fs;
 
-            use crate::reactions::MaterialType;
             /*// This is for serializing particles with new fields and enums - testing purposes
 
             let option = VOID.clone();
@@ -93,13 +98,27 @@ impl Default for EFrameApp {
             materials.append(&mut serialized_materials);
         }
         materials.sort_by_key(|material| material.id);
+        materials[0].name = "Erase".to_string();
+        let mut material_categories: Vec<Vec<Material>> = vec![];
+        for category in MaterialType::iter() {
+            let mut category_vec: Vec<Material> = vec![];
+            for material in materials.iter() {
+                if category == material.material_type {
+                    category_vec.push(material.clone());
+                }
+            }
+            material_categories.push(category_vec);
+        }
         let selected_material = 0_usize;
+        let selected_category = MaterialType::Fuel;
         Self {
             fullscreen: false,
             game_board,
             materials,
+            material_categories,
             texture,
             selected_material,
+            selected_category,
             is_stopped: false,
             framecount: 0,
             rng: rand::rngs::SmallRng::from_os_rng(),
@@ -227,23 +246,25 @@ impl eframe::App for EFrameApp {
             .show(ctx, |ui| {
                 egui::ScrollArea::new([true, false]).show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        self.materials.iter().for_each(|material| {
-                            if ui
-                                .add(
-                                    egui::Button::new(
-                                        RichText::new(material.name.clone())
-                                            .size(20_f32)
-                                            .color(Color32::WHITE)
-                                            .strong(),
+                        self.material_categories[self.selected_category.discriminant() as usize]
+                            .iter()
+                            .for_each(|material| {
+                                if ui
+                                    .add(
+                                        egui::Button::new(
+                                            RichText::new(material.name.clone())
+                                                .size(20_f32)
+                                                .color(Color32::WHITE)
+                                                .strong(),
+                                        )
+                                        .min_size(vec2(Default::default(), 35_f32))
+                                        .stroke(Stroke::new(1_f32, material.material_color.color)),
                                     )
-                                    .min_size(vec2(Default::default(), 35_f32))
-                                    .stroke(Stroke::new(1_f32, material.material_color.color)),
-                                )
-                                .clicked()
-                            {
-                                self.selected_material = material.id;
-                            }
-                        });
+                                    .clicked()
+                                {
+                                    self.selected_material = material.id;
+                                }
+                            });
                     });
                     ui.add(egui::Separator::default().spacing(10_f32));
                 });
@@ -259,11 +280,15 @@ impl eframe::App for EFrameApp {
                         ui.horizontal(|ui| {
                             ui.vertical(|ui| {
                                 MaterialType::iter().for_each(|category| {
-                                    ui.add(egui::Button::new(RichText::new(format!(
-                                        "{}",
-                                        category
-                                    ))))
-                                    .clicked();
+                                    if ui
+                                        .add(egui::Button::new(RichText::new(format!(
+                                            "{}",
+                                            category
+                                        ))))
+                                        .clicked()
+                                    {
+                                        self.selected_category = category;
+                                    }
                                 });
                             });
                             ui.add(

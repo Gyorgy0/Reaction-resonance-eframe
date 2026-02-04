@@ -1,17 +1,23 @@
-use std::{mem::discriminant, sync::atomic::AtomicBool};
-
-use crate::world::{Board, Material, Particle, VOID};
+use crate::{
+    material::{Material, VOID},
+    world::Board,
+};
 use grid::Grid;
 use serde::{Deserialize, Serialize};
+use std::{
+    mem::{Discriminant, discriminant},
+    sync::atomic::AtomicBool,
+};
 
 #[rustfmt::skip]
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
+#[repr(u8)]
 pub enum Phase {
     Void,
     Solid { melting_point: f32 },
-    Powder { coarseness: f32, melting_point: f32 },     // Coarseness is the average diameter of a powder particle (between 0 and 1) (in cm), -> the smaller the diameter, the powder becomes more "clumpier"
+    Powder { coarseness: f32, melting_point: f32 },                         // Coarseness is the average diameter of a powder particle (between 0 and 1) (in cm), -> the smaller the diameter, the powder becomes more "clumpier"
     Liquid { viscosity: f32, melting_point: f32, boiling_point: f32 },      // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1.0, the bigger the viscosity, the thicker the fluid is
-    Gas {boiling_point: f32},                                             // Not fully implemented
+    Gas {boiling_point: f32},                                               // Not fully implemented
     Plasma { energy: f32 },
 }
 
@@ -59,13 +65,13 @@ impl Board {
         framedelta: f32,
     ) {
         match &materials[self.contents[(i, j)].material_id].phase {
-            Phase::Void => {}
+            &Phase::Void => {}
 
-            Phase::Solid { melting_point: _ } => {}
+            &Phase::Solid { melting_point: _ } => {}
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // POWDER PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Powder {
+            &Phase::Powder {
                 coarseness: _,
                 melting_point: _,
             } => {
@@ -270,7 +276,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // LIQUID PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Liquid {
+            &Phase::Liquid {
                 viscosity: _,
                 melting_point: _,
                 boiling_point: _,
@@ -456,7 +462,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // GAS PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Gas { boiling_point: _ } => {
+            &Phase::Gas { boiling_point: _ } => {
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis
@@ -615,7 +621,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // PLASMA PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            Phase::Plasma { energy: _f32 } => {
+            &Phase::Plasma { energy: _f32 } => {
                 let cellenergy = materials[self.contents[(i, j)].material_id]
                     .phase
                     .get_energy();

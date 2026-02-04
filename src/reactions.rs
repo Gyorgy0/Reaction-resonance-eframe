@@ -1,17 +1,18 @@
-use std::{ops::RangeInclusive, sync::atomic::AtomicBool};
+use std::ops::RangeInclusive;
 
-use crate::physics::Phase;
-use crate::world::{Board, Material, Particle, VOID};
+use crate::material::{Material, VOID, tuple_to_rangeinclusive};
+use crate::world::Board;
+use crate::{particle::Particle, physics::Phase};
 use egui::Color32;
 use egui::epaint::Hsva;
 use egui::lerp;
 use grid::Grid;
 use serde::{Deserialize, Serialize};
-use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-#[derive(PartialEq,Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
+#[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
 #[rustfmt::skip]
+#[repr(u8)]
 pub(crate) enum MaterialType {
     Acid,       // Corrosive material - everything with a pH value lower than 7.0
     Alloy,      // Mixture of metals
@@ -30,8 +31,10 @@ pub(crate) enum MaterialType {
     Solvent,    // Dissolves certain materials
 }
 
-pub fn tuple_to_rangeinclusive(range: (f32, f32)) -> RangeInclusive<f32> {
-    RangeInclusive::new(range.0, range.1)
+impl MaterialType {
+    pub fn discriminant(&self) -> u8 {
+        unsafe { *(self as *const Self as *const u8) }
+    }
 }
 
 impl MaterialType {
@@ -74,8 +77,7 @@ impl Board {
                             tuple_to_rangeinclusive(
                                 materials[self.contents[(i, j.wrapping_add(1))].material_id]
                                     .material_color
-                                    .shinyness
-                                    .clone(),
+                                    .shinyness,
                             ),
                             self.rngs[(i, j)],
                         ));
@@ -105,8 +107,7 @@ impl Board {
                             tuple_to_rangeinclusive(
                                 materials[self.contents[(i, j.saturating_sub(1))].material_id]
                                     .material_color
-                                    .shinyness
-                                    .clone(),
+                                    .shinyness,
                             ),
                             self.rngs[(i, j)],
                         ));
@@ -135,8 +136,7 @@ impl Board {
                             tuple_to_rangeinclusive(
                                 materials[self.contents[(i.wrapping_add(1), j)].material_id]
                                     .material_color
-                                    .shinyness
-                                    .clone(),
+                                    .shinyness,
                             ),
                             self.rngs[(i, j)],
                         ));
@@ -165,8 +165,7 @@ impl Board {
                             tuple_to_rangeinclusive(
                                 materials[self.contents[(i.saturating_sub(1), j)].material_id]
                                     .material_color
-                                    .shinyness
-                                    .clone(),
+                                    .shinyness,
                             ),
                             self.rngs[(i, j)],
                         ));
@@ -422,8 +421,7 @@ impl Board {
                             tuple_to_rangeinclusive(
                                 materials[self.contents[(i, j)].material_id]
                                     .material_color
-                                    .shinyness
-                                    .clone(),
+                                    .shinyness,
                             ),
                             self.rngs[(i, j)],
                         ));

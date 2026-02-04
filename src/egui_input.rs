@@ -1,10 +1,7 @@
-use egui::{Key, Rangef, Response, Vec2, lerp, pos2};
-use std::{
-    cell,
-    ops::{Not, RangeInclusive},
-};
-
-use crate::world::*;
+use crate::{material::Material, world::*};
+use crate::{material::VOID, particle::Particle};
+use egui::{Key, Response, lerp, pos2, vec2};
+use std::ops::{Not, RangeInclusive};
 
 pub fn handle_mouse_input(
     game_board: &mut Board,
@@ -19,7 +16,7 @@ pub fn handle_mouse_input(
     if response.dragged_by(egui::PointerButton::Primary)
         || response.clicked_by(egui::PointerButton::Primary)
     {
-        let material = selected_material_id.clone();
+        let material = selected_material_id;
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
@@ -32,37 +29,20 @@ pub fn handle_mouse_input(
                         == VOID.id
                         || selected_material_id == VOID.id)
                 {
-                    game_board.contents[cellpos] = Particle {
-                        material_id: selected_material_id,
-                        speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
-                        updated: false,
-                        temperature: 20_f32,
-                        display_color: materials[selected_material_id as usize]
-                            .material_color
-                            .color,
-                    };
-                    game_board.contents[cellpos].display_color = materials
-                        [selected_material_id as usize]
+                    game_board.contents[cellpos] =
+                        Particle::new(&materials[material], vec2(0_f32, 0_f32), 293.15);
+                    game_board.contents[cellpos].display_color = materials[selected_material_id]
                         .material_color
                         .color
                         .gamma_multiply(lerp(
                             RangeInclusive::new(
-                                materials[selected_material_id as usize]
-                                    .material_color
-                                    .shinyness
-                                    .0,
-                                materials[selected_material_id as usize]
-                                    .material_color
-                                    .shinyness
-                                    .1,
+                                materials[selected_material_id].material_color.shinyness.0,
+                                materials[selected_material_id].material_color.shinyness.1,
                             ),
                             game_board.rngs[cellpos],
                         ));
-                    game_board.contents[cellpos].display_color[3] = materials
-                        [selected_material_id as usize]
-                        .material_color
-                        .color
-                        .a();
+                    game_board.contents[cellpos].display_color[3] =
+                        materials[selected_material_id].material_color.color.a();
                 }
             }
         }
@@ -74,13 +54,7 @@ pub fn handle_mouse_input(
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
                 if game_board.contents.get(cellpos.0, cellpos.1).is_some() {
-                    game_board.contents[cellpos] = Particle {
-                        material_id: 0,
-                        speed: Vec2::new(0_f32, game_board.gravity.signum() * 1_f32),
-                        updated: false,
-                        temperature: 20_f32,
-                        display_color: material.material_color.color,
-                    };
+                    game_board.contents[cellpos] = Particle::default();
                 }
             }
         }

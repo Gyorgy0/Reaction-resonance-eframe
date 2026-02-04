@@ -1,10 +1,7 @@
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::ops::RangeInclusive;
 use std::sync::atomic::AtomicBool;
 
-use crate::physics::Phase;
-use crate::reactions::MaterialType;
+use crate::material::Material;
+use crate::particle::Particle;
 use egui::Color32;
 use egui::Vec2;
 use grid::Grid;
@@ -27,50 +24,11 @@ pub(crate) struct Chunk {
 }
 
 #[rustfmt::skip]
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
-pub(crate) struct Material {
-    pub name: String,                       // Name of the material
-    pub id: usize,                            // ID of the material
-    pub density: f32,                       // Mass of a cm^3 volume of the material
-    pub phase: Phase,                       // Phase of the material for, the implemented phases check the "Phase" enum
-    pub material_type: MaterialType,        // Type of the material for, the implemented types check the "Type" enum
-    pub durability: i32,                    // Durability of a material - how much force it needs to disintegrate the material -> higher = more force
-    pub material_color: MaterialColor,      // Color of the material
-}
-
-#[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct MaterialColor{
     pub color: Color32,                 // Color of the material
     pub shinyness: (f32,f32),           // Shinyness of the material (<1_f32 - darker colors)
                                         //                           (>1_f32 - lighter colors)
-}
-
-#[rustfmt::skip]
-#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
-pub struct Particle {
-    pub material_id: usize,         // ID of material
-    pub speed: Vec2,                // Vectors of the particle (x, y)
-    pub temperature: f32,           // Temperature of the particle
-    pub updated: bool,              // Is it updated?
-    pub display_color: Color32,     // Displayed color
-}
-impl Particle {
-    pub fn new() -> Self {
-        Self {
-            material_id: 0,
-            speed: Vec2::new(0_f32, 0_f32),
-            temperature: 0_f32,
-            updated: false,
-            display_color: VOID.material_color.color,
-        }
-    }
-}
-
-impl Default for Particle {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 #[rustfmt::skip]
@@ -87,33 +45,11 @@ pub struct Board {
     pub seeds: Grid<f32>,
 }
 
-pub static VOID: Material = Material {
-    name: String::new(),
-    id: 0,
-    density: 0_f32,
-    phase: Phase::Void,
-    material_type: MaterialType::Atmosphere,
-    durability: -1,
-    material_color: MaterialColor {
-        color: Color32::from_rgba_premultiplied(0, 0, 0, 100),
-        shinyness: (1_f32, 1_f32),
-    },
-};
-
 impl Board {
     pub fn create_board(&mut self) {
         let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
         self.contents = Grid::from_vec(
-            vec![
-                Particle {
-                    material_id: 0,
-                    speed: Vec2::new(0_f32, 0_f32),
-                    temperature: 20_f32,
-                    updated: false,
-                    display_color: VOID.material_color.color,
-                };
-                self.height as usize * self.width as usize
-            ],
+            vec![Particle::default(); self.height as usize * self.width as usize],
             self.width as usize,
         );
         self.rngs = grid::Grid::from_vec(
@@ -154,7 +90,7 @@ pub fn update_board(
         let prev_board: Grid<Particle> = game_board.contents.clone();
         let sync_board: Grid<AtomicBool> =
             Grid::new(game_board.height as usize, game_board.width as usize);
-        (0..row_count * col_count).into_iter().for_each(|count| {
+        (0..row_count * col_count).for_each(|count| {
             let i = (count / col_count) as usize;
             let j = (count % col_count) as usize;
 
