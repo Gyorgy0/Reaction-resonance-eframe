@@ -66,13 +66,18 @@ impl Default for EFrameApp {
         let mut materials: Vec<(String, Material)> = vec![(String::new(), VOID.clone())];
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
-            use std::fs;
+            use std::{any::Any, fs};
 
-            /*// This is for serializing particles with new fields and enums - testing purposes
+            /*// This is for serializing particles/components with new fields and enums - testing purposes
 
-            let option = VOID.clone();
-            let name = "Void".to_string();
-            let data = serde_json::to_string_pretty(&(name,option)).unwrap();
+            let mut number = 0b1111_0000_u8;
+            let mut option = String::new();
+            
+            for i in 0..u8::BITS {
+                option.push_str(&(number & 0b0000_0001_u8).to_string());
+                number = number >> 1;
+            }
+            let data = serde_json::to_string(&option).unwrap();
             println!("{:?}", data);
             fs::write("src/new.json", data).unwrap();*/
 
@@ -93,9 +98,29 @@ impl Default for EFrameApp {
         }
         #[cfg(target_os = "android")]
         {
+            let solid_materials = include_str!("materials/solid.json");
+            let mut serialized_materials: Vec<(String,Material)> =
+                serde_json::from_str(&solid_materials).unwrap();
+            materials.append(&mut serialized_materials);
+
             let powder_materials = include_str!("materials/powder.json");
-            let mut serialized_materials: Vec<Material> =
+            let mut serialized_materials: Vec<(String,Material)> =
                 serde_json::from_str(&powder_materials).unwrap();
+            materials.append(&mut serialized_materials);
+
+            let plasma_materials = include_str!("materials/plasma.json");
+            let mut serialized_materials: Vec<(String,Material)> =
+                serde_json::from_str(&plasma_materials).unwrap();
+            materials.append(&mut serialized_materials);
+
+            let liquid_materials = include_str!("materials/liquid.json");
+            let mut serialized_materials: Vec<(String,Material)> =
+                serde_json::from_str(&liquid_materials).unwrap();
+            materials.append(&mut serialized_materials);
+
+            let gas_materials = include_str!("materials/gas.json");
+            let mut serialized_materials: Vec<(String,Material)> =
+                serde_json::from_str(&gas_materials).unwrap();
             materials.append(&mut serialized_materials);
         }
         materials.sort_by_key(|material| material.1.id);
