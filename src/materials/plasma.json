@@ -1,13 +1,9 @@
-[
+[[
+    "Fire",
     {
-        "name": "Fire",
         "id": 7,
         "density": 0.657,
-        "phase": {
-            "Plasma": {
-                "energy": 70.0
-            }
-        },
+        "phase": "Plasma",
         "material_type": "Atmosphere",
         "durability": 50,
         "material_color": {
@@ -23,4 +19,4 @@
             ]
         }
     }
-]
+]]

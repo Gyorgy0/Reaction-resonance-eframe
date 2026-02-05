@@ -8,8 +8,7 @@ use crate::{physics::Phase, reactions::MaterialType, world::MaterialColor};
 #[rustfmt::skip]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub(crate) struct Material {
-    pub name: String,                       // Name of the material
-    pub id: usize,                            // ID of the material
+    pub id: usize,                          // ID of the material
     pub density: f32,                       // Mass of a cm^3 volume of the material
     pub phase: Phase,                       // Phase of the material for, the implemented phases check the "Phase" enum
     pub material_type: MaterialType,        // Type of the material for, the implemented types check the "Type" enum
@@ -22,7 +21,6 @@ pub fn tuple_to_rangeinclusive(range: (f32, f32)) -> RangeInclusive<f32> {
 }
 
 pub static VOID: Material = Material {
-    name: String::new(),
     id: 0,
     density: 0_f32,
     phase: Phase::Void,

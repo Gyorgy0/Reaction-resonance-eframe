@@ -1,3 +1,4 @@
+use crate::physics::Phase;
 use crate::{material::Material, world::*};
 use crate::{material::VOID, particle::Particle};
 use egui::{Key, Response, lerp, pos2, vec2};
@@ -5,7 +6,7 @@ use std::ops::{Not, RangeInclusive};
 
 pub fn handle_mouse_input(
     game_board: &mut Board,
-    materials: &Vec<Material>,
+    materials: &Vec<(String, Material)>,
     selected_material_id: usize,
     response: Response,
 ) {
@@ -30,19 +31,23 @@ pub fn handle_mouse_input(
                         || selected_material_id == VOID.id)
                 {
                     game_board.contents[cellpos] =
-                        Particle::new(&materials[material], vec2(0_f32, 0_f32), 293.15);
+                        Particle::new(&materials[material].1, vec2(0_f32, 0_f32), 293.15);
                     game_board.contents[cellpos].display_color = materials[selected_material_id]
+                        .1
                         .material_color
                         .color
                         .gamma_multiply(lerp(
                             RangeInclusive::new(
-                                materials[selected_material_id].material_color.shinyness.0,
-                                materials[selected_material_id].material_color.shinyness.1,
+                                materials[selected_material_id].1.material_color.shinyness.0,
+                                materials[selected_material_id].1.material_color.shinyness.1,
                             ),
                             game_board.rngs[cellpos],
                         ));
                     game_board.contents[cellpos].display_color[3] =
-                        materials[selected_material_id].material_color.color.a();
+                        materials[selected_material_id].1.material_color.color.a();
+                    if materials[selected_material_id].1.phase == Phase::Plasma {
+                        game_board.contents[cellpos].energy = 70_f32;
+                    }
                 }
             }
         }

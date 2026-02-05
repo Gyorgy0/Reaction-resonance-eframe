@@ -26,9 +26,9 @@ pub struct EFrameApp {
     #[serde(skip)]
     game_board: Board,
     #[serde(skip)]
-    materials: Vec<Material>,
+    materials: Vec<(String, Material)>,
     #[serde(skip)]
-    material_categories: Vec<Vec<Material>>,
+    material_categories: Vec<Vec<(String, Material)>>,
     #[serde(skip)]
     selected_material: usize,
     #[serde(skip)]
@@ -63,7 +63,7 @@ impl Default for EFrameApp {
             ColorImage::example(),
             TextureOptions::NEAREST,
         );
-        let mut materials: Vec<Material> = vec![VOID.clone()];
+        let mut materials: Vec<(String, Material)> = vec![(String::new(), VOID.clone())];
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
             use std::fs;
@@ -71,7 +71,8 @@ impl Default for EFrameApp {
             /*// This is for serializing particles with new fields and enums - testing purposes
 
             let option = VOID.clone();
-            let data = serde_json::to_string_pretty(&option).unwrap();
+            let name = "Void".to_string();
+            let data = serde_json::to_string_pretty(&(name,option)).unwrap();
             println!("{:?}", data);
             fs::write("src/new.json", data).unwrap();*/
 
@@ -79,7 +80,7 @@ impl Default for EFrameApp {
             for path in paths {
                 let materials_per_phase: Result<Vec<u8>, std::io::Error> =
                     fs::read(path.unwrap().path().display().to_string().as_str());
-                let mut serialized_materials: Vec<Material> =
+                let mut serialized_materials: Vec<(String, Material)> =
                     serde_json::from_slice(materials_per_phase.unwrap().as_slice()).unwrap();
                 materials.append(&mut serialized_materials);
             }
@@ -97,13 +98,12 @@ impl Default for EFrameApp {
                 serde_json::from_str(&powder_materials).unwrap();
             materials.append(&mut serialized_materials);
         }
-        materials.sort_by_key(|material| material.id);
-        materials[0].name = "Erase".to_string();
-        let mut material_categories: Vec<Vec<Material>> = vec![];
+        materials.sort_by_key(|material| material.1.id);
+        let mut material_categories: Vec<Vec<(String, Material)>> = vec![];
         for category in MaterialType::iter() {
-            let mut category_vec: Vec<Material> = vec![];
+            let mut category_vec: Vec<(String, Material)> = vec![];
             for material in materials.iter() {
-                if category == material.material_type {
+                if category == material.1.material_type {
                     category_vec.push(material.clone());
                 }
             }
@@ -252,17 +252,19 @@ impl eframe::App for EFrameApp {
                                 if ui
                                     .add(
                                         egui::Button::new(
-                                            RichText::new(material.name.clone())
+                                            RichText::new(material.0.clone())
                                                 .size(20_f32)
                                                 .color(Color32::WHITE)
                                                 .strong(),
                                         )
                                         .min_size(vec2(Default::default(), 35_f32))
-                                        .stroke(Stroke::new(1_f32, material.material_color.color)),
+                                        .stroke(
+                                            Stroke::new(1_f32, material.1.material_color.color),
+                                        ),
                                     )
                                     .clicked()
                                 {
-                                    self.selected_material = material.id;
+                                    self.selected_material = material.1.id;
                                 }
                             });
                     });

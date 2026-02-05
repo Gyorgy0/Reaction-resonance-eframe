@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 use crate::material::{Material, VOID};
 
 #[rustfmt::skip]
-#[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
 pub struct Particle {
     pub material_id: usize,             // ID of material
     pub speed: Vec2,                    // Vectors of the particle (x, y)
     pub temperature: f32,               // Temperature of the particle
-    pub storage: Vec<(f32,usize)>,      // Storage for the particles (used in Solution and Alloy material types)
     pub cloned_material: usize,         // Cloned material for the Cloner material type
+    pub energy: f32,                    // Energy for the Plasma phase
     pub updated: bool,                  // Is it updated?
     pub display_color: Color32,         // Displayed color
 }
@@ -20,8 +20,8 @@ impl Particle {
             material_id: material.id,
             speed,
             temperature,
-            storage: vec![],
             cloned_material: 0_usize,
+            energy: 0_f32,
             updated: false,
             display_color: material.material_color.color,
         }

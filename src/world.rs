@@ -72,7 +72,7 @@ impl Board {
 #[inline(always)]
 pub fn update_board(
     game_board: &mut Board,
-    materials: &Vec<Material>,
+    materials: &Vec<(String, Material)>,
     is_stopped: bool,
     framecount: &mut u64,
     framedelta: f32,

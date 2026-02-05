@@ -1,74 +1,80 @@
 [
-    {
-        "name": "Wood",
-        "id": 1,
-        "density": 2.0,
-        "phase": {
-            "Solid": {
-                "melting_point": -1.0
+    [
+        "Wood",
+        {
+            "id": 1,
+            "density": 2.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": "Fuel",
+            "durability": 40,
+            "material_color": {
+                "color": [
+                    112,
+                    86,
+                    75,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.0
+                ]
             }
-        },
-        "material_type": "Fuel",
-        "durability": 40,
-        "material_color": {
-            "color": [
-                112,
-                86,
-                75,
-                255
-            ],
-            "shinyness": [
-                0.8,
-                1.0
-            ]
         }
-    },
-    {
-        "name": "Cloner",
-        "id": 2,
-        "density": 0.0,
-        "phase": {
-            "Solid": {
-                "melting_point": -1.0
+    ],
+    [
+        "Cloner",
+        {
+            "id": 2,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": "Cloner",
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    83,
+                    104,
+                    120,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
             }
-        },
-        "material_type": "Cloner",
-        "durability": -1,
-        "material_color": {
-            "color": [
-                83,
-                104,
-                120,
-                255
-            ],
-            "shinyness": [
-                0.99,
-                1.0
-            ]
         }
-    },
-    {
-        "name": "Sink",
-        "id": 3,
-        "density": 0.0,
-        "phase": {
-            "Solid": {
-                "melting_point": -1.0
+    ],
+    [
+        "Sink",
+        {
+            "id": 3,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": "Sink",
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    83,
+                    104,
+                    120,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
             }
-        },
-        "material_type": "Sink",
-        "durability": -1,
-        "material_color": {
-            "color": [
-                83,
-                104,
-                120,
-                255
-            ],
-            "shinyness": [
-                0.99,
-                1.0
-            ]
         }
-    }
+    ]
 ]
