@@ -181,11 +181,23 @@ impl eframe::App for EFrameApp {
         // Passed values of http requests
         {
             if !self.response_text.lock().unwrap().is_empty() {
-                let mut materials_response: Vec<Material> =
+                let mut materials_response: Vec<(String, Material)> =
                     serde_json::from_str(&self.response_text.lock().unwrap().pop().unwrap())
                         .unwrap();
                 self.materials.append(&mut materials_response);
-                self.selected_material = self.materials.last().unwrap().clone();
+                self.materials.sort_by_key(|material| material.1.id);
+                let mut material_categories: Vec<Vec<(String, Material)>> = vec![];
+                for category in MaterialType::iter() {
+                    let mut category_vec: Vec<(String, Material)> = vec![];
+                    for material in self.materials.iter() {
+                        if discriminant(&category) == discriminant(&material.1.material_type) {
+                            category_vec.push(material.clone());
+                        }
+                    }
+                    material_categories.push(category_vec);
+                }
+                let selected_material = 0_usize;
+                let selected_category = MaterialType::Fuel;
             }
         }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
@@ -274,22 +286,24 @@ impl eframe::App for EFrameApp {
                         self.material_categories[self.selected_category.discriminant() as usize]
                             .iter()
                             .for_each(|material| {
-                                if ui
-                                    .add(
-                                        egui::Button::new(
-                                            RichText::new(material.0.clone())
-                                                .size(20_f32)
-                                                .color(Color32::WHITE)
-                                                .strong(),
+                                if material.1.id != 0_usize {
+                                    if ui
+                                        .add(
+                                            egui::Button::new(
+                                                RichText::new(material.0.clone())
+                                                    .size(20_f32)
+                                                    .color(Color32::WHITE)
+                                                    .strong(),
+                                            )
+                                            .min_size(vec2(Default::default(), 35_f32))
+                                            .stroke(
+                                                Stroke::new(1_f32, material.1.material_color.color),
+                                            ),
                                         )
-                                        .min_size(vec2(Default::default(), 35_f32))
-                                        .stroke(
-                                            Stroke::new(1_f32, material.1.material_color.color),
-                                        ),
-                                    )
-                                    .clicked()
-                                {
-                                    self.selected_material = material.1.id;
+                                        .clicked()
+                                    {
+                                        self.selected_material = material.1.id;
+                                    }
                                 }
                             });
                     });
@@ -306,6 +320,9 @@ impl eframe::App for EFrameApp {
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
                             ui.vertical(|ui| {
+                                if ui.add(egui::Button::new(RichText::new("Erase"))).clicked() {
+                                    self.selected_material = 0_usize;
+                                }
                                 MaterialType::iter().for_each(|category| {
                                     if ui
                                         .add(egui::Button::new(RichText::new(format!(
