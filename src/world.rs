@@ -87,7 +87,6 @@ pub fn update_board(
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        let prev_board: Grid<Particle> = game_board.contents.clone();
         let sync_board: Grid<AtomicBool> =
             Grid::new(game_board.height as usize, game_board.width as usize);
         (0..row_count * col_count).for_each(|count| {
@@ -95,7 +94,13 @@ pub fn update_board(
             let j = (count % col_count) as usize;
 
             game_board.solve_particle(&sync_board, materials, i, j, framedelta);
-            game_board.solve_reactions(&prev_board, materials, i, j, framedelta, *framecount);
+            game_board.solve_reactions(materials, i, j, framedelta, *framecount);
+        });
+        let prev_board: Grid<Particle> = game_board.contents.clone();
+        (0..row_count * col_count).for_each(|count| {
+            let i = (count / col_count) as usize;
+            let j = (count % col_count) as usize;
+            game_board.solve_cells(&prev_board, materials, i, j);
         });
     }
 }

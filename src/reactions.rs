@@ -6,8 +6,9 @@ use egui::epaint::Hsva;
 use egui::lerp;
 use grid::Grid;
 use serde::{Deserialize, Serialize};
+use std::clone;
 use std::mem::discriminant;
-use std::ops::RangeInclusive;
+use std::ops::{Add, RangeInclusive};
 use strum_macros::EnumIter;
 
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
@@ -16,9 +17,8 @@ use strum_macros::EnumIter;
 pub(crate) enum MaterialType {
     Acid,       // Corrosive material - everything with a pH value lower than 7.0
     Alloy,      // Mixture of metals
-    Atmosphere, // Mixture of materials that are always present in the simulation
     Base,       // Corrosive material - everything with a pH value higher than 7.0
-    CAutomata {neighbordhood: u8, birth: u8, survival:u8, stages: u8},  // Cellular automaton material defined by 4 rules (birth, survival, neighborhood and life stages)
+    CAutomata {survival: u8, birth:u8, stages: u8},  // Cellular automaton material defined by 4 rules (birth, survival, neighborhood and life stages)
     Ceramic,    // Hard, brittle, heat-resistant, and corrosion-resistant material
     Cloner,     // Material that clones the last new material it came in contact with
     Explosive,  // A material that generates a lot of energy and lot of gases
@@ -38,15 +38,36 @@ impl MaterialType {
 }
 
 impl MaterialType {
-    pub fn get_neighborhood() {}
-    pub fn get_birth() {}
-    pub fn get_survival() {}
+    pub fn get_birth(&self) -> u8 {
+        let mut returnval: u8 = 0_u8;
+        if let MaterialType::CAutomata {
+            birth,
+            survival: _,
+            stages: _,
+        } = self
+        {
+            returnval = *birth;
+        };
+        returnval
+    }
+
+    pub fn get_survival(&self) -> u8 {
+        let mut returnval: u8 = 0_u8;
+        if let MaterialType::CAutomata {
+            birth: _,
+            survival,
+            stages: _,
+        } = self
+        {
+            returnval = *survival;
+        };
+        returnval
+    }
 }
 impl Board {
     #[inline(always)]
     pub(crate) fn solve_reactions(
         &mut self,
-        prev_board: &Grid<Particle>,
         materials: &Vec<(String, Material)>,
         i: usize,
         j: usize,
@@ -70,15 +91,15 @@ impl Board {
                 {
                     self.contents[(i, j)] = self.contents[(i, j.wrapping_add(1))].clone();
                     self.contents[(i, j)].material_id = 7_usize;
-                    self.contents[(i, j)].energy = 70_f32;
+                    self.contents[(i, j)].energy = 20_f32;
                     self.contents[(i, j)].display_color = materials
-                        [self.contents[(i, j.wrapping_add(1))].material_id]
+                        [self.contents[(i, j)].material_id]
                         .1
                         .material_color
                         .color
                         .gamma_multiply(lerp(
                             tuple_to_rangeinclusive(
-                                materials[self.contents[(i, j.wrapping_add(1))].material_id]
+                                materials[self.contents[(i, j)].material_id]
                                     .1
                                     .material_color
                                     .shinyness,
@@ -103,17 +124,16 @@ impl Board {
                     && self.contents.get(i, j.saturating_sub(1)).is_some()
                     && rnd == 1
                 {
-                    self.contents[(i, j)] = self.contents[(i, j.saturating_sub(1))].clone();
                     self.contents[(i, j)].material_id = 7_usize;
-                    self.contents[(i, j)].energy = 70_f32;
+                    self.contents[(i, j)].energy = 20_f32;
                     self.contents[(i, j)].display_color = materials
-                        [self.contents[(i, j.saturating_sub(1))].material_id]
+                        [self.contents[(i, j)].material_id]
                         .1
                         .material_color
                         .color
                         .gamma_multiply(lerp(
                             tuple_to_rangeinclusive(
-                                materials[self.contents[(i, j.saturating_sub(1))].material_id]
+                                materials[self.contents[(i, j)].material_id]
                                     .1
                                     .material_color
                                     .shinyness,
@@ -121,7 +141,7 @@ impl Board {
                             self.rngs[(i, j)],
                         ));
                     self.contents[(i, j)].display_color[3] = materials
-                        [self.contents[(i, j.saturating_sub(1))].material_id]
+                        [self.contents[(i, j)].material_id]
                         .1
                         .material_color
                         .color
@@ -137,17 +157,16 @@ impl Board {
                 ) == std::mem::discriminant(&(Phase::Plasma))
                     && rnd == 2
                 {
-                    self.contents[(i, j)] = self.contents[(i.wrapping_add(1), j)].clone();
                     self.contents[(i, j)].material_id = 7_usize;
-                    self.contents[(i, j)].energy = 70_f32;
+                    self.contents[(i, j)].energy = 20_f32;
                     self.contents[(i, j)].display_color = materials
-                        [self.contents[(i.wrapping_add(1), j)].material_id]
+                        [self.contents[(i, j)].material_id]
                         .1
                         .material_color
                         .color
                         .gamma_multiply(lerp(
                             tuple_to_rangeinclusive(
-                                materials[self.contents[(i.wrapping_add(1), j)].material_id]
+                                materials[self.contents[(i, j)].material_id]
                                     .1
                                     .material_color
                                     .shinyness,
@@ -155,7 +174,7 @@ impl Board {
                             self.rngs[(i, j)],
                         ));
                     self.contents[(i, j)].display_color[3] = materials
-                        [self.contents[(i.wrapping_add(1), j)].material_id]
+                        [self.contents[(i, j)].material_id]
                         .1
                         .material_color
                         .color
@@ -171,17 +190,16 @@ impl Board {
                 ) == std::mem::discriminant(&(Phase::Plasma))
                     && rnd == 3
                 {
-                    self.contents[(i, j)] = self.contents[(i.saturating_sub(1), j)].clone();
                     self.contents[(i, j)].material_id = 7_usize;
-                    self.contents[(i, j)].energy = 70_f32;
+                    self.contents[(i, j)].energy = 20_f32;
                     self.contents[(i, j)].display_color = materials
-                        [self.contents[(i.saturating_sub(1), j)].material_id]
+                        [self.contents[(i, j)].material_id]
                         .1
                         .material_color
                         .color
                         .gamma_multiply(lerp(
                             tuple_to_rangeinclusive(
-                                materials[self.contents[(i.saturating_sub(1), j)].material_id]
+                                materials[self.contents[(i, j)].material_id]
                                     .1
                                     .material_color
                                     .shinyness,
@@ -189,7 +207,7 @@ impl Board {
                             self.rngs[(i, j)],
                         ));
                     self.contents[(i, j)].display_color[3] = materials
-                        [self.contents[(i.saturating_sub(1), j)].material_id]
+                        [self.contents[(i, j)].material_id]
                         .1
                         .material_color
                         .color

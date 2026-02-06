@@ -40,11 +40,11 @@ winit = { version = "0.30.12", features = ["android-native-activity"] }
 
 # FOR APKS - dev profile builds an apk
 [profile.dev]
-#debug = true
-strip = true
-opt-level = "s"
-lto = true
-codegen-units = 1
+debug = true
+#strip = true
+#opt-level = "s"
+#lto = true
+#codegen-units = 1
 
 [profile.release]
 opt-level = 's'
@@ -52,8 +52,20 @@ opt-level = 's'
 codegen-units = 1
 
 [package.metadata.android]
-build_targets = ["armv7-linux-androideabi", "aarch64-linux-android"]
+build_targets = [ "armv7-linux-androideabi", "aarch64-linux-android", "i686-linux-android", "x86_64-linux-android" ]
+label = "Reaction resonance"
 
 [package.metadata.android.sdk]
 min_sdk_version = 23
 target_sdk_version = 35
+
+[package.metadata.android.application]
+theme = "@android:style/Theme.NoTitleBar.Fullscreen"
+label = "Reaction resonance"
+supportsRtl="true"
+
+[package.metadata.android.application.activity]
+config_changes="orientation|screenSize"
+#orientation = "landscape"
+exported = true
+immersive = true

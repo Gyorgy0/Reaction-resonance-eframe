@@ -72,7 +72,7 @@ impl Default for EFrameApp {
 
             let mut number = 0b1111_0000_u8;
             let mut option = String::new();
-            
+
             for i in 0..u8::BITS {
                 option.push_str(&(number & 0b0000_0001_u8).to_string());
                 number = number >> 1;
@@ -99,27 +99,27 @@ impl Default for EFrameApp {
         #[cfg(target_os = "android")]
         {
             let solid_materials = include_str!("materials/solid.json");
-            let mut serialized_materials: Vec<(String,Material)> =
+            let mut serialized_materials: Vec<(String, Material)> =
                 serde_json::from_str(&solid_materials).unwrap();
             materials.append(&mut serialized_materials);
 
             let powder_materials = include_str!("materials/powder.json");
-            let mut serialized_materials: Vec<(String,Material)> =
+            let mut serialized_materials: Vec<(String, Material)> =
                 serde_json::from_str(&powder_materials).unwrap();
             materials.append(&mut serialized_materials);
 
             let plasma_materials = include_str!("materials/plasma.json");
-            let mut serialized_materials: Vec<(String,Material)> =
+            let mut serialized_materials: Vec<(String, Material)> =
                 serde_json::from_str(&plasma_materials).unwrap();
             materials.append(&mut serialized_materials);
 
             let liquid_materials = include_str!("materials/liquid.json");
-            let mut serialized_materials: Vec<(String,Material)> =
+            let mut serialized_materials: Vec<(String, Material)> =
                 serde_json::from_str(&liquid_materials).unwrap();
             materials.append(&mut serialized_materials);
 
             let gas_materials = include_str!("materials/gas.json");
-            let mut serialized_materials: Vec<(String,Material)> =
+            let mut serialized_materials: Vec<(String, Material)> =
                 serde_json::from_str(&gas_materials).unwrap();
             materials.append(&mut serialized_materials);
         }
@@ -128,7 +128,7 @@ impl Default for EFrameApp {
         for category in MaterialType::iter() {
             let mut category_vec: Vec<(String, Material)> = vec![];
             for material in materials.iter() {
-                if category == material.1.material_type {
+                if discriminant(&category) == discriminant(&material.1.material_type) {
                     category_vec.push(material.clone());
                 }
             }

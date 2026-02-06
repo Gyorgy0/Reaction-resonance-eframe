@@ -31,11 +31,9 @@ impl fmt::Display for MaterialType {
         match *self {
             MaterialType::Acid => write!(f, "Acid"),
             MaterialType::Alloy => write!(f, "Alloy"),
-            MaterialType::Atmosphere => write!(f, "Atmosphere"),
             MaterialType::Base => write!(f, "Base"),
             MaterialType::Ceramic => write!(f, "Ceramic"),
             MaterialType::CAutomata {
-                neighbordhood: _,
                 birth: _,
                 survival: _,
                 stages: _,

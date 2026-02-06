@@ -76,5 +76,133 @@
                 ]
             }
         }
+    ],
+    [
+        "Game of Life",
+        {
+            "id": 12,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 96,
+                    "birth": 32,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    57,
+                    255,
+                    7,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "Maze",
+        {
+            "id": 13,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 248,
+                    "birth": 32,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    87,
+                    255,
+                    7,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "Walled cities",
+        {
+            "id": 14,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 120,
+                    "birth": 31,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    5,
+                    10,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "Diamoeba",
+        {
+            "id": 15,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 15,
+                    "birth": 42,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    120,
+                    12,
+                    128,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
     ]
 ]

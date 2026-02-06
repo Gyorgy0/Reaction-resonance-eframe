@@ -24,7 +24,7 @@ pub static VOID: Material = Material {
     id: 0,
     density: 0_f32,
     phase: Phase::Void,
-    material_type: MaterialType::Atmosphere,
+    material_type: MaterialType::Solution,
     durability: -1,
     material_color: MaterialColor {
         color: Color32::from_rgba_premultiplied(0, 0, 0, 100),
