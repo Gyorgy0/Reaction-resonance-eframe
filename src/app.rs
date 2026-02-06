@@ -196,8 +196,9 @@ impl eframe::App for EFrameApp {
                     }
                     material_categories.push(category_vec);
                 }
-                let selected_material = 0_usize;
-                let selected_category = MaterialType::Fuel;
+                self.material_categories = material_categories;
+                self.selected_material = 0_usize;
+                self.selected_category = MaterialType::Fuel;
             }
         }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {

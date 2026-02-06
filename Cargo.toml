@@ -41,10 +41,10 @@ winit = { version = "0.30.12", features = ["android-native-activity"] }
 # FOR APKS - dev profile builds an apk
 [profile.dev]
 debug = true
-#strip = true
-#opt-level = "s"
-#lto = true
-#codegen-units = 1
+strip = true
+opt-level = "s"
+lto = true
+codegen-units = 1
 
 [profile.release]
 opt-level = 's'
