@@ -1,14 +1,10 @@
 use crate::material::{Material, VOID, tuple_to_rangeinclusive};
+use crate::physics::Phase;
 use crate::world::Board;
-use crate::{particle::Particle, physics::Phase};
 use egui::Color32;
 use egui::epaint::Hsva;
 use egui::lerp;
-use grid::Grid;
 use serde::{Deserialize, Serialize};
-use std::clone;
-use std::mem::discriminant;
-use std::ops::{Add, RangeInclusive};
 use strum_macros::EnumIter;
 
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
@@ -71,7 +67,7 @@ impl Board {
         materials: &Vec<(String, Material)>,
         i: usize,
         j: usize,
-        framedelta: f32,
+        _framedelta: f32,
         framecount: u64,
     ) {
         match &materials[self.contents[(i, j)].material_id].1.material_type {
@@ -89,7 +85,7 @@ impl Board {
                     && self.contents.get(i, j.wrapping_add(1)).is_some()
                     && rnd == 0_u8
                 {
-                    self.contents[(i, j)] = self.contents[(i, j.wrapping_add(1))].clone();
+                    self.contents[(i, j)] = self.contents[(i, j.wrapping_add(1))];
                     self.contents[(i, j)].material_id = 7_usize;
                     self.contents[(i, j)].energy = 20_f32;
                     self.contents[(i, j)].display_color = materials

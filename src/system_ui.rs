@@ -53,7 +53,6 @@ impl fmt::Display for MaterialType {
 
 impl Board {
     pub fn draw_board(&mut self) -> Vec<Color32> {
-        let f: Vec<Color32> = self.contents.iter().map(|px| px.display_color).collect();
-        f
+        self.contents.iter().map(|px| px.display_color).collect()
     }
 }

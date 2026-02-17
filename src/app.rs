@@ -1,13 +1,9 @@
-use std::{
-    clone,
-    mem::{Discriminant, discriminant},
-    u8,
-};
+use std::{mem::discriminant, u8};
 
 use crate::{
     egui_input::{handle_key_inputs, handle_mouse_input},
     material::{Material, VOID},
-    reactions::{MaterialType, MaterialTypeIter},
+    reactions::MaterialType,
     world::{Board, update_board},
 };
 use egui::{
@@ -66,7 +62,7 @@ impl Default for EFrameApp {
         let mut materials: Vec<(String, Material)> = vec![(String::new(), VOID.clone())];
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         {
-            use std::{any::Any, fs};
+            use std::fs;
 
             /*// This is for serializing particles/components with new fields and enums - testing purposes
 
@@ -287,8 +283,8 @@ impl eframe::App for EFrameApp {
                         self.material_categories[self.selected_category.discriminant() as usize]
                             .iter()
                             .for_each(|material| {
-                                if material.1.id != 0_usize {
-                                    if ui
+                                if material.1.id != 0_usize
+                                    && ui
                                         .add(
                                             egui::Button::new(
                                                 RichText::new(material.0.clone())
@@ -302,9 +298,8 @@ impl eframe::App for EFrameApp {
                                             ),
                                         )
                                         .clicked()
-                                    {
-                                        self.selected_material = material.1.id;
-                                    }
+                                {
+                                    self.selected_material = material.1.id;
                                 }
                             });
                     });

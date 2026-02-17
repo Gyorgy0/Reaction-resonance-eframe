@@ -4,10 +4,7 @@ use crate::{
 };
 use grid::Grid;
 use serde::{Deserialize, Serialize};
-use std::{
-    mem::{Discriminant, discriminant},
-    sync::atomic::AtomicBool,
-};
+use std::{mem::discriminant, sync::atomic::AtomicBool};
 
 #[rustfmt::skip]
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
@@ -51,20 +48,20 @@ impl Board {
     #[inline(always)]
     pub(crate) fn solve_particle(
         &mut self,
-        prev_board: &Grid<AtomicBool>,
+        _prev_board: &Grid<AtomicBool>,
         materials: &Vec<(String, Material)>,
         i: usize,
         j: usize,
         framedelta: f32,
     ) {
-        match &materials[self.contents[(i, j)].material_id].1.phase {
-            &Phase::Void => {}
+        match materials[self.contents[(i, j)].material_id].1.phase {
+            Phase::Void => {}
 
-            &Phase::Solid { melting_point: _ } => {}
+            Phase::Solid { melting_point: _ } => {}
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // POWDER PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            &Phase::Powder {
+            Phase::Powder {
                 coarseness: _,
                 melting_point: _,
             } => {
@@ -274,10 +271,12 @@ impl Board {
                 // This marks that the particle's position has been calculated
                 self.contents[(i, j)].updated = true;
             }
+            //_ => {}
+
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // LIQUID PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            &Phase::Liquid {
+            Phase::Liquid {
                 viscosity: _,
                 melting_point: _,
                 boiling_point: _,
@@ -473,7 +472,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // GAS PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            &Phase::Gas { boiling_point: _ } => {
+            Phase::Gas { boiling_point: _ } => {
                 // Rng determines which side should the particle fall
                 let mut orientation: i32 = 0;
                 // This calculates the position on the Y axis
@@ -640,7 +639,7 @@ impl Board {
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // PLASMA PHYSICS
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            &Phase::Plasma => {
+            Phase::Plasma => {
                 let cellenergy = self.contents[(i, j)].energy;
                 if cellenergy > 1_f32 {
                     self.contents[(i, j)].material_id = 7_usize;

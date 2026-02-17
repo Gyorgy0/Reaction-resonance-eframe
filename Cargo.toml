@@ -9,6 +9,7 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 android_logger = "0.15.1"
+crossbeam = "0.8.4"
 eframe = { version = "0.33.3", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
 egui = { version = "0.33.3", features = ["serde"] }
 ehttp = "0.6.0"
@@ -18,7 +19,7 @@ grid = { version = "1.0.0", features = ["serde"] }
 log = "0.4.25"
 quadtree = "0.5.0"
 rand = "0.9.2"
-rand_core = "0.9.3"
+rand_core = "0.10.0"
 rayon = "1.10.0"
 serde = { version = "1.0.225", features = ["derive"] }
 serde_json = "1.0.145"
@@ -43,7 +44,7 @@ winit = { version = "0.30.12", features = ["android-native-activity"] }
 debug = true
 strip = true
 opt-level = "s"
-lto = true
+#lto = true
 codegen-units = 1
 
 [profile.release]

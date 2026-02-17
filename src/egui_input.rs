@@ -54,7 +54,6 @@ pub fn handle_mouse_input(
     } else if response.dragged_by(egui::PointerButton::Secondary)
         || response.clicked_by(egui::PointerButton::Secondary)
     {
-        let material = VOID.clone();
         for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
             for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);

@@ -1,1 +1,1 @@
-cargo apk build $1
+cargo apk build $1 --lib
