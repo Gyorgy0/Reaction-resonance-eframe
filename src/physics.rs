@@ -48,13 +48,12 @@ impl Board {
     #[inline(always)]
     pub(crate) fn solve_particle(
         &mut self,
-        _prev_board: &Grid<AtomicBool>,
         materials: &Vec<(String, Material)>,
         i: usize,
         j: usize,
         framedelta: f32,
     ) {
-        match materials[self.contents[(i, j)].material_id].1.phase {
+        match &materials[self.contents[(i, j)].material_id].1.phase {
             Phase::Void => {}
 
             Phase::Solid { melting_point: _ } => {}

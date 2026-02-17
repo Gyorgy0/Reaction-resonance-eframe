@@ -3,6 +3,7 @@ use std::sync::atomic::AtomicBool;
 use crate::life::solve_cells;
 use crate::material::Material;
 use crate::particle::Particle;
+use crate::reactions::solve_reactions;
 use egui::Color32;
 use egui::Vec2;
 use grid::Grid;
@@ -89,16 +90,26 @@ pub fn update_board(
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        let sync_board: Grid<AtomicBool> =
-            Grid::new(game_board.height as usize, game_board.width as usize);
-        let prev_board: Board = game_board.clone();
         (0..row_count * col_count).for_each(|count| {
             let i = (count / col_count) as usize;
             let j = (count % col_count) as usize;
-            game_board.solve_particle(&sync_board, materials, i, j, framedelta);
-            game_board.solve_reactions(materials, i, j, framedelta, *framecount);
+            game_board.solve_particle(materials, i, j, framedelta);
         });
-        let temp: Vec<Particle> = game_board
+        let prev_board: &mut Board = &mut game_board.clone();
+        let temp1: Vec<Particle> = game_board
+            .contents
+            .flatten()
+            .to_vec()
+            .into_par_iter()
+            .enumerate()
+            .map(|particle| {
+                let i = particle.0 / col_count as usize;
+                let j = particle.0 % col_count as usize;
+                solve_reactions(&prev_board, materials, i, j, framedelta, *framecount)
+            })
+            .collect();
+        game_board.contents = Grid::from_vec(temp1, col_count as usize);
+        let temp2: Vec<Particle> = game_board
             .contents
             .flatten()
             .to_vec()
@@ -110,6 +121,6 @@ pub fn update_board(
                 solve_cells(&prev_board, materials, i, j)
             })
             .collect();
-        game_board.contents = Grid::from_vec(temp, col_count as usize);
+        game_board.contents = Grid::from_vec(temp2, col_count as usize);
     }
 }

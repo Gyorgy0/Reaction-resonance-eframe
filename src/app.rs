@@ -10,7 +10,7 @@ use egui::{
     Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureHandle,
     TextureOptions, Theme, Vec2, load, pos2, util::hash, vec2,
 };
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
 use strum::IntoEnumIterator;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -42,9 +42,9 @@ pub struct EFrameApp {
 impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
-            rng: rand::rngs::SmallRng::from_os_rng(),
-            width: 512,
-            height: 256,
+            rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
+            width: 1024,
+            height: 512,
             contents: grid::Grid::from_vec(vec![], 0),
             gravity: 9.81,
             brushsize: 10,
@@ -142,7 +142,7 @@ impl Default for EFrameApp {
             selected_category,
             is_stopped: false,
             framecount: 0,
-            rng: rand::rngs::SmallRng::from_os_rng(),
+            rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
             response_text: response_text.clone(),
         }
     }

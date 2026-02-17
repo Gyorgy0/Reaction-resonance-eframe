@@ -23,7 +23,7 @@ pub(crate) fn solve_cells(
         (i, j.saturating_sub(1)),
     ];
     let mut automatons: Vec<usize> = vec![];
-    let mut new_particle = Particle::default();
+    let mut new_particle = prev_board.contents[(i, j)];
 
     (0_usize..8_usize).for_each(|pos: usize| {
         if discriminant(
