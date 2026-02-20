@@ -43,8 +43,8 @@ impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 1024,
-            height: 512,
+            width: 512,
+            height: 256,
             contents: grid::Grid::from_vec(vec![], 0),
             gravity: 9.81,
             brushsize: 10,

@@ -1,5 +1,6 @@
 use crate::{
     material::{Material, VOID},
+    reactions::MaterialType,
     world::Board,
 };
 use grid::Grid;

@@ -1,8 +1,9 @@
 mod app;
 mod egui_input;
 mod http_request;
-mod life;
+mod life_reactions;
 mod material;
+mod neighbour_reactions;
 mod particle;
 mod physics;
 mod reactions;

@@ -1,16 +1,18 @@
 use std::sync::atomic::AtomicBool;
 
-use crate::life::solve_cells;
+use crate::life_reactions::solve_cells;
 use crate::material::Material;
 use crate::particle::Particle;
 use crate::reactions::solve_reactions;
 use egui::Color32;
 use egui::Vec2;
 use grid::Grid;
+use grid::grid;
 use rand::distr::Distribution;
 use rand::distr::Uniform;
 use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
+use rayon::iter::IntoParallelRefMutIterator;
 use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use serde::Serialize;
@@ -95,32 +97,24 @@ pub fn update_board(
             let j = (count % col_count) as usize;
             game_board.solve_particle(materials, i, j, framedelta);
         });
-        let prev_board: &mut Board = &mut game_board.clone();
-        let temp1: Vec<Particle> = game_board
-            .contents
-            .flatten()
-            .to_vec()
+        let prev_board: Grid<Particle> = game_board.contents.clone();
+        let new_board: Vec<Particle> = (0..row_count * col_count)
             .into_par_iter()
             .enumerate()
             .map(|particle| {
                 let i = particle.0 / col_count as usize;
                 let j = particle.0 % col_count as usize;
-                solve_reactions(&prev_board, materials, i, j, framedelta, *framecount)
+                solve_reactions(
+                    &prev_board,
+                    &game_board.rngs,
+                    materials,
+                    i,
+                    j,
+                    framedelta,
+                    *framecount,
+                )
             })
             .collect();
-        game_board.contents = Grid::from_vec(temp1, col_count as usize);
-        let temp2: Vec<Particle> = game_board
-            .contents
-            .flatten()
-            .to_vec()
-            .into_par_iter()
-            .enumerate()
-            .map(|particle| {
-                let i = particle.0 / col_count as usize;
-                let j = particle.0 % col_count as usize;
-                solve_cells(&prev_board, materials, i, j)
-            })
-            .collect();
-        game_board.contents = Grid::from_vec(temp2, col_count as usize);
+        game_board.contents = Grid::from_vec(new_board, col_count as usize);
     }
 }

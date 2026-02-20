@@ -1,7 +1,10 @@
 use egui::{Color32, Vec2};
 use serde::{Deserialize, Serialize};
 
-use crate::material::{Material, VOID};
+use crate::{
+    material::{Material, VOID},
+    reactions::MaterialType,
+};
 
 #[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
@@ -10,6 +13,7 @@ pub struct Particle {
     pub speed: Vec2,                    // Vectors of the particle (x, y)
     pub temperature: f32,               // Temperature of the particle
     pub cloned_material: usize,         // Cloned material for the Cloner material type
+    pub life_stage: u8,                 // Life stage of the simulated cell (cellular automatons)
     pub energy: f32,                    // Energy for the Plasma phase
     pub updated: bool,                  // Is it updated?
     pub display_color: Color32,         // Displayed color
@@ -21,6 +25,7 @@ impl Particle {
             speed,
             temperature,
             cloned_material: 0_usize,
+            life_stage: 0_u8,
             energy: 0_f32,
             updated: false,
             display_color: material.material_color.color,
