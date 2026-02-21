@@ -12,10 +12,14 @@ android_logger = "0.15.1"
 crossbeam = "0.8.4"
 eframe = { version = "0.33.3", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
 egui = { version = "0.33.3", features = ["serde"] }
+egui_extras = { version = "0.33.3", features = ["all_loaders", "svg"] }
 ehttp = "0.6.0"
 env_logger = "0.11.6"
+exr = "1.74.0"
 getrandom = { version = "0.4.1", features = ["wasm_js"] }
+gif = "0.14.1"
 grid = { version = "1.0.0", features = ["serde"] }
+image = "0.25.9"
 log = "0.4.25"
 quadtree = "0.5.0"
 rand = "0.10.0"
@@ -26,8 +30,8 @@ serde_json = "1.0.145"
 strum = { version = "0.27.2", features = ["strum_macros"] }
 strum_macros = "0.27.2"
 tokio = { version = "1.47.0", features = ["sync"] }
-wasm-bindgen = "0.2.103"
-wasm-bindgen-futures = "0.4.51"
+wasm-bindgen = "0.2.109"
+wasm-bindgen-futures = "0.4.59"
 web-sys = { version = "0.3.77", features = ["Element", "Document", "Window", "OrientationLockType", "Screen", "ScreenOrientation", "RequestInit", "Request", "Headers", "ReferrerPolicy"] }
 wide = "1.1.1"
 winit = { version = "0.30.12", features = ["android-native-activity"] }

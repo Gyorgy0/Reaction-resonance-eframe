@@ -156,6 +156,7 @@ impl EFrameApp {
 
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
+        egui_extras::install_image_loaders(&cc.egui_ctx);
         cc.egui_ctx.set_theme(Theme::Dark);
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
