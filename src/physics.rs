@@ -1,11 +1,9 @@
 use crate::{
     material::{Material, VOID},
-    reactions::MaterialType,
     world::Board,
 };
-use grid::Grid;
 use serde::{Deserialize, Serialize};
-use std::{mem::discriminant, sync::atomic::AtomicBool};
+use std::mem::discriminant;
 
 #[rustfmt::skip]
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]

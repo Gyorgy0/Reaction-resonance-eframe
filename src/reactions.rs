@@ -1,9 +1,7 @@
-use crate::life_reactions::solve_cells;
 use crate::material::{Material, VOID, tuple_to_rangeinclusive};
 use crate::neighbour_reactions::solve_by_neighbours;
 use crate::particle::Particle;
 use crate::physics::Phase;
-use crate::world::Board;
 use egui::Color32;
 use egui::epaint::Hsva;
 use egui::lerp;

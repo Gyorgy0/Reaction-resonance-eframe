@@ -1,16 +1,17 @@
 use std::{mem::discriminant, u8};
 
 use crate::{
-    egui_input::{handle_key_inputs, handle_mouse_input},
+    egui_input::{BrushShape, handle_key_inputs, handle_mouse_input},
     material::{Material, VOID},
     reactions::MaterialType,
+    system_ui::draw_brush_outlines,
     world::{Board, update_board},
 };
 use egui::{
-    Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureHandle,
-    TextureOptions, Theme, Vec2, load, pos2, util::hash, vec2,
+    Color32, ColorImage, Id, Image, RichText, Sense, Stroke, TextureHandle, TextureOptions, Theme,
+    Vec2, load, vec2,
 };
-use rand::{Rng, SeedableRng};
+use rand::SeedableRng;
 use strum::IntoEnumIterator;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -43,14 +44,15 @@ impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 512,
-            height: 256,
-            contents: grid::Grid::from_vec(vec![], 0),
-            gravity: 9.81,
-            brushsize: 10,
+            width: 512_u16,
+            height: 256_u16,
+            contents: grid::Grid::from_vec(vec![], 0_usize),
+            gravity: 9.81_f32,
+            brush_size: vec2(10_f32, 10_f32),
+            brush_shape: BrushShape::Ellipse,
             cellsize: Vec2::new(2_f32, 2_f32),
-            rngs: grid::Grid::from_vec(vec![], 0),
-            seeds: grid::Grid::from_vec(vec![], 0),
+            rngs: grid::Grid::from_vec(vec![], 0_usize),
+            seeds: grid::Grid::from_vec(vec![], 0_usize),
         };
         game_board.create_board();
         let ctx = egui::Context::default();
@@ -249,18 +251,18 @@ impl eframe::App for EFrameApp {
                 }
                 ui.horizontal(|ui| {
                     if ui.button(RichText::new("<").size(20_f32)).clicked()
-                        && self.game_board.brushsize > 0
+                        && self.game_board.brush_size.x > 0_f32
                     {
-                        self.game_board.brushsize -= 2;
+                        self.game_board.brush_size -= vec2(2_f32, 2_f32);
                     }
                     ui.label(
-                        RichText::new(format!("Brush size: {:03}", self.game_board.brushsize))
+                        RichText::new(format!("Brush size: {:03}", self.game_board.brush_size))
                             .size(20_f32),
                     );
                     if ui.button(RichText::new(">").size(20_f32)).clicked()
-                        && self.game_board.brushsize < 256
+                        && self.game_board.brush_size.x < 256_f32
                     {
-                        self.game_board.brushsize += 2;
+                        self.game_board.brush_size += vec2(2_f32, 2_f32);
                     }
                 });
                 if ui
@@ -373,46 +375,7 @@ impl eframe::App for EFrameApp {
                         width / self.game_board.width as f32,
                         width / self.game_board.width as f32,
                     );
-                    ui.painter()
-                        .clone()
-                        .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
-                        .with_clip_rect(ctx.content_rect())
-                        .rect(
-                            Rect::from_min_size(
-                                ((((board
-                                    .hover_pos()
-                                    .unwrap_or(pos2(-1024_f32, -1024_f32))
-                                    .to_vec2()
-                                    - board.interact_rect.min.to_vec2())
-                                    / vec2(
-                                        self.game_board.cellsize.x,
-                                        self.game_board.cellsize.y,
-                                    ))
-                                .floor())
-                                    * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
-                                .to_pos2()
-                                .floor()
-                                    + board.interact_rect.min.to_vec2()
-                                    - vec2(
-                                        self.game_board.cellsize.x
-                                            * self.game_board.brushsize as f32
-                                            * 0.5,
-                                        self.game_board.cellsize.y
-                                            * self.game_board.brushsize as f32
-                                            * 0.5,
-                                    ),
-                                Vec2::new(
-                                    self.game_board.brushsize as f32 * self.game_board.cellsize.x
-                                        + self.game_board.cellsize.x,
-                                    self.game_board.brushsize as f32 * self.game_board.cellsize.y
-                                        + self.game_board.cellsize.y,
-                                ),
-                            ),
-                            1_f32,
-                            Color32::from_black_alpha(100),
-                            Stroke::new(2_f32, Color32::WHITE),
-                            egui::StrokeKind::Outside,
-                        );
+                    draw_brush_outlines(&self.game_board, &board, ui, ctx);
                     handle_mouse_input(
                         &mut self.game_board,
                         &self.materials,
@@ -428,46 +391,7 @@ impl eframe::App for EFrameApp {
                         height / self.game_board.height as f32,
                         height / self.game_board.height as f32,
                     );
-                    ui.painter()
-                        .clone()
-                        .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
-                        .with_clip_rect(ctx.content_rect())
-                        .rect(
-                            Rect::from_min_size(
-                                ((((board
-                                    .hover_pos()
-                                    .unwrap_or(pos2(-1024_f32, -1024_f32))
-                                    .to_vec2()
-                                    - board.interact_rect.min.to_vec2())
-                                    / vec2(
-                                        self.game_board.cellsize.x,
-                                        self.game_board.cellsize.y,
-                                    ))
-                                .floor())
-                                    * vec2(self.game_board.cellsize.x, self.game_board.cellsize.y))
-                                .to_pos2()
-                                .floor()
-                                    + board.interact_rect.min.to_vec2()
-                                    - vec2(
-                                        self.game_board.cellsize.x
-                                            * self.game_board.brushsize as f32
-                                            * 0.5,
-                                        self.game_board.cellsize.y
-                                            * self.game_board.brushsize as f32
-                                            * 0.5,
-                                    ),
-                                Vec2::new(
-                                    self.game_board.brushsize as f32 * self.game_board.cellsize.x
-                                        + self.game_board.cellsize.x,
-                                    self.game_board.brushsize as f32 * self.game_board.cellsize.y
-                                        + self.game_board.cellsize.y,
-                                ),
-                            ),
-                            1_f32,
-                            Color32::from_black_alpha(100),
-                            Stroke::new(2_f32, Color32::WHITE),
-                            egui::StrokeKind::Outside,
-                        );
+                    draw_brush_outlines(&self.game_board, &board, ui, ctx);
                     handle_mouse_input(
                         &mut self.game_board,
                         &self.materials,

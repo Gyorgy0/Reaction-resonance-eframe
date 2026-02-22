@@ -1,10 +1,7 @@
 use egui::{Color32, Vec2};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    material::{Material, VOID},
-    reactions::MaterialType,
-};
+use crate::material::{Material, VOID};
 
 #[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]

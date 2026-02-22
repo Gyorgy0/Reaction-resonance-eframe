@@ -1,11 +1,9 @@
 ﻿use crate::life_reactions::solve_cells;
 use crate::material::tuple_to_rangeinclusive;
 use crate::reactions::MaterialType;
-use crate::{material::Material, particle::Particle, world::Board};
+use crate::{material::Material, particle::Particle};
 use egui::lerp;
 use grid::Grid;
-use std::cell;
-use std::mem::discriminant;
 
 #[inline(always)]
 pub(crate) fn solve_by_neighbours(
@@ -56,8 +54,8 @@ pub(crate) fn solve_by_neighbours(
             }
             MaterialType::Sink => {
                 if prev_board[(i, j)] != Particle::default()
-                    && &materials[prev_board[(i, j)].material_id].1.material_type
-                        != &MaterialType::Sink
+                    && materials[prev_board[(i, j)].material_id].1.material_type
+                        != MaterialType::Sink
                 {
                     new_particle = Particle::default();
                     break;

@@ -1,18 +1,14 @@
-use std::sync::atomic::AtomicBool;
-
-use crate::life_reactions::solve_cells;
+use crate::egui_input::BrushShape;
 use crate::material::Material;
 use crate::particle::Particle;
 use crate::reactions::solve_reactions;
 use egui::Color32;
 use egui::Vec2;
 use grid::Grid;
-use grid::grid;
 use rand::distr::Distribution;
 use rand::distr::Uniform;
 use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
-use rayon::iter::IntoParallelRefMutIterator;
 use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use serde::Serialize;
@@ -44,7 +40,8 @@ pub struct Board {
     pub height: u16,
     pub contents: Grid<Particle>,
     pub gravity: f32,
-    pub brushsize: i32,
+    pub brush_size: Vec2,
+    pub brush_shape: BrushShape,
     pub cellsize: Vec2,
     pub rngs: Grid<f32>,
     pub seeds: Grid<f32>,

@@ -18,8 +18,12 @@ pub fn handle_mouse_input(
         || response.clicked_by(egui::PointerButton::Primary)
     {
         let material = selected_material_id;
-        for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
-            for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
+        for i in -(game_board.brush_size.y.floor() as i32 / 2_i32)
+            ..=game_board.brush_size.y.floor() as i32 / 2_i32
+        {
+            for j in -(game_board.brush_size.x.floor() as i32 / 2_i32)
+                ..=game_board.brush_size.x.floor() as i32 / 2_i32
+            {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
                 if game_board.contents.get(cellpos.0, cellpos.1).is_some()
                     && (game_board
@@ -54,8 +58,12 @@ pub fn handle_mouse_input(
     } else if response.dragged_by(egui::PointerButton::Secondary)
         || response.clicked_by(egui::PointerButton::Secondary)
     {
-        for i in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
-            for j in -(game_board.brushsize / 2)..=game_board.brushsize / 2 {
+        for i in -(game_board.brush_size.y.floor() as i32 / 2_i32)
+            ..=game_board.brush_size.y.floor() as i32 / 2_i32
+        {
+            for j in -(game_board.brush_size.x.floor() as i32 / 2_i32)
+                ..=game_board.brush_size.x.floor() as i32 / 2_i32
+            {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
                 if game_board.contents.get(cellpos.0, cellpos.1).is_some() {
                     game_board.contents[cellpos] = Particle::default();
@@ -65,11 +73,14 @@ pub fn handle_mouse_input(
     };
     // Brush resizing with mouse scroll
     let mouse_scroll = response.ctx.input(|input| input.raw_scroll_delta);
-    if mouse_scroll.y.abs() >= 0.1
-        && ((game_board.brushsize > 1 && mouse_scroll.y.signum() == -1_f32)
-            || (game_board.brushsize < 256 && mouse_scroll.y.signum() == 1_f32))
+    if mouse_scroll.y.abs() >= 0.1_f32
+        && ((game_board.brush_size.x > 1_f32 && mouse_scroll.y.signum() == -1_f32)
+            || (game_board.brush_size.x < 256_f32 && mouse_scroll.y.signum() == 1_f32))
     {
-        game_board.brushsize += 2 * (mouse_scroll.y.signum()) as i32;
+        game_board.brush_size += vec2(
+            2_f32 * (mouse_scroll.y.signum()),
+            2_f32 * (mouse_scroll.y.signum()),
+        );
     }
 }
 
@@ -79,4 +90,11 @@ pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response:
     } else if response.ctx.input(|i| i.key_pressed(Key::Space)) {
         *is_paused = is_paused.not();
     }
+}
+
+#[derive(Clone, PartialEq, PartialOrd)]
+#[repr(u8)]
+pub(crate) enum BrushShape {
+    Rectangle,
+    Ellipse,
 }

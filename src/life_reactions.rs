@@ -1,6 +1,6 @@
 use crate::material::tuple_to_rangeinclusive;
 use crate::reactions::MaterialType;
-use crate::{material::Material, particle::Particle, world::Board};
+use crate::{material::Material, particle::Particle};
 use egui::lerp;
 use grid::Grid;
 use std::mem::discriminant;
