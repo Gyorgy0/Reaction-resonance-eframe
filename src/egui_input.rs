@@ -96,5 +96,6 @@ pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response:
 #[repr(u8)]
 pub(crate) enum BrushShape {
     Rectangle,
+    Rhombus,
     Ellipse,
 }
