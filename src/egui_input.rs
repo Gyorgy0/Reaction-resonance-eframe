@@ -58,12 +58,9 @@ pub fn handle_mouse_input(
     } else if response.dragged_by(egui::PointerButton::Secondary)
         || response.clicked_by(egui::PointerButton::Secondary)
     {
-        for i in -(game_board.brush_size.y.floor() as i32 / 2_i32)
-            ..=game_board.brush_size.y.floor() as i32 / 2_i32
+        for i in -(game_board.brush_size.x.floor() as i32)..=game_board.brush_size.y.floor() as i32
         {
-            for j in -(game_board.brush_size.x.floor() as i32 / 2_i32)
-                ..=game_board.brush_size.x.floor() as i32 / 2_i32
-            {
+            for j in -game_board.brush_size.y as i32..=game_board.brush_size.x.floor() as i32 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
                 if game_board.contents.get(cellpos.0, cellpos.1).is_some() {
                     game_board.contents[cellpos] = Particle::default();
@@ -74,8 +71,8 @@ pub fn handle_mouse_input(
     // Brush resizing with mouse scroll
     let mouse_scroll = response.ctx.input(|input| input.raw_scroll_delta);
     if mouse_scroll.y.abs() >= 0.1_f32
-        && ((game_board.brush_size.x > 1_f32 && mouse_scroll.y.signum() == -1_f32)
-            || (game_board.brush_size.x < 256_f32 && mouse_scroll.y.signum() == 1_f32))
+        && ((game_board.brush_size.min_elem() > 1_f32 && mouse_scroll.y.signum() == -1_f32)
+            || (game_board.brush_size.max_elem() < 256_f32 && mouse_scroll.y.signum() == 1_f32))
     {
         game_board.brush_size += vec2(
             2_f32 * (mouse_scroll.y.signum()),

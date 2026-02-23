@@ -48,8 +48,8 @@ impl Default for EFrameApp {
             height: 256_u16,
             contents: grid::Grid::from_vec(vec![], 0_usize),
             gravity: 9.81_f32,
-            brush_size: vec2(25_f32, 9_f32),
-            brush_shape: BrushShape::Rectangle,
+            brush_size: vec2(11_f32, 11_f32),
+            brush_shape: BrushShape::Ellipse,
             cellsize: Vec2::new(2_f32, 2_f32),
             rngs: grid::Grid::from_vec(vec![], 0_usize),
             seeds: grid::Grid::from_vec(vec![], 0_usize),
@@ -62,7 +62,7 @@ impl Default for EFrameApp {
             TextureOptions::NEAREST,
         );
         let mut materials: Vec<(String, Material)> = vec![(String::new(), VOID.clone())];
-        #[cfg(any(target_os = "windows", target_os = "linux"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             use std::fs;
 
@@ -345,16 +345,16 @@ impl eframe::App for EFrameApp {
             });
         egui::CentralPanel::default().show(ctx, |ui| {
             let pixels: Vec<Color32> = self.game_board.draw_board();
-            let frameimage: ColorImage = ColorImage::new(
+            let frame_image: ColorImage = ColorImage::new(
                 [
                     self.game_board.width as usize,
                     self.game_board.height as usize,
                 ],
                 pixels,
             );
-            self.texture = ctx.load_texture("Board", frameimage.clone(), TextureOptions::NEAREST);
+            self.texture = ctx.load_texture("Board", frame_image.clone(), TextureOptions::NEAREST);
             self.texture
-                .set(frameimage.clone(), TextureOptions::NEAREST);
+                .set(frame_image.clone(), TextureOptions::NEAREST);
             let sized_texture =
                 load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
             let binding = Image::from_texture(sized_texture);
