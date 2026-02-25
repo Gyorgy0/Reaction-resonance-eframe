@@ -1,8 +1,8 @@
-use crate::physics::Phase;
+use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
 use crate::{material::VOID, particle::Particle};
-use egui::{Key, Response, lerp, pos2, vec2};
-use std::ops::{Not, RangeInclusive};
+use egui::{Key, Response, Vec2, lerp, pos2, vec2};
+use std::ops::{AddAssign, Not, RangeInclusive};
 
 pub fn handle_mouse_input(
     game_board: &mut Board,
@@ -18,14 +18,11 @@ pub fn handle_mouse_input(
         || response.clicked_by(egui::PointerButton::Primary)
     {
         let material = selected_material_id;
-        for i in -(game_board.brush_size.y.floor() as i32 / 2_i32)
-            ..=game_board.brush_size.y.floor() as i32 / 2_i32
-        {
-            for j in -(game_board.brush_size.x.floor() as i32 / 2_i32)
-                ..=game_board.brush_size.x.floor() as i32 / 2_i32
-            {
+        for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
+            for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if game_board.contents.get(cellpos.0, cellpos.1).is_some()
+                if get_shape(game_board.brush_shape, game_board.brush_size, j, i).1
+                    && game_board.contents.get(cellpos.0, cellpos.1).is_some()
                     && (game_board
                         .contents
                         .get(cellpos.0, cellpos.1)
@@ -49,20 +46,18 @@ pub fn handle_mouse_input(
                         ));
                     game_board.contents[cellpos].display_color[3] =
                         materials[selected_material_id].1.material_color.color.a();
-                    if materials[selected_material_id].1.phase == Phase::Plasma {
-                        game_board.contents[cellpos].energy = 70_f32;
-                    }
                 }
             }
         }
     } else if response.dragged_by(egui::PointerButton::Secondary)
         || response.clicked_by(egui::PointerButton::Secondary)
     {
-        for i in -(game_board.brush_size.x.floor() as i32)..=game_board.brush_size.y.floor() as i32
-        {
-            for j in -game_board.brush_size.y as i32..=game_board.brush_size.x.floor() as i32 {
+        for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
+            for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if game_board.contents.get(cellpos.0, cellpos.1).is_some() {
+                if get_shape(game_board.brush_shape, game_board.brush_size, i, j).1
+                    && game_board.contents.get(cellpos.0, cellpos.1).is_some()
+                {
                     game_board.contents[cellpos] = Particle::default();
                 }
             }
@@ -70,13 +65,10 @@ pub fn handle_mouse_input(
     };
     // Brush resizing with mouse scroll
     let mouse_scroll = response.ctx.input(|input| input.raw_scroll_delta);
-    if mouse_scroll.y.abs() >= 0.1_f32
-        && ((game_board.brush_size.min_elem() > 1_f32 && mouse_scroll.y.signum() == -1_f32)
-            || (game_board.brush_size.max_elem() < 256_f32 && mouse_scroll.y.signum() == 1_f32))
-    {
-        game_board.brush_size += vec2(
-            2_f32 * (mouse_scroll.y.signum()),
-            2_f32 * (mouse_scroll.y.signum()),
+    if mouse_scroll.y.abs() >= 0.1_f32 {
+        resize_brush(
+            &mut game_board.brush_size,
+            Vec2::splat(2_f32 * (mouse_scroll.y.signum())),
         );
     }
 }
@@ -89,10 +81,18 @@ pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response:
     }
 }
 
-#[derive(Clone, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, PartialEq, PartialOrd)]
 #[repr(u8)]
 pub(crate) enum BrushShape {
     Rectangle,
     Rhombus,
     Ellipse,
+}
+
+pub fn resize_brush(brush_size: &mut Vec2, change: Vec2) {
+    brush_size.add_assign(change);
+    if brush_size.x % 2_f32 == 0_f32 || brush_size.y % 2_f32 == 0_f32 {
+        brush_size.add_assign(Vec2::splat(1_f32));
+    }
+    *brush_size = brush_size.clamp(vec2(0_f32, 0_f32), vec2(256_f32, 256_f32));
 }

@@ -1,7 +1,7 @@
 use std::{mem::discriminant, u8};
 
 use crate::{
-    egui_input::{BrushShape, handle_key_inputs, handle_mouse_input},
+    egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
     material::{Material, VOID},
     reactions::MaterialType,
     system_ui::draw_brush_outlines,
@@ -44,12 +44,12 @@ impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 512_u16,
-            height: 256_u16,
+            width: 55_u16,
+            height: 55_u16,
             contents: grid::Grid::from_vec(vec![], 0_usize),
             gravity: 9.81_f32,
-            brush_size: vec2(11_f32, 11_f32),
-            brush_shape: BrushShape::Ellipse,
+            brush_size: vec2(5_f32, 5_f32),
+            brush_shape: BrushShape::Rectangle,
             cellsize: Vec2::new(2_f32, 2_f32),
             rngs: grid::Grid::from_vec(vec![], 0_usize),
             seeds: grid::Grid::from_vec(vec![], 0_usize),
@@ -250,19 +250,27 @@ impl eframe::App for EFrameApp {
                     }
                 }
                 ui.horizontal(|ui| {
-                    if ui.button(RichText::new("<").size(20_f32)).clicked()
-                        && self.game_board.brush_size.x > 0_f32
-                    {
-                        self.game_board.brush_size -= vec2(2_f32, 2_f32);
+                    ui.label(RichText::new("Brush size: ").size(20_f32));
+                    if ui.button(RichText::new("-").size(20_f32)).clicked() {
+                        resize_brush(&mut self.game_board.brush_size, vec2(-2_f32, 0_f32));
                     }
                     ui.label(
-                        RichText::new(format!("Brush size: {:03}", self.game_board.brush_size))
+                        RichText::new(format!("X axis: {:03}", self.game_board.brush_size.x))
                             .size(20_f32),
                     );
-                    if ui.button(RichText::new(">").size(20_f32)).clicked()
-                        && self.game_board.brush_size.x < 256_f32
-                    {
-                        self.game_board.brush_size += vec2(2_f32, 2_f32);
+                    if ui.button(RichText::new("+").size(20_f32)).clicked() {
+                        resize_brush(&mut self.game_board.brush_size, vec2(2_f32, 0_f32));
+                    }
+                    ui.separator();
+                    if ui.button(RichText::new("-").size(20_f32)).clicked() {
+                        resize_brush(&mut self.game_board.brush_size, vec2(0_f32, -2_f32));
+                    }
+                    ui.label(
+                        RichText::new(format!("Y axis: {:03}", self.game_board.brush_size.y))
+                            .size(20_f32),
+                    );
+                    if ui.button(RichText::new("+").size(20_f32)).clicked() {
+                        resize_brush(&mut self.game_board.brush_size, vec2(0_f32, 2_f32));
                     }
                 });
                 if ui
