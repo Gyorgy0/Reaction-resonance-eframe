@@ -1,5 +1,7 @@
+use std::f32::consts::PI;
 use std::fmt::{self};
 
+use egui::emath::Rot2;
 use egui::epaint::RectShape;
 use egui::load::SizedTexture;
 use egui::util::hash;
@@ -89,9 +91,9 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
                             game_board.cellsize.y * game_board.brush_size.y,
                         ),
                     Vec2::new(
-                        game_board.brush_size.x * 2_f32 * game_board.cellsize.x
+                        (game_board.brush_size.x * 2_f32 * game_board.cellsize.x)
                             + game_board.cellsize.x,
-                        game_board.brush_size.y * 2_f32 * game_board.cellsize.y
+                        (game_board.brush_size.y * 2_f32 * game_board.cellsize.y)
                             + game_board.cellsize.y,
                     ),
                 ),
@@ -102,15 +104,15 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
             );
         return;
     }
-    for i in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-        for j in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
-            pixels.push(get_shape(game_board.brush_shape, game_board.brush_size, i, j).0);
+    for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
+        for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
+            pixels.push(get_shape(game_board.brush_shape, game_board.brush_size, j, i).0);
         }
     }
     let brush_image = ColorImage::new(
         [
-            ((game_board.brush_size.y * 2_f32) + 1_f32) as usize,
             ((game_board.brush_size.x * 2_f32) + 1_f32) as usize,
+            ((game_board.brush_size.y * 2_f32) + 1_f32) as usize,
         ],
         pixels,
     );
@@ -119,40 +121,31 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
         .clone()
         .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
         .with_clip_rect(ctx.content_rect())
-        .add(
-            RectShape::new(
-                Rect::from_min_size(
-                    ((((board
-                        .hover_pos()
-                        .unwrap_or(pos2(-1024_f32, -1024_f32))
-                        .to_vec2()
-                        - board.interact_rect.min.to_vec2())
-                        / vec2(game_board.cellsize.x, game_board.cellsize.y))
-                    .floor())
-                        * vec2(game_board.cellsize.x, game_board.cellsize.y))
-                    .to_pos2()
-                    .floor()
-                        + board.interact_rect.min.to_vec2()
-                        - vec2(
-                            game_board.cellsize.x * game_board.brush_size.x,
-                            game_board.cellsize.y * game_board.brush_size.y,
-                        ),
-                    Vec2::new(
-                        game_board.brush_size.y * 2_f32 * game_board.cellsize.x
-                            + game_board.cellsize.x,
-                        game_board.brush_size.x * 2_f32 * game_board.cellsize.y
-                            + game_board.cellsize.y,
+        .image(
+            brush_texture.id(),
+            Rect::from_min_size(
+                ((((board
+                    .hover_pos()
+                    .unwrap_or(pos2(-1024_f32, -1024_f32))
+                    .to_vec2()
+                    - board.interact_rect.min.to_vec2())
+                    / vec2(game_board.cellsize.x, game_board.cellsize.y))
+                .floor())
+                    * vec2(game_board.cellsize.x, game_board.cellsize.y))
+                .to_pos2()
+                .floor()
+                    + board.interact_rect.min.to_vec2()
+                    - vec2(
+                        game_board.cellsize.x * game_board.brush_size.x,
+                        game_board.cellsize.y * game_board.brush_size.y,
                     ),
+                Vec2::new(
+                    game_board.brush_size.x * 2_f32 * game_board.cellsize.x + game_board.cellsize.x,
+                    game_board.brush_size.y * 2_f32 * game_board.cellsize.y + game_board.cellsize.y,
                 ),
-                0_f32,
-                Color32::WHITE,
-                Stroke::new(0_f32, Color32::BLACK),
-                egui::StrokeKind::Outside,
-            )
-            .with_texture(
-                brush_texture.id(),
-                Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
             ),
+            Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+            Color32::WHITE,
         );
 }
 
@@ -183,17 +176,14 @@ pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, i: i32, j: i32) -> (
             return (fill, true);
         }
     } else if brush_shape == BrushShape::Rhombus {
-        if (j as f32 * brush_size.x).abs() + (i as f32 * brush_size.y).abs()
-            < (brush_size.x + (0.5_f32 * brush_size.x / brush_size.min_elem()))
-                * (brush_size.y + (0.5_f32 * brush_size.y / brush_size.min_elem())).abs()
-            && ((j as f32 * brush_size.x).abs() + (i as f32 * brush_size.y).abs()).ceil()
-                >= (brush_size.x * brush_size.y).abs().floor()
+        if (brush_size.y * i as f32).abs() + (brush_size.x * j as f32).abs()
+            < (brush_size.x * brush_size.y).abs()
+            && (brush_size.y * i as f32).abs() + (brush_size.x * j as f32).abs()
+                >= ((brush_size.x - 1_f32) * (brush_size.y - 1_f32)).abs()
         {
             return (outline, true);
-        } else if (j as f32 * brush_size.x).abs() + (i as f32 * brush_size.y).abs()
-            < ((brush_size.x - (brush_size.y / brush_size.x).floor())
-                * (brush_size.y - (brush_size.x / brush_size.y).floor()))
-            .abs()
+        } else if (brush_size.y * i as f32).abs() + (brush_size.x * j as f32).abs()
+            < ((brush_size.x - 1_f32) * (brush_size.y - 1_f32)).abs()
         {
             return (fill, true);
         }

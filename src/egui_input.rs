@@ -3,6 +3,7 @@ use crate::{material::Material, world::*};
 use crate::{material::VOID, particle::Particle};
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
 use std::ops::{AddAssign, Not, RangeInclusive};
+use strum_macros::EnumIter;
 
 pub fn handle_mouse_input(
     game_board: &mut Board,
@@ -18,10 +19,10 @@ pub fn handle_mouse_input(
         || response.clicked_by(egui::PointerButton::Primary)
     {
         let material = selected_material_id;
-        for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
-            for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-                let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if get_shape(game_board.brush_shape, game_board.brush_size, j, i).1
+        for y in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
+            for x in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
+                let cellpos = ((y + pos.y as i32) as usize, (x + pos.x as i32) as usize);
+                if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
                     && game_board.contents.get(cellpos.0, cellpos.1).is_some()
                     && (game_board
                         .contents
@@ -55,7 +56,7 @@ pub fn handle_mouse_input(
         for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
             for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
                 let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
-                if get_shape(game_board.brush_shape, game_board.brush_size, i, j).1
+                if get_shape(game_board.brush_shape, game_board.brush_size, j, i).1
                     && game_board.contents.get(cellpos.0, cellpos.1).is_some()
                 {
                     game_board.contents[cellpos] = Particle::default();
@@ -68,7 +69,7 @@ pub fn handle_mouse_input(
     if mouse_scroll.y.abs() >= 0.1_f32 {
         resize_brush(
             &mut game_board.brush_size,
-            Vec2::splat(2_f32 * (mouse_scroll.y.signum())),
+            Vec2::splat(1_f32 * (mouse_scroll.y.signum())),
         );
     }
 }
@@ -81,7 +82,7 @@ pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response:
     }
 }
 
-#[derive(Copy, Clone, PartialEq, PartialOrd)]
+#[derive(PartialEq, Copy, Clone, Debug, EnumIter)]
 #[repr(u8)]
 pub(crate) enum BrushShape {
     Rectangle,
@@ -91,8 +92,5 @@ pub(crate) enum BrushShape {
 
 pub fn resize_brush(brush_size: &mut Vec2, change: Vec2) {
     brush_size.add_assign(change);
-    if brush_size.x % 2_f32 == 0_f32 || brush_size.y % 2_f32 == 0_f32 {
-        brush_size.add_assign(Vec2::splat(1_f32));
-    }
     *brush_size = brush_size.clamp(vec2(0_f32, 0_f32), vec2(256_f32, 256_f32));
 }
