@@ -1,26 +1,27 @@
-﻿use crate::life_reactions::solve_cells;
+use crate::life_reactions::solve_cells;
 use crate::material::tuple_to_rangeinclusive;
 use crate::reactions::MaterialType;
+use crate::world::Board;
 use crate::{material::Material, particle::Particle};
 use egui::lerp;
-use grid::Grid;
 
 #[inline(always)]
 pub(crate) fn solve_by_neighbours(
-    prev_board: &Grid<Particle>,
-    board_rngs: &Grid<f32>,
+    prev_board: &Vec<Particle>,
+    board_rngs: &Vec<f32>,
     materials: &Vec<(String, Material)>,
+    width: u16,
     i: usize,
     j: usize,
 ) -> Particle {
-    let mut new_particle = solve_cells(prev_board, board_rngs, materials, i, j);
+    let mut new_particle = solve_cells(prev_board, board_rngs, materials, width, i, j);
     let cell_positions = [
         (i.wrapping_add(1), j),
         (i.saturating_sub(1), j),
         (i, j.wrapping_add(1)),
         (i, j.saturating_sub(1)),
     ];
-    for pos in cell_positions {
+    /*for pos in cell_positions {
         match &materials[prev_board
             .get(pos.0, pos.1)
             .unwrap_or(&prev_board[(i, j)])
@@ -63,6 +64,6 @@ pub(crate) fn solve_by_neighbours(
             }
             _ => {}
         }
-    }
+    }*/
     new_particle
 }

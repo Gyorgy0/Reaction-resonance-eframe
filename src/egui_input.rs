@@ -21,15 +21,13 @@ pub fn handle_mouse_input(
         let material = selected_material_id;
         for y in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
             for x in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-                let cellpos = ((y + pos.y as i32) as usize, (x + pos.x as i32) as usize);
+                let cellpos = get_i(
+                    game_board.width,
+                    ((y + pos.y as i32) as usize, (x + pos.x as i32) as usize),
+                );
                 if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
-                    && game_board.contents.get(cellpos.0, cellpos.1).is_some()
-                    && (game_board
-                        .contents
-                        .get(cellpos.0, cellpos.1)
-                        .unwrap()
-                        .material_id
-                        == VOID.id
+                    && game_board.contents.get(cellpos).is_some()
+                    && (game_board.contents.get(cellpos).unwrap().material_id == VOID.id
                         || selected_material_id == VOID.id)
                 {
                     game_board.contents[cellpos] =
@@ -55,9 +53,12 @@ pub fn handle_mouse_input(
     {
         for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
             for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-                let cellpos = ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize);
+                let cellpos = get_i(
+                    game_board.width,
+                    ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize),
+                );
                 if get_shape(game_board.brush_shape, game_board.brush_size, j, i).1
-                    && game_board.contents.get(cellpos.0, cellpos.1).is_some()
+                    && game_board.contents.get(cellpos).is_some()
                 {
                     game_board.contents[cellpos] = Particle::default();
                 }

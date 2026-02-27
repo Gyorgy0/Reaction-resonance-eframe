@@ -44,15 +44,15 @@ impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 512_u16,
-            height: 256_u16,
-            contents: grid::Grid::from_vec(vec![], 0_usize),
+            width: 1024_u16,
+            height: 512_u16,
+            contents: vec![],
             gravity: 9.81_f32,
             brush_size: vec2(6_f32, 6_f32),
             brush_shape: BrushShape::Rectangle,
             cellsize: Vec2::new(2_f32, 2_f32),
-            rngs: grid::Grid::from_vec(vec![], 0_usize),
-            seeds: grid::Grid::from_vec(vec![], 0_usize),
+            rngs: vec![],
+            seeds: vec![],
         };
         game_board.create_board();
         let ctx = egui::Context::default();
