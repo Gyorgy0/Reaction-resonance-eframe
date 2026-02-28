@@ -1,16 +1,21 @@
 use std::cell::UnsafeCell;
+use std::ops::Deref;
+use std::sync::Arc;
+use std::sync::atomic::AtomicU8;
+
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::egui_input::BrushShape;
 use crate::material::Material;
+use crate::particle;
 use crate::particle::Particle;
+use crate::physics::solve_particle;
 use crate::reactions::solve_reactions;
 use egui::Color32;
 use egui::Vec2;
 use rand::distr::Distribution;
 use rand::distr::Uniform;
 use rayon::iter::IndexedParallelIterator;
-use rayon::iter::IntoParallelIterator;
-use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -65,7 +70,7 @@ impl Board {
 
 #[inline(always)]
 pub fn update_board(
-    game_board: &mut Board,
+    mut game_board: Board,
     materials: &Vec<(String, Material)>,
     is_stopped: bool,
     framecount: &mut u64,
@@ -81,31 +86,38 @@ pub fn update_board(
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        (0..row_count * col_count).for_each(|count| {
-            let i = (count / col_count) as usize;
-            let j = (count % col_count) as usize;
-            //game_board.solve_particle(materials, i, j, framedelta);
-        });
         let prev_board: Vec<Particle> = game_board.contents.clone();
-        let new_board: Vec<Particle> = (0..row_count * col_count)
+        let mut board_slice: AtomicComparedSlice<Particle> =
+            AtomicComparedSlice::new(game_board.contents);
+        let mut check_board: Arc<Vec<AtomicU8>> = Arc::new(vec![]);
+        let width = game_board.width.clone();
+        let mut atomicvec: Vec<AtomicU8> = vec![];
+        (0_usize..(row_count * col_count) as usize)
+            .into_iter()
+            .for_each(|count| {
+                atomicvec.push(AtomicU8::new(0_u8));
+            });
+        check_board = Arc::new(atomicvec);
+        (0_usize..prev_board.len())
             .into_par_iter()
-            .enumerate()
-            .map(|particle| {
-                let i = particle.0 / col_count as usize;
-                let j = particle.0 % col_count as usize;
-                solve_reactions(
-                    &prev_board,
-                    &game_board.rngs,
-                    materials,
-                    game_board.width,
-                    i,
-                    j,
-                    framedelta,
-                    *framecount,
-                )
-            })
-            .collect();
-        game_board.contents = new_board;
+            .for_each(|count: usize| {
+                let i = count / width as usize;
+                let j = count % width as usize;
+                unsafe {
+                    solve_particle(
+                        &board_slice,
+                        &check_board,
+                        &prev_board,
+                        materials,
+                        &game_board.rngs,
+                        game_board.width,
+                        i,
+                        j,
+                        game_board.gravity,
+                        framedelta,
+                    );
+                }
+            });
     }
 }
 
@@ -115,15 +127,15 @@ pub fn get_i(width: u16, pos: (usize, usize)) -> usize {
 }
 
 /// A thread-safe wrapper for a slice, allowing concurrent writes to distinct indexes.
-pub struct ThreadSafeSlice<T> {
+pub struct AtomicComparedSlice<T> {
     data: UnsafeCell<Vec<T>>, // Use Vec<T> for owned data (easier lifetime management)
 }
 
 // unsafe impls: Manually mark ThreadSafeSlice as Send and Sync.
-unsafe impl<T: Send> Send for ThreadSafeSlice<T> {}
-unsafe impl<T: Send> Sync for ThreadSafeSlice<T> {}
+unsafe impl<T: Send> Send for AtomicComparedSlice<T> {}
+unsafe impl<T: Send> Sync for AtomicComparedSlice<T> {}
 
-impl<T> ThreadSafeSlice<T> {
+impl<T> AtomicComparedSlice<T> {
     /// Create a new ThreadSafeSlice from a Vec<T>.
     pub fn new(data: Vec<T>) -> Self {
         Self {
@@ -135,16 +147,20 @@ impl<T> ThreadSafeSlice<T> {
     pub fn len(&self) -> usize {
         unsafe { (*self.data.get()).len() } // Safe: Read-only access to len
     }
+}
+/// Write a value to a specific index.
+pub unsafe fn write_slice(
+    slice: &AtomicComparedSlice<Particle>,
+    index: usize,
+    value: Particle,
+    check_value: u8,
+    pass_value: AtomicU8,
+) {
+    // Get a raw pointer to the underlying Vec
+    let data_ptr = slice.data.get();
+    let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
-    /// Write a value to a specific index.
-    /// # Safety
-    /// - `index` is checked against an AtomicBool vector
-    /// - No two threads may write to the same `index` concurrently.
-    pub unsafe fn write(&self, index: usize, value: T) {
-        // Get a raw pointer to the underlying Vec
-        let data_ptr = self.data.get();
-        let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
-
+    if check_value == pass_value.load(std::sync::atomic::Ordering::Acquire) {
         // Get a mutable pointer to the element at `index`
         let elem_ptr = vec.as_mut_ptr().add(index);
 

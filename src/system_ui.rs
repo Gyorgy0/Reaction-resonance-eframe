@@ -97,7 +97,7 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
                             + game_board.cellsize.y,
                     ),
                 ),
-                1_f32,
+                0_f32,
                 Color32::from_black_alpha(100),
                 Stroke::new(2_f32, Color32::WHITE),
                 egui::StrokeKind::Outside,

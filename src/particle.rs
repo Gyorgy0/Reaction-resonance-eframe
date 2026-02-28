@@ -15,6 +15,7 @@ pub struct Particle {
     pub updated: bool,                  // Is it updated?
     pub display_color: Color32,         // Displayed color
 }
+
 impl Particle {
     pub fn new(material: &Material, speed: Vec2, temperature: f32) -> Self {
         Self {

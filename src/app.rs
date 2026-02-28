@@ -251,7 +251,7 @@ impl eframe::App for EFrameApp {
                 }
                 ui.horizontal(|ui| {
                     ui.label(RichText::new("Brush size: ").size(20_f32));
-                    if ui.button(RichText::new("-").size(20_f32)).clicked() {
+                    if ui.button(RichText::new("–").size(20_f32)).clicked() {
                         resize_brush(&mut self.game_board.brush_size, vec2(-1_f32, 0_f32));
                     }
                     ui.label(
@@ -262,7 +262,7 @@ impl eframe::App for EFrameApp {
                         resize_brush(&mut self.game_board.brush_size, vec2(1_f32, 0_f32));
                     }
                     ui.separator();
-                    if ui.button(RichText::new("--").size(20_f32)).clicked() {
+                    if ui.button(RichText::new("–").size(20_f32)).clicked() {
                         resize_brush(&mut self.game_board.brush_size, vec2(0_f32, -1_f32));
                     }
                     ui.label(
@@ -273,7 +273,7 @@ impl eframe::App for EFrameApp {
                         resize_brush(&mut self.game_board.brush_size, vec2(0_f32, 1_f32));
                     }
                     ui.separator();
-                    if ui.button(RichText::new("-").size(20_f32)).clicked() {
+                    if ui.button(RichText::new("–").size(20_f32)).clicked() {
                         resize_brush(&mut self.game_board.brush_size, vec2(-1_f32, -1_f32));
                     }
                     if ui.button(RichText::new("+").size(20_f32)).clicked() {
@@ -423,7 +423,7 @@ impl eframe::App for EFrameApp {
                 });
             }
             update_board(
-                &mut self.game_board,
+                self.game_board.clone(),
                 &self.materials,
                 self.is_stopped,
                 &mut self.framecount,
