@@ -1,3 +1,5 @@
+use std::sync::atomic::AtomicBool;
+
 use egui::{Color32, Vec2};
 use serde::{Deserialize, Serialize};
 
@@ -34,5 +36,51 @@ impl Particle {
 impl Default for Particle {
     fn default() -> Self {
         Self::new(&VOID, Vec2::new(0_f32, 0_f32), 293.15_f32)
+    }
+}
+
+pub struct AtomicParticle {
+    pub written: AtomicBool, // Checks whether the AtomicParticle has been overwritten
+    //pub material_id: AtomicBool,
+    pub speed: AtomicBool,
+    //pub temperature: AtomicBool,
+    //pub cloned_material: AtomicBool,
+    //pub life_stage: AtomicBool,
+    //pub energy: AtomicBool,
+    pub updated: AtomicBool,
+    //pub display_color: AtomicBool,
+}
+
+impl AtomicParticle {
+    pub fn new(
+        written: bool,
+        material_id: bool,
+        speed: bool,
+        temperature: bool,
+        cloned_material: bool,
+        life_stage: bool,
+        energy: bool,
+        updated: bool,
+        display_color: bool,
+    ) -> Self {
+        Self {
+            written: AtomicBool::new(written),
+            //material_id: AtomicBool::new(material_id),
+            speed: AtomicBool::new(speed),
+            //temperature: AtomicBool::new(temperature),
+            //cloned_material: AtomicBool::new(cloned_material),
+            //life_stage: AtomicBool::new(life_stage),
+            //energy: AtomicBool::new(energy),
+            updated: AtomicBool::new(updated),
+            //display_color: AtomicBool::new(display_color),
+        }
+    }
+}
+
+impl Default for AtomicParticle {
+    fn default() -> Self {
+        Self::new(
+            false, false, false, false, false, false, false, false, false,
+        )
     }
 }

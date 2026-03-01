@@ -423,7 +423,7 @@ impl eframe::App for EFrameApp {
                 });
             }
             update_board(
-                self.game_board.clone(),
+                &mut self.game_board,
                 &self.materials,
                 self.is_stopped,
                 &mut self.framecount,

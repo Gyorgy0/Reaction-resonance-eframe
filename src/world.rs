@@ -1,13 +1,20 @@
+use std::any::Any;
+use std::any::TypeId;
+use std::any::type_name;
 use std::cell::UnsafeCell;
 use std::ops::Deref;
+use std::ptr::swap;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicU8;
+use std::sync::atomic::Ordering;
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::egui_input::BrushShape;
 use crate::material::Material;
 use crate::particle;
+use crate::particle::AtomicParticle;
 use crate::particle::Particle;
 use crate::physics::solve_particle;
 use crate::reactions::solve_reactions;
@@ -70,7 +77,7 @@ impl Board {
 
 #[inline(always)]
 pub fn update_board(
-    mut game_board: Board,
+    mut game_board: &mut Board,
     materials: &Vec<(String, Material)>,
     is_stopped: bool,
     framecount: &mut u64,
@@ -87,46 +94,45 @@ pub fn update_board(
 
     if !is_stopped {
         let prev_board: Vec<Particle> = game_board.contents.clone();
-        let mut board_slice: AtomicComparedSlice<Particle> =
-            AtomicComparedSlice::new(game_board.contents);
-        let mut check_board: Arc<Vec<AtomicU8>> = Arc::new(vec![]);
+        let board_slice: AtomicComparedSlice<Particle> =
+            AtomicComparedSlice::new(game_board.contents.clone());
+        let mut check_board: Arc<Vec<AtomicParticle>> = Arc::new(vec![]);
         let width = game_board.width.clone();
-        let mut atomicvec: Vec<AtomicU8> = vec![];
+        let mut atomicvec: Vec<AtomicParticle> = vec![];
         (0_usize..(row_count * col_count) as usize)
             .into_iter()
             .for_each(|count| {
-                atomicvec.push(AtomicU8::new(0_u8));
+                atomicvec.push(AtomicParticle::default());
             });
         check_board = Arc::new(atomicvec);
-        (0_usize..prev_board.len())
-            .into_par_iter()
+        (0_usize..(row_count * col_count) as usize)
+            .into_iter()
             .for_each(|count: usize| {
                 let i = count / width as usize;
                 let j = count % width as usize;
-                unsafe {
-                    solve_particle(
-                        &board_slice,
-                        &check_board,
-                        &prev_board,
-                        materials,
-                        &game_board.rngs,
-                        game_board.width,
-                        i,
-                        j,
-                        game_board.gravity,
-                        framedelta,
-                    );
-                }
+                solve_particle(
+                    &board_slice,
+                    &check_board,
+                    materials,
+                    &game_board.rngs,
+                    game_board.width,
+                    i,
+                    j,
+                    game_board.gravity,
+                    framedelta,
+                );
             });
+        game_board.contents = board_slice.data.into_inner();
     }
 }
 
 #[inline(always)]
 pub fn get_i(width: u16, pos: (usize, usize)) -> usize {
-    return (pos.0 * width as usize) + pos.1;
+    return ((pos.0 * width as usize) + pos.1.clamp(0_usize, width as usize));
 }
 
 /// A thread-safe wrapper for a slice, allowing concurrent writes to distinct indexes.
+#[derive(Debug)]
 pub struct AtomicComparedSlice<T> {
     data: UnsafeCell<Vec<T>>, // Use Vec<T> for owned data (easier lifetime management)
 }
@@ -147,24 +153,123 @@ impl<T> AtomicComparedSlice<T> {
     pub fn len(&self) -> usize {
         unsafe { (*self.data.get()).len() } // Safe: Read-only access to len
     }
+    /// Get the element of the slice.
+    pub fn get_elem(&self, index: usize) -> &T {
+        unsafe { &self.data.get().as_ref().unwrap()[index] } // Safe: Read-only access to element
+    }
+    /// Get the element of the slice.
+    pub(crate) fn get(&self, index: usize) -> Option<&T> {
+        let element = unsafe { self.data.get().as_ref().unwrap() }; // Safe: Read-only access to element
+        element.get(index)
+    }
 }
-/// Write a value to a specific index.
-pub unsafe fn write_slice(
+
+/// Write a value to a specific index's "updated" field
+pub unsafe fn swap_particle(
     slice: &AtomicComparedSlice<Particle>,
-    index: usize,
-    value: Particle,
-    check_value: u8,
-    pass_value: AtomicU8,
+    index_1: usize,
+    index_2: usize,
+    check_board: &Arc<Vec<AtomicParticle>>,
 ) {
     // Get a raw pointer to the underlying Vec
     let data_ptr = slice.data.get();
     let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
-    if check_value == pass_value.load(std::sync::atomic::Ordering::Acquire) {
+    if !check_board[index_1]
+        .written
+        .load(std::sync::atomic::Ordering::Relaxed)
+        && !check_board[index_2]
+            .written
+            .load(std::sync::atomic::Ordering::Relaxed)
+    {
+        check_board[index_1]
+            .written
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        check_board[index_2]
+            .written
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        // Get a mutable pointer to the element at `index`
+        let mut elem_1_ptr = vec.as_mut_ptr().add(index_1);
+        let particle_1 = slice.data.get().as_ref().unwrap()[index_1];
+        let mut elem_2_ptr = vec.as_mut_ptr().add(index_2);
+        let particle_2 = slice.data.get().as_ref().unwrap()[index_2];
+        *elem_1_ptr = particle_2;
+        *elem_2_ptr = particle_1;
+    }
+}
+
+/// Write a value to a specific index.
+pub unsafe fn write_particle(
+    slice: &AtomicComparedSlice<Particle>,
+    index: usize,
+    value: Particle,
+    check_board: &Arc<Vec<AtomicParticle>>,
+) {
+    // Get a raw pointer to the underlying Vec
+    let data_ptr = slice.data.get();
+    let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
+
+    // Checks whether the particle was overwritten
+    if !check_board[index].written.load(Ordering::Relaxed) {
+        check_board[index].written.store(true, Ordering::Relaxed);
         // Get a mutable pointer to the element at `index`
         let elem_ptr = vec.as_mut_ptr().add(index);
 
         // Write the value into the element (replaces the old value)
         *elem_ptr = value;
+    }
+}
+
+/// Write a value to a specific index's "updated" field
+pub unsafe fn write_updated_field(
+    slice: &AtomicComparedSlice<Particle>,
+    index: usize,
+    value: bool,
+    check_board: &Arc<Vec<AtomicParticle>>,
+) {
+    // Get a raw pointer to the underlying Vec
+    let data_ptr = slice.data.get();
+    let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
+
+    if !check_board[index]
+        .updated
+        .load(std::sync::atomic::Ordering::Relaxed)
+    {
+        check_board[index]
+            .updated
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        // Get a mutable pointer to the element at `index`
+        let elem_ptr = vec.as_mut_ptr().add(index);
+        let mut prev_particle: Particle = slice.data.get().as_ref().unwrap()[index];
+        prev_particle.updated = value;
+        // Write the value into the element (replaces the old value)
+        *elem_ptr = prev_particle;
+    }
+}
+
+/// Write a value to a specific index's "updated" field
+pub unsafe fn write_speed_field(
+    slice: &AtomicComparedSlice<Particle>,
+    index: usize,
+    value: Vec2,
+    check_board: &Arc<Vec<AtomicParticle>>,
+) {
+    // Get a raw pointer to the underlying Vec
+    let data_ptr = slice.data.get();
+    let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
+
+    if !check_board[index]
+        .speed
+        .load(std::sync::atomic::Ordering::Relaxed)
+    {
+        check_board[index]
+            .speed
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        // Get a mutable pointer to the element at `index`
+        let elem_ptr = vec.as_mut_ptr().add(index);
+        let mut prev_particle: Particle = slice.data.get().as_ref().unwrap()[index];
+        prev_particle.speed = value;
+        // Write the value into the element (replaces the old value)
+        *elem_ptr = prev_particle;
     }
 }

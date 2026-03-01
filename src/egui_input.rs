@@ -25,6 +25,7 @@ pub fn handle_mouse_input(
                     game_board.width,
                     ((y + pos.y as i32) as usize, (x + pos.x as i32) as usize),
                 );
+
                 if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
                     && game_board.contents.get(cellpos).is_some()
                     && (game_board.contents.get(cellpos).unwrap().material_id == VOID.id
