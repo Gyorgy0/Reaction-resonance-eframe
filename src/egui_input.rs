@@ -19,11 +19,15 @@ pub fn handle_mouse_input(
         || response.clicked_by(egui::PointerButton::Primary)
     {
         let material = selected_material_id;
-        for y in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
-            for x in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-                let cellpos = get_i(
-                    game_board.width,
-                    ((y + pos.y as i32) as usize, (x + pos.x as i32) as usize),
+        for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
+            for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
+                let cellpos = get_safe_i(
+                    &(game_board.height as usize),
+                    &(game_board.width as usize),
+                    &(
+                        (y.saturating_add(pos.y as i64)) as usize,
+                        (x.saturating_add(pos.x as i64)) as usize,
+                    ),
                 );
 
                 if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
@@ -52,13 +56,17 @@ pub fn handle_mouse_input(
     } else if response.dragged_by(egui::PointerButton::Secondary)
         || response.clicked_by(egui::PointerButton::Secondary)
     {
-        for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
-            for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-                let cellpos = get_i(
-                    game_board.width,
-                    ((i + pos.y as i32) as usize, (j + pos.x as i32) as usize),
+        for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
+            for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
+                let cellpos = get_safe_i(
+                    &(game_board.height as usize),
+                    &(game_board.width as usize),
+                    &(
+                        (y.saturating_add(pos.y as i64)) as usize,
+                        (x.saturating_add(pos.x as i64)) as usize,
+                    ),
                 );
-                if get_shape(game_board.brush_shape, game_board.brush_size, j, i).1
+                if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
                     && game_board.contents.get(cellpos).is_some()
                 {
                     game_board.contents[cellpos] = Particle::default();

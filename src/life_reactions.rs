@@ -1,6 +1,6 @@
 use crate::material::tuple_to_rangeinclusive;
 use crate::reactions::MaterialType;
-use crate::world::{Board, get_i};
+use crate::world::get_safe_i;
 use crate::{material::Material, particle::Particle};
 use egui::lerp;
 use std::mem::discriminant;
@@ -10,7 +10,8 @@ pub(crate) fn solve_cells(
     prev_board: &Vec<Particle>,
     board_rngs: &Vec<f32>,
     materials: &Vec<(String, Material)>,
-    width: u16,
+    height: &usize,
+    width: &usize,
     i: usize,
     j: usize,
 ) -> Particle {
@@ -26,12 +27,16 @@ pub(crate) fn solve_cells(
         (i, j.saturating_sub(1)),
     ];
     let mut automatons: Vec<usize> = vec![];
-    let mut new_particle = prev_board[get_i(width, (i, j))];
+    let mut new_particle = prev_board[get_safe_i(height, width, &(i, j))];
 
     (0_usize..8_usize).for_each(|pos: usize| {
         if discriminant(
             &materials[prev_board
-                .get(get_i(width, (cell_positions[pos].0, cell_positions[pos].1)))
+                .get(get_safe_i(
+                    height,
+                    width,
+                    &(cell_positions[pos].0, cell_positions[pos].1),
+                ))
                 .unwrap_or(&Particle::default())
                 .material_id]
                 .1
@@ -42,13 +47,21 @@ pub(crate) fn solve_cells(
             stages: 0_u8,
         }) && !automatons.contains(
             &prev_board
-                .get(get_i(width, (cell_positions[pos].0, cell_positions[pos].1)))
+                .get(get_safe_i(
+                    height,
+                    width,
+                    &(cell_positions[pos].0, cell_positions[pos].1),
+                ))
                 .unwrap_or(&Particle::default())
                 .material_id,
         ) {
             automatons.push(
                 prev_board
-                    .get(get_i(width, (cell_positions[pos].0, cell_positions[pos].1)))
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(cell_positions[pos].0, cell_positions[pos].1),
+                    ))
                     .unwrap_or(&Particle::default())
                     .material_id,
             );
@@ -60,7 +73,11 @@ pub(crate) fn solve_cells(
         let mut survival = materials[*automaton].1.material_type.get_survival();
         (0_usize..8_usize).for_each(|pos: usize| {
             if prev_board
-                .get(get_i(width, (cell_positions[pos].0, cell_positions[pos].1)))
+                .get(get_safe_i(
+                    height,
+                    width,
+                    &(cell_positions[pos].0, cell_positions[pos].1),
+                ))
                 .unwrap_or(&Particle::default())
                 .material_id
                 == *automaton
@@ -69,7 +86,7 @@ pub(crate) fn solve_cells(
             }
         });
         if discriminant(
-            &materials[prev_board[get_i(width, (i, j))].material_id]
+            &materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
                 .1
                 .material_type,
         ) == discriminant(&MaterialType::CAutomata {
@@ -89,7 +106,7 @@ pub(crate) fn solve_cells(
                             .material_color
                             .shinyness,
                     ),
-                    board_rngs[get_i(width, (i, j))],
+                    board_rngs[get_safe_i(height, width, &(i, j))],
                 ));
             new_particle.display_color[3] = materials[new_particle.material_id]
                 .1
@@ -101,7 +118,8 @@ pub(crate) fn solve_cells(
             if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
                 == alive_neighbours
             {
-                new_particle.material_id = prev_board[get_i(width, (i, j))].material_id;
+                new_particle.material_id =
+                    prev_board[get_safe_i(height, width, &(i, j))].material_id;
                 new_particle.display_color = materials[new_particle.material_id]
                     .1
                     .material_color
@@ -113,7 +131,7 @@ pub(crate) fn solve_cells(
                                 .material_color
                                 .shinyness,
                         ),
-                        board_rngs[get_i(width, (i, j))],
+                        board_rngs[get_safe_i(height, width, &(i, j))],
                     ));
                 new_particle.display_color[3] = materials[new_particle.material_id]
                     .1
@@ -136,7 +154,7 @@ pub(crate) fn solve_cells(
                                 .material_color
                                 .shinyness,
                         ),
-                        board_rngs[get_i(width, (i, j))],
+                        board_rngs[get_safe_i(height, width, &(i, j))],
                     ));
                 new_particle.display_color[3] = materials[new_particle.material_id]
                     .1

@@ -39,7 +39,7 @@ winit = { version = "0.30.12", features = ["android-native-activity"] }
 # opt-level = 'z' - optimize for size
 # opt-level = 's' - optimize for performance
 # Note that, surprisingly enough, opt-level = "s" can sometimes result in smaller binaries than opt-level = "z". Always measure!
-# lto = true - performance improvement, but very long compile time
+# lto = true - performance improvement, but very long linking time
 # strip = true  # Automatically strip symbols from the binary.
 
 # FOR APKS - dev profile builds an apk
@@ -52,7 +52,7 @@ codegen-units = 1
 
 [profile.release]
 opt-level = 's'
-#lto = true
+lto = true
 codegen-units = 1
 
 [package.metadata.android]

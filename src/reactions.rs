@@ -1,11 +1,6 @@
-use crate::material::{Material, VOID, tuple_to_rangeinclusive};
+use crate::material::Material;
 use crate::neighbour_reactions::solve_by_neighbours;
 use crate::particle::Particle;
-use crate::physics::Phase;
-use crate::world::Board;
-use egui::Color32;
-use egui::epaint::Hsva;
-use egui::lerp;
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
@@ -109,13 +104,13 @@ pub(crate) fn solve_reactions(
     prev_board: &Vec<Particle>,
     board_rngs: &Vec<f32>,
     materials: &Vec<(String, Material)>,
-    width: u16,
+    height: &usize,
+    width: &usize,
     i: usize,
     j: usize,
     _framedelta: f32,
-    framecount: u64,
+    _framecount: u64,
 ) -> Particle {
-    let mut new_particle = solve_by_neighbours(prev_board, board_rngs, materials, width, i, j);
     /*match &materials[prev_board[(i, j)].material_id].1.material_type {
         MaterialType::Fuel => {
             let rnd = rand::random_range(0_u8..4_u8);
@@ -338,5 +333,5 @@ pub(crate) fn solve_reactions(
         }
         _ => {}
     }*/
-    new_particle
+    solve_by_neighbours(prev_board, board_rngs, materials, height, width, i, j)
 }

@@ -1,13 +1,9 @@
-use std::f32::consts::PI;
 use std::fmt::{self};
 
-use egui::emath::Rot2;
-use egui::epaint::RectShape;
-use egui::load::SizedTexture;
 use egui::util::hash;
 use egui::{
-    Color32, ColorImage, Context, Id, Image, LayerId, NumExt, Rect, Response, Stroke, StrokeKind,
-    TextureOptions, Ui, Vec2, load, pos2, vec2,
+    Color32, ColorImage, Context, Id, LayerId, NumExt, Rect, Response, Stroke, TextureOptions, Ui,
+    Vec2, pos2, vec2,
 };
 
 use crate::egui_input::BrushShape;
@@ -106,7 +102,15 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
     }
     for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
         for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-            pixels.push(get_shape(game_board.brush_shape, game_board.brush_size, j, i).0);
+            pixels.push(
+                get_shape(
+                    game_board.brush_shape,
+                    game_board.brush_size,
+                    j as i64,
+                    i as i64,
+                )
+                .0,
+            );
         }
     }
     let brush_image = ColorImage::new(
@@ -149,7 +153,7 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
         );
 }
 
-pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, i: i32, j: i32) -> (Color32, bool) {
+pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, i: i64, j: i64) -> (Color32, bool) {
     let outline = Color32::from_white_alpha(255_u8);
     let fill = Color32::from_black_alpha(100_u8);
     let background = Color32::TRANSPARENT;

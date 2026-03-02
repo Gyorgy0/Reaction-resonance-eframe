@@ -54,14 +54,14 @@ pub struct AtomicParticle {
 impl AtomicParticle {
     pub fn new(
         written: bool,
-        material_id: bool,
+        _material_id: bool,
         speed: bool,
-        temperature: bool,
-        cloned_material: bool,
-        life_stage: bool,
-        energy: bool,
+        _temperature: bool,
+        _cloned_material: bool,
+        _life_stage: bool,
+        _energy: bool,
         updated: bool,
-        display_color: bool,
+        _display_color: bool,
     ) -> Self {
         Self {
             written: AtomicBool::new(written),
