@@ -2,10 +2,10 @@ use crate::{
     material::Material,
     particle::{AtomicParticle, Particle},
     world::{
-        AtomicComparedSlice, get_safe_i, swap_particle, write_speed_field, write_updated_field,
+        AtomicComparedSlice, get_safe_i, swap_particle, write_updated_field, write_x_speed_field,
+        write_y_speed_field,
     },
 };
-use egui::vec2;
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
 
@@ -53,6 +53,7 @@ pub fn solve_particle(
     check_board: &Arc<Vec<AtomicParticle>>,
     materials: &Vec<(String, Material)>,
     rngs: &Vec<f32>,
+    seeds: &Vec<f32>,
     height: &usize,
     width: &usize,
     i: usize,
@@ -78,20 +79,14 @@ pub fn solve_particle(
         } => {
             // Gravity simulation
             unsafe {
-                write_speed_field(
+                write_y_speed_field(
                     slice_board,
                     get_safe_i(height, width, &(i, j)),
-                    vec2(
-                        slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .speed
-                            .x,
-                        slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .speed
-                            .y
-                            + (gravity * framedelta),
-                    ),
+                    slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .speed
+                        .y
+                        + (gravity * framedelta),
                     check_board,
                 )
             };
@@ -114,7 +109,7 @@ pub fn solve_particle(
                             width,
                             &(i + (gravity.signum() as i32 * _k) as usize, j),
                         ))
-                        .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
                         .1
                         .density
@@ -125,7 +120,7 @@ pub fn solve_particle(
                                 width,
                                 &(i + (gravity.signum() as i32 * _k) as usize, j),
                             ))
-                            .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
                             .1
                             .phase,
@@ -156,7 +151,7 @@ pub fn solve_particle(
                                 width,
                                 &(i + (gravity.signum() as i32 * _k) as usize, j),
                             ))
-                            .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
                             .1
                             .phase,
@@ -176,7 +171,7 @@ pub fn solve_particle(
                                     j,
                                 ),
                             ))
-                            .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
                             .1
                             .phase,
@@ -188,20 +183,14 @@ pub fn solve_particle(
                     )
                 {
                     unsafe {
-                        write_speed_field(
+                        write_y_speed_field(
                             slice_board,
                             get_safe_i(height, width, &(i, j)),
-                            vec2(
-                                slice_board
-                                    .get_elem(get_safe_i(height, width, &(i, j)))
-                                    .speed
-                                    .x,
-                                slice_board
-                                    .get_elem(get_safe_i(height, width, &(i, j)))
-                                    .speed
-                                    .y
-                                    + (gravity * framedelta),
-                            ),
+                            slice_board
+                                .get_elem(get_safe_i(height, width, &(i, j)))
+                                .speed
+                                .y
+                                - (gravity * framedelta),
                             check_board,
                         )
                     };
@@ -250,7 +239,7 @@ pub fn solve_particle(
                         width,
                         &(i + (gravity.signum() as i32) as usize, j.wrapping_add(1)),
                     ))
-                    .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                    .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                     .material_id]
                     .1
                     .density
@@ -266,7 +255,7 @@ pub fn solve_particle(
                             width,
                             &(i + (gravity.signum() as i32) as usize, j.wrapping_add(1)),
                         ))
-                        .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
                         .1
                         .phase,
@@ -326,7 +315,7 @@ pub fn solve_particle(
                         width,
                         &(i + (gravity.signum() as i32) as usize, j.wrapping_sub(1)),
                     ))
-                    .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                    .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                     .material_id]
                     .1
                     .density
@@ -342,7 +331,7 @@ pub fn solve_particle(
                             width,
                             &(i + (gravity.signum() as i32) as usize, j.wrapping_sub(1)),
                         ))
-                        .unwrap_or(&slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
                         .1
                         .phase,
@@ -396,509 +385,1009 @@ pub fn solve_particle(
                 );
             }
         }
-        _ => {} /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // LIQUID PHYSICS
-                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                /*Phase::Liquid {
-                    viscosity: _,
-                    melting_point: _,
-                    boiling_point: _,
-                } => {
-                    // Gravity simulation
-                    slice_board.get_elem(get_i(height, width, &(i, j))].speed.y += gravity * framedelta;
-                    let mut ychange = 0;
-                    for _k in 0..slice_board.get_elem(get_i(height, width, &(i, j))].speed.y.abs() as i32 {
-                        // Falling and checking if there is a particle with a larger density
-                        if materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id].1.density
-                            > materials[slice_board
-                                .get(i + (gravity.signum() as i32 * _k) as usize, j)
-                                .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                .material_id]
-                                .1
-                                .density
-                            && slice_board.get_elem(get_i(height, width, &(i, j))].updated
-                            && discriminant(
-                                &materials[slice_board
-                                    .get(i + (gravity.signum() as i32 * _k) as usize, j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != discriminant(&Phase::Solid {
-                                melting_point: 0_f32,
-                            })
-                        {
-                            ychange = _k;
-                        }
-                        // Checks if the particle falls inside bounds
-                        // Checks, whether there is another denser particle in the path of the falling particle
-                        else if slice_board
-                            .get(i + (gravity.signum() as i32 * _k) as usize, j)
-                            .is_none()
-                            && discriminant(
-                                &materials[slice_board
-                                    .get(i + (gravity.signum() as i32 * _k) as usize, j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == discriminant(
-                                &(Phase::Solid {
-                                    melting_point: 0_f32,
-                                }),
-                            )
-                            || discriminant(
-                                &materials[slice_board
-                                    .get(
-                                        i + (gravity.signum() as i32 * _k
-                                            + gravity.signum() as i32)
-                                            as usize,
-                                        j,
-                                    )
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == discriminant(
-                                &(Phase::Powder {
-                                    coarseness: 0_f32,
-                                    melting_point: 0_f32,
-                                }),
-                            )
-                            || discriminant(
-                                &materials[slice_board
-                                    .get(
-                                        i + (gravity.signum() as i32 * _k
-                                            + gravity.signum() as i32)
-                                            as usize,
-                                        j,
-                                    )
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == discriminant(
-                                &(Phase::Liquid {
-                                    viscosity: 0_f32,
-                                    melting_point: 0_f32,
-                                    boiling_point: 0_f32,
-                                }),
-                            )
-                        {
-                            slice_board.get_elem(get_i(height, width, &(i, j))].speed.y -= gravity * framedelta;
-                            break;
-                        }
-                    }
-                    if ychange != 0 {
-                        self.contents.swap(
-                            get_i(height, width, &(i, j)),
-                            (i + (gravity.signum() as i32 * ychange) as usize, j),
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // LIQUID PHYSICS
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Phase::Liquid {
+            viscosity: _,
+            melting_point: _,
+            boiling_point: _,
+        } => {
+            // Gravity simulation
+            unsafe {
+                write_y_speed_field(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .speed
+                        .y
+                        + (gravity * framedelta),
+                    check_board,
+                )
+            };
+            let mut ychange = 0;
+            for _k in 0..slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .y
+                .abs() as i32
+            {
+                // Falling and checking if there is a particle with a larger density
+                if materials[slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .material_id]
+                    .1
+                    .density
+                    > materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i + (gravity.signum() as i32 * _k) as usize, j),
+                        ))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id]
+                        .1
+                        .density
+                    && slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .updated
+                    && discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i + (gravity.signum() as i32 * _k) as usize, j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != discriminant(&Phase::Solid {
+                        melting_point: 0_f32,
+                    })
+                {
+                    ychange = _k;
+                }
+                // Checks if the particle falls inside bounds
+                // Checks, whether there is another denser particle in the path of the falling particle
+                else if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i + (gravity.signum() as i32 * _k) as usize, j),
+                    ))
+                    .is_none()
+                    && discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i + (gravity.signum() as i32 * _k) as usize, j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == discriminant(
+                        &(Phase::Solid {
+                            melting_point: 0_f32,
+                        }),
+                    )
+                    || discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(
+                                    i + (gravity.signum() as i32 * _k + gravity.signum() as i32)
+                                        as usize,
+                                    j,
+                                ),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == discriminant(
+                        &(Phase::Powder {
+                            coarseness: 0_f32,
+                            melting_point: 0_f32,
+                        }),
+                    )
+                    || discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(
+                                    i + (gravity.signum() as i32 * _k + gravity.signum() as i32)
+                                        as usize,
+                                    j,
+                                ),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == discriminant(
+                        &(Phase::Liquid {
+                            viscosity: 0_f32,
+                            melting_point: 0_f32,
+                            boiling_point: 0_f32,
+                        }),
+                    )
+                {
+                    unsafe {
+                        write_y_speed_field(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            slice_board
+                                .get_elem(get_safe_i(height, width, &(i, j)))
+                                .speed
+                                .y
+                                - (gravity * framedelta),
+                            check_board,
+                        )
+                    };
+                    break;
+                }
+            }
+            if ychange != 0 {
+                unsafe {
+                    swap_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        get_safe_i(
+                            height,
+                            width,
+                            &(i + (gravity.signum() as i32 * ychange) as usize, j),
+                        ),
+                        check_board,
+                    );
+                    write_updated_field(
+                        slice_board,
+                        get_safe_i(
+                            height,
+                            width,
+                            &(i + ((gravity.signum() as i32 * ychange) as usize), j),
+                        ),
+                        false,
+                        check_board,
+                    );
+                };
+            }
+            // Rng determines which side should the particle fall
+            let mut orientation: i32 = 0;
+            if slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .x
+                .abs()
+                > 1_f32
+            {
+                unsafe {
+                    write_x_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        0.0_f32,
+                        check_board,
+                    );
+                }
+            } else {
+                let rnd = rngs[get_safe_i(height, width, &(i, j))];
+                if rnd.abs()
+                    >= (1_f32
+                        - materials[slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .material_id]
+                            .1
+                            .phase
+                            .get_viscosity())
+                    .powi(16)
+                {
+                    unsafe {
+                        write_x_speed_field(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            slice_board
+                                .get_elem(get_safe_i(height, width, &(i, j)))
+                                .speed
+                                .x
+                                + (rnd.signum()
+                                    * (rnd.abs()
+                                        + materials[slice_board
+                                            .get_elem(get_safe_i(height, width, &(i, j)))
+                                            .material_id]
+                                            .1
+                                            .phase
+                                            .get_viscosity()
+                                            .sqrt())),
+                            check_board,
                         );
-                        slice_board.get_elem((i + ((gravity.signum() as i32 * ychange) as usize), j)]
-                            .updated = false;
                     }
-                    // Rng determines which side should the particle fall
-                    let mut orientation: i32 = 0;
-                    if slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.abs() > 1_f32 {
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.x = 0.0;
-                    } else {
-                        let rnd = rngs[get_i(height, width, &(i, j))];
-                        if rnd.abs()
-                            >= (1_f32
-                                - materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id]
-                                    .1
-                                    .phase
-                                    .get_viscosity())
-                            .powi(16)
-                        {
-                            slice_board.get_elem(get_i(height, width, &(i, j))].speed.x += rnd.signum()
-                                * (rnd.abs()
-                                    + materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id]
-                                        .1
-                                        .phase
-                                        .get_viscosity()
-                                        .sqrt());
-                            orientation = (slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.signum()
-                                * (slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.abs() + 1_f32))
-                                as i32;
-                        }
-                    }
-
-                    for _k in 0..orientation.abs() {
-                        // This condition checks, whether the particle can fall to the determined side
-                        if slice_board
-                            .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                            .is_some()
-                            && discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == discriminant(
-                                &(Phase::Solid {
-                                    melting_point: 0_f32,
-                                }),
-                            )
-                        {
-                            continue;
-                        } else if slice_board
-                            .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                            .is_some()
-                            && materials[slice_board
-                                .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                .material_id]
-                                .1
-                                .density
-                                <= materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id].1.density
-                            && (discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != discriminant(
-                                &(Phase::Powder {
-                                    coarseness: 0_f32,
-                                    melting_point: 0_f32,
-                                }),
-                            ))
-                        {
-                            self.contents.swap(
-                                get_i(height, width, &(i, j)),
-                                (i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                            );
-                            slice_board.get_elem((i, j.wrapping_add((orientation.signum() * _k) as usize))]
-                                .updated = true;
-                        } else {
-                            slice_board.get_elem(get_i(height, width, &(i, j))].speed.x *= -1_f32;
-                            break;
-                        }
-                    }
-                    // This marks that the particle's position has been calculated
-                    slice_board.get_elem(get_i(height, width, &(i, j))].updated = true;
+                    orientation = (slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .speed
+                        .x
+                        .signum()
+                        * (slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .speed
+                            .x
+                            .abs()
+                            + 1_f32)) as i32;
                 }
-                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // GAS PHYSICS
-                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                Phase::Gas { boiling_point: _ } => {
-                    // Rng determines which side should the particle fall
-                    let mut orientation: i32 = 0;
-                    // This calculates the position on the Y axis
-                    if slice_board.get_elem(get_i(height, width, &(i, j))].speed.y.abs() > 1_f32 {
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.y = 0.0;
-                    } else {
-                        // Rand range: (-1_f32..1_f32)
-                        let rnd = rngs[get_i(height, width, &(i, j))];
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.y += rnd.signum() * (rnd.abs() / 2_f32);
-                        orientation = (slice_board.get_elem(get_i(height, width, &(i, j))].speed.y.signum()
-                            * (slice_board.get_elem(get_i(height, width, &(i, j))].speed.y.abs() + 1_f32))
-                            as i32;
-                    }
+            }
 
-                    for _k in 0..orientation.abs() {
-                        // This condition checks, whether the particle can fall to the determined side
-                        if slice_board
-                            .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                            .is_some()
-                            && std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == std::mem::discriminant(&Phase::Solid {
-                                melting_point: 0_f32,
-                            })
-                        {
-                            continue;
-                        } else if slice_board
-                            .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                            .is_some()
-                            && (materials[slice_board
-                                .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                .material_id]
-                                .1
-                                .density
-                                <= materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id].1.density)
-                            && (std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(
-                                &(Phase::Powder {
-                                    coarseness: 0_f32,
-                                    melting_point: 0_f32,
-                                }),
-                            ) || std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(&Phase::Liquid {
-                                viscosity: 0_f32,
-                                melting_point: 0_f32,
-                                boiling_point: 0_f32,
-                            }))
-                        {
-                            self.contents.swap(
-                                get_i(height, width, &(i, j)),
-                                (i.wrapping_add((orientation.signum() * _k) as usize), j),
-                            );
-                            slice_board.get_elem((i.wrapping_add((orientation.signum() * _k) as usize), j)]
-                                .updated = true;
-                        }
-                    }
-                    orientation = 0;
-                    // This calculates the position on the X axis
-                    if slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.abs() > 1_f32 {
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.x = 0.0;
-                    } else {
-                        let rnd = rngs[get_i(height, width, &(i, j))] * self.seeds[get_i(height, width, &(i, j))];
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.x += rnd.signum() * (rnd.abs());
-                        orientation = (slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.signum()
-                            * (slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.abs() + 1_f32))
-                            as i32;
-                    }
-
-                    for _k in 0..orientation.abs() {
-                        // This condition checks, whether the particle can fall to the determined side
-                        if slice_board
-                            .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                            .is_some()
-                            && std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == std::mem::discriminant(&Phase::Solid {
-                                melting_point: 0_f32,
-                            })
-                        {
-                            continue;
-                        } else if slice_board
-                            .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                            .is_some()
-                            && materials[slice_board
-                                .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                .material_id]
-                                .1
-                                .density
-                                <= materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id].1.density
-                            && (std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(
-                                &(Phase::Powder {
-                                    coarseness: 0_f32,
-                                    melting_point: 0_f32,
-                                }),
-                            ) || std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(
-                                &(Phase::Liquid {
-                                    viscosity: 0_f32,
-                                    melting_point: 0_f32,
-                                    boiling_point: 0_f32,
-                                }),
+            for _k in 0..orientation.abs() {
+                // This condition checks, whether the particle can fall to the determined side
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                    ))
+                    .is_some()
+                    && discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
                             ))
-                        {
-                            self.contents.swap(
-                                get_i(height, width, &(i, j)),
-                                (i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                            );
-                            slice_board.get_elem((i, j.wrapping_add((orientation.signum() * _k) as usize))]
-                                .updated = true;
-                        }
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == discriminant(
+                        &(Phase::Solid {
+                            melting_point: 0_f32,
+                        }),
+                    )
+                {
+                    continue;
+                } else if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                    ))
+                    .is_some()
+                    && materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                        ))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id]
+                        .1
+                        .density
+                        <= materials[slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .material_id]
+                            .1
+                            .density
+                    && (discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != discriminant(
+                        &(Phase::Powder {
+                            coarseness: 0_f32,
+                            melting_point: 0_f32,
+                        }),
+                    ))
+                {
+                    unsafe {
+                        swap_particle(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ),
+                            check_board,
+                        )
+                    };
+                    unsafe {
+                        write_updated_field(
+                            slice_board,
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ),
+                            true,
+                            check_board,
+                        )
+                    };
+                } else {
+                    unsafe {
+                        write_x_speed_field(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            -slice_board
+                                .get_elem(get_safe_i(height, width, &(i, j)))
+                                .speed
+                                .x,
+                            check_board,
+                        );
                     }
-                    // This marks that the particle's position has been calculated
-                    slice_board.get_elem(get_i(height, width, &(i, j))].updated = true;
+                    break;
                 }
-                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                // PLASMA PHYSICS
-                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                Phase::Plasma => {
-                    let cellenergy = slice_board.get_elem(get_i(height, width, &(i, j))].energy;
-                    if cellenergy > 1_f32 {
-                        slice_board.get_elem(get_i(height, width, &(i, j))].material_id = 7_usize;
-                        slice_board.get_elem(get_i(height, width, &(i, j))].energy -= 1_f32;
-                    } else {
-                        slice_board.get_elem(get_i(height, width, &(i, j))].material_id = 0_usize;
-                        slice_board.get_elem(get_i(height, width, &(i, j))].display_color = VOID.material_color.color;
-                    }
+            }
+            // This marks that the particle's position has been calculated
+            unsafe {
+                write_updated_field(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    true,
+                    check_board,
+                );
+            }
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // GAS PHYSICS
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Phase::Gas { boiling_point: _ } => {
+            // Rng determines which side should the particle fall
+            let mut orientation: i32 = 0_i32;
+            // This calculates the position on the Y axis
+            if slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .y
+                .abs()
+                > 1_f32
+            {
+                unsafe {
+                    write_y_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        0_f32,
+                        check_board,
+                    );
+                }
+            } else {
+                // Rand range: (-1_f32..1_f32)
+                let rnd = rngs[get_safe_i(height, width, &(i, j))];
+                unsafe {
+                    write_y_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .speed
+                            .y
+                            + (rnd.signum() * (rnd.abs() / 2_f32)),
+                        check_board,
+                    );
+                }
+                orientation = (slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .speed
+                    .y
+                    .signum()
+                    * (slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .speed
+                        .y
+                        .abs()
+                        + 1_f32)) as i32;
+            }
 
-                    // Rng determines which side should the particle fall
-                    let mut orientation: i32 = 0;
-                    // This calculates the position on the Y axis
-                    if slice_board.get_elem(get_i(height, width, &(i, j))].speed.y.abs() > 1_f32 {
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.y = 0.0;
-                    } else {
-                        // Rand range: (-1_f32..1_f32)
-                        let rnd = rngs[get_i(height, width, &(i, j))];
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.y += rnd.signum() * (rnd.abs() / 2_f32);
-                        orientation = (slice_board.get_elem(get_i(height, width, &(i, j))].speed.y.signum()
-                            * (slice_board.get_elem(get_i(height, width, &(i, j))].speed.y.abs() + 1_f32))
-                            as i32;
-                    }
-
-                    for _k in 0..orientation.abs() {
-                        // This condition checks, whether the particle can fall to the determined side
-                        if slice_board
-                            .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                            .is_some()
-                            && std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == std::mem::discriminant(&Phase::Solid {
-                                melting_point: 0_f32,
-                            })
-                        {
-                            continue;
-                        } else if slice_board
-                            .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                            .is_some()
-                            && (materials[slice_board
-                                .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                .material_id]
-                                .1
-                                .density
-                                <= materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id].1.density)
-                            && (std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(
-                                &(Phase::Powder {
-                                    coarseness: 0_f32,
-                                    melting_point: 0_f32,
-                                }),
-                            ) || std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i.wrapping_add((orientation.signum() * _k) as usize), j)
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(&Phase::Liquid {
-                                viscosity: 0_f32,
-                                melting_point: 0_f32,
-                                boiling_point: 0_f32,
-                            }))
-                        {
-                            self.contents.swap(
-                                get_i(height, width, &(i, j)),
-                                (i.wrapping_add((orientation.signum() * _k) as usize), j),
-                            );
-                            slice_board.get_elem((i.wrapping_add((orientation.signum() * _k) as usize), j)]
-                                .updated = true;
-                        }
-                    }
-                    orientation = 0;
-                    // This calculates the position on the X axis
-                    if slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.abs() > 1_f32 {
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.x = 0.0;
-                    } else {
-                        let rnd = rngs[get_i(height, width, &(i, j))] * self.seeds[get_i(height, width, &(i, j))];
-                        slice_board.get_elem(get_i(height, width, &(i, j))].speed.x += rnd.signum() * (rnd.abs());
-                        orientation = (slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.signum()
-                            * (slice_board.get_elem(get_i(height, width, &(i, j))].speed.x.abs() + 1_f32))
-                            as i32;
-                    }
-
-                    for _k in 0..orientation.abs() {
-                        // This condition checks, whether the particle can fall to the determined side
-                        if slice_board
-                            .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                            .is_some()
-                            && std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) == std::mem::discriminant(&Phase::Solid {
-                                melting_point: 0_f32,
-                            })
-                        {
-                            continue;
-                        } else if slice_board
-                            .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                            .is_some()
-                            && materials[slice_board
-                                .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                .material_id]
-                                .1
-                                .density
-                                <= materials[slice_board.get_elem(get_i(height, width, &(i, j))].material_id].1.density
-                            && (std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(
-                                &(Phase::Powder {
-                                    coarseness: 0_f32,
-                                    melting_point: 0_f32,
-                                }),
-                            ) || std::mem::discriminant(
-                                &materials[slice_board
-                                    .get(i, j.wrapping_add((orientation.signum() * _k) as usize))
-                                    .unwrap_or(&slice_board.get_elem(get_i(height, width, &(i, j))])
-                                    .material_id]
-                                    .1
-                                    .phase,
-                            ) != std::mem::discriminant(
-                                &(Phase::Liquid {
-                                    viscosity: 0_f32,
-                                    melting_point: 0_f32,
-                                    boiling_point: 0_f32,
-                                }),
+            for _k in 0..orientation.abs() {
+                // This condition checks, whether the particle can fall to the determined side
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                    ))
+                    .is_some()
+                    && std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
                             ))
-                        {
-                            self.contents.swap(
-                                get_i(height, width, &(i, j)),
-                                (i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                            );
-                            slice_board.get_elem((i, j.wrapping_add((orientation.signum() * _k) as usize))]
-                                .updated = true;
-                        }
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == std::mem::discriminant(&Phase::Solid {
+                        melting_point: 0_f32,
+                    })
+                {
+                    continue;
+                } else if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                    ))
+                    .is_some()
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                        ))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id]
+                        .1
+                        .density
+                        <= materials[slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .material_id]
+                            .1
+                            .density)
+                    && (std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Powder {
+                            coarseness: 0_f32,
+                            melting_point: 0_f32,
+                        }),
+                    ) || std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(&Phase::Liquid {
+                        viscosity: 0_f32,
+                        melting_point: 0_f32,
+                        boiling_point: 0_f32,
+                    }))
+                {
+                    unsafe {
+                        swap_particle(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ),
+                            check_board,
+                        );
+                        write_updated_field(
+                            slice_board,
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ),
+                            true,
+                            check_board,
+                        );
+                    };
+                }
+            }
+            orientation = 0;
+            // This calculates the position on the X axis
+            if slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .x
+                .abs()
+                > 1_f32
+            {
+                unsafe {
+                    write_x_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        0_f32,
+                        check_board,
+                    );
+                }
+            } else {
+                let rnd = seeds[get_safe_i(height, width, &(i, j))].signum()
+                    * rngs[get_safe_i(height, width, &(i, j))];
+                unsafe {
+                    write_x_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .speed
+                            .x
+                            + (seeds[get_safe_i(height, width, &(i, j))].signum() * (rnd / 2_f32)),
+                        check_board,
+                    );
+                };
+                orientation = (slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .speed
+                    .x
+                    .signum()
+                    * (slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .speed
+                        .x
+                        .abs()
+                        + 1_f32)) as i32;
+            }
+
+            for _k in 0..orientation.abs() {
+                // This condition checks, whether the particle can fall to the determined side
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                    ))
+                    .is_some()
+                    && std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == std::mem::discriminant(&Phase::Solid {
+                        melting_point: 0_f32,
+                    })
+                {
+                    continue;
+                } else if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                    ))
+                    .is_some()
+                    && materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                        ))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id]
+                        .1
+                        .density
+                        <= materials[slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .material_id]
+                            .1
+                            .density
+                    && (std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Powder {
+                            coarseness: 0_f32,
+                            melting_point: 0_f32,
+                        }),
+                    ) || std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Liquid {
+                            viscosity: 0_f32,
+                            melting_point: 0_f32,
+                            boiling_point: 0_f32,
+                        }),
+                    ))
+                {
+                    unsafe {
+                        swap_particle(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ),
+                            check_board,
+                        )
+                    };
+                    unsafe {
+                        write_updated_field(
+                            slice_board,
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ),
+                            true,
+                            check_board,
+                        );
                     }
-                    // This marks that the particle's position has been calculated
-                    slice_board.get_elem(get_i(height, width, &(i, j))].updated = true;
-                }*/
+                }
+            }
+            // This marks that the particle's position has been calculated
+            unsafe {
+                write_updated_field(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    true,
+                    check_board,
+                );
+            }
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PLASMA PHYSICS
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Phase::Plasma => {
+            let _cellenergy = slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .energy;
+            /*if cellenergy > 1_f32 {
+                slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .material_id = 7_usize;
+                slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .energy -= 1_f32;
+            } else {
+                slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .material_id = 0_usize;
+                slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .display_color = VOID.material_color.color;
+            }*/
+
+            // Rng determines which side should the particle fall
+            let mut orientation: i32 = 0_i32;
+            // This calculates the position on the Y axis
+            if slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .y
+                .abs()
+                > 1_f32
+            {
+                unsafe {
+                    write_y_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        0_f32,
+                        check_board,
+                    );
+                }
+            } else {
+                // Rand range: (-1_f32..1_f32)
+                let rnd = rngs[get_safe_i(height, width, &(i, j))];
+                unsafe {
+                    write_y_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .speed
+                            .y
+                            + (rnd.signum() * (rnd.abs() / 2_f32)),
+                        check_board,
+                    );
+                }
+                orientation = (slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .speed
+                    .y
+                    .signum()
+                    * (slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .speed
+                        .y
+                        .abs()
+                        + 1_f32)) as i32;
+            }
+
+            for _k in 0..orientation.abs() {
+                // This condition checks, whether the particle can fall to the determined side
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                    ))
+                    .is_some()
+                    && std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == std::mem::discriminant(&Phase::Solid {
+                        melting_point: 0_f32,
+                    })
+                {
+                    continue;
+                } else if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                    ))
+                    .is_some()
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                        ))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id]
+                        .1
+                        .density
+                        <= materials[slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .material_id]
+                            .1
+                            .density)
+                    && (std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Powder {
+                            coarseness: 0_f32,
+                            melting_point: 0_f32,
+                        }),
+                    ) || std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(&Phase::Liquid {
+                        viscosity: 0_f32,
+                        melting_point: 0_f32,
+                        boiling_point: 0_f32,
+                    }))
+                {
+                    unsafe {
+                        swap_particle(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ),
+                            check_board,
+                        );
+                        write_updated_field(
+                            slice_board,
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            ),
+                            true,
+                            check_board,
+                        );
+                    };
+                }
+            }
+            orientation = 0;
+            // This calculates the position on the X axis
+            if slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .x
+                .abs()
+                > 1_f32
+            {
+                unsafe {
+                    write_x_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        0_f32,
+                        check_board,
+                    );
+                }
+            } else {
+                let rnd = seeds[get_safe_i(height, width, &(i, j))].signum()
+                    * rngs[get_safe_i(height, width, &(i, j))];
+                unsafe {
+                    write_x_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .speed
+                            .x
+                            + (seeds[get_safe_i(height, width, &(i, j))].signum() * (rnd / 2_f32)),
+                        check_board,
+                    );
+                };
+                orientation = (slice_board
+                    .get_elem(get_safe_i(height, width, &(i, j)))
+                    .speed
+                    .x
+                    .signum()
+                    * (slice_board
+                        .get_elem(get_safe_i(height, width, &(i, j)))
+                        .speed
+                        .x
+                        .abs()
+                        + 1_f32)) as i32;
+            }
+
+            for _k in 0..orientation.abs() {
+                // This condition checks, whether the particle can fall to the determined side
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                    ))
+                    .is_some()
+                    && std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == std::mem::discriminant(&Phase::Solid {
+                        melting_point: 0_f32,
+                    })
+                {
+                    continue;
+                } else if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                    ))
+                    .is_some()
+                    && materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                        ))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id]
+                        .1
+                        .density
+                        <= materials[slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .material_id]
+                            .1
+                            .density
+                    && (std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Powder {
+                            coarseness: 0_f32,
+                            melting_point: 0_f32,
+                        }),
+                    ) || std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(
+                        &(Phase::Liquid {
+                            viscosity: 0_f32,
+                            melting_point: 0_f32,
+                            boiling_point: 0_f32,
+                        }),
+                    ))
+                {
+                    unsafe {
+                        swap_particle(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ),
+                            check_board,
+                        )
+                    };
+                    unsafe {
+                        write_updated_field(
+                            slice_board,
+                            get_safe_i(
+                                height,
+                                width,
+                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            ),
+                            true,
+                            check_board,
+                        );
+                    }
+                }
+            }
+            // This marks that the particle's position has been calculated
+            unsafe {
+                write_updated_field(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    true,
+                    check_board,
+                );
+            }
+        }
     }
 }

@@ -9,11 +9,10 @@ use strum_macros::EnumIter;
 #[repr(u8)]
 pub(crate) enum MaterialType {
     /// Corrosive material - everything with a pH value lower than 7.0
-    Acid,
-    /// Mixture of metals
+    ///                      everything with a pH value higher than 7.0
+    Corrosive,
+    /// Mixture of metals - on reaction with corrosive materials the corrosion resistant metals leave a powder-type material behind
     Alloy,
-    /// Corrosive material - everything with a pH value higher than 7.0
-    Base,
     /// Cellular automaton material defined by 3 rules (survival, birth and life stages)
     /// - survival ruleset -> the rule is encoded by the number's binary format
     ///                      0- false   1 - true
@@ -61,9 +60,8 @@ pub(crate) enum MaterialType {
     Sink,
     // Material that contains other materials e.g. salts, if heated it leaves the
     // dissolved materials behind
+    // Also dissolves certain materials
     Solution,
-    // Dissolves certain materials
-    Solvent,
 }
 
 impl MaterialType {

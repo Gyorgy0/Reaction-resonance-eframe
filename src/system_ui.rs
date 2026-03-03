@@ -34,9 +34,8 @@ impl fmt::Display for Phase {
 impl fmt::Display for MaterialType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            MaterialType::Acid => write!(f, "Acid"),
+            MaterialType::Corrosive => write!(f, "Corrosive"),
             MaterialType::Alloy => write!(f, "Alloy"),
-            MaterialType::Base => write!(f, "Base"),
             MaterialType::Ceramic => write!(f, "Ceramic"),
             MaterialType::CAutomata {
                 birth: _,
@@ -51,7 +50,6 @@ impl fmt::Display for MaterialType {
             MaterialType::Decor => write!(f, "Decor"),
             MaterialType::Sink => write!(f, "Sink"),
             MaterialType::Solution => write!(f, "Solution"),
-            MaterialType::Solvent => write!(f, "Solvent"),
         }
     }
 }
@@ -100,17 +98,9 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
             );
         return;
     }
-    for i in -game_board.brush_size.y as i32..=game_board.brush_size.y as i32 {
-        for j in -game_board.brush_size.x as i32..=game_board.brush_size.x as i32 {
-            pixels.push(
-                get_shape(
-                    game_board.brush_shape,
-                    game_board.brush_size,
-                    j as i64,
-                    i as i64,
-                )
-                .0,
-            );
+    for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
+        for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
+            pixels.push(get_shape(game_board.brush_shape, game_board.brush_size, x, y).0);
         }
     }
     let brush_image = ColorImage::new(
@@ -153,7 +143,7 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
         );
 }
 
-pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, i: i64, j: i64) -> (Color32, bool) {
+pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, x: i64, y: i64) -> (Color32, bool) {
     let outline = Color32::from_white_alpha(255_u8);
     let fill = Color32::from_black_alpha(100_u8);
     let background = Color32::TRANSPARENT;
@@ -161,47 +151,64 @@ pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, i: i64, j: i64) -> (
         return (background, true);
     }
 
+    // Rectangle shape
+    // 2a - width of the rectangle
+    // 2b - height of rectangle
+    // Function of the shape:
+    // |b*x-a*y| + |b*x+a*y| = |2*a*b|
     if brush_shape == BrushShape::Rectangle {
-        if (brush_size.y * i as f32 - brush_size.x * j as f32).abs()
-            + (brush_size.y * i as f32 + brush_size.x * j as f32).abs()
+        if (brush_size.y * x as f32 - brush_size.x * y as f32).abs()
+            + (brush_size.y * x as f32 + brush_size.x * y as f32).abs()
             < (2_f32
                 * (brush_size.x + (brush_size.y / brush_size.x).floor().at_most(1_f32))
                 * (brush_size.y + (brush_size.x / brush_size.y).floor().at_most(1_f32)))
             .abs()
-            && (brush_size.y * i as f32 - brush_size.x * j as f32).abs()
-                + (brush_size.y * i as f32 + brush_size.x * j as f32).abs()
+            && (brush_size.y * x as f32 - brush_size.x * y as f32).abs()
+                + (brush_size.y * x as f32 + brush_size.x * y as f32).abs()
                 >= (2_f32 * brush_size.x * brush_size.y).abs()
         {
             return (outline, true);
-        } else if (brush_size.y * i as f32 - brush_size.x * j as f32).abs()
-            + (brush_size.y * i as f32 + brush_size.x * j as f32).abs()
+        } else if (brush_size.y * x as f32 - brush_size.x * y as f32).abs()
+            + (brush_size.y * x as f32 + brush_size.x * y as f32).abs()
             < (2_f32 * brush_size.x * brush_size.y).abs()
         {
             return (fill, true);
         }
-    } else if brush_shape == BrushShape::Rhombus {
-        if (brush_size.y * i as f32).abs() + (brush_size.x * j as f32).abs()
+    }
+    // Rhombus shape
+    // 2a - width of the rhombus
+    // 2b - height of rhombus
+    // Function of the shape:
+    // |b*x| + |a*y| = |a*b|
+    else if brush_shape == BrushShape::Rhombus {
+        if (brush_size.y * x as f32).abs() + (brush_size.x * y as f32).abs()
             < (brush_size.x * brush_size.y).abs()
-            && (brush_size.y * i as f32).abs() + (brush_size.x * j as f32).abs()
+            && (brush_size.y * x as f32).abs() + (brush_size.x * y as f32).abs()
                 >= ((brush_size.x - 1_f32) * (brush_size.y - 1_f32)).abs()
         {
             return (outline, true);
-        } else if (brush_size.y * i as f32).abs() + (brush_size.x * j as f32).abs()
+        } else if (brush_size.y * x as f32).abs() + (brush_size.x * y as f32).abs()
             < ((brush_size.x - 1_f32) * (brush_size.y - 1_f32)).abs()
         {
             return (fill, true);
         }
-    } else if brush_shape == BrushShape::Ellipse {
-        if (i as f32 / (brush_size.x + (1_f32 * (brush_size.x / brush_size.min_elem()))))
+    }
+    // Ellipse Shape
+    // 2a - width of the ellipse
+    // 2b - height of ellipse
+    // Function of the shape:
+    // (x/a)^2 + (y/b)^2 = 1^2
+    else if brush_shape == BrushShape::Ellipse {
+        if (x as f32 / (brush_size.x + (1_f32 * (brush_size.x / brush_size.min_elem()))))
             .powi(2_i32)
-            + (j as f32 / (brush_size.y + (1_f32 * (brush_size.y / brush_size.min_elem()))))
+            + (y as f32 / (brush_size.y + (1_f32 * (brush_size.y / brush_size.min_elem()))))
                 .powi(2_i32)
             < 1_f32
-            && ((i as f32 / (brush_size.x)).powi(2_i32) + (j as f32 / (brush_size.y)).powi(2_i32))
+            && ((x as f32 / (brush_size.x)).powi(2_i32) + (y as f32 / (brush_size.y)).powi(2_i32))
                 >= 1_f32
         {
             return (outline, true);
-        } else if (i as f32 / (brush_size.x)).powi(2_i32) + (j as f32 / (brush_size.y)).powi(2_i32)
+        } else if (x as f32 / (brush_size.x)).powi(2_i32) + (y as f32 / (brush_size.y)).powi(2_i32)
             < 1_f32
         {
             return (fill, true);

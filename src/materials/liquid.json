@@ -11,7 +11,7 @@
                     "melting_point": 273.15
                 }
             },
-            "material_type": "Solvent",
+            "material_type": "Solution",
             "durability": 50,
             "material_color": {
                 "color": [

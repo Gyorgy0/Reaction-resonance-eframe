@@ -38,35 +38,27 @@ impl Default for Particle {
         Self::new(&VOID, Vec2::new(0_f32, 0_f32), 293.15_f32)
     }
 }
-
+#[rustfmt::skip]
 pub struct AtomicParticle {
-    pub written: AtomicBool, // Checks whether the AtomicParticle has been overwritten
-    //pub material_id: AtomicBool,
-    pub speed: AtomicBool,
-    //pub temperature: AtomicBool,
-    //pub cloned_material: AtomicBool,
-    //pub life_stage: AtomicBool,
-    //pub energy: AtomicBool,
-    pub updated: AtomicBool,
-    //pub display_color: AtomicBool,
+    pub written: AtomicBool,            // Checks whether the AtomicParticle has been overwritten
+    //pub material_id: AtomicBool,      // Checks whether the AtomicParticle's material_id has been overwritten
+    pub speed_x: AtomicBool,            // Checks whether the AtomicParticle's speed's x componenet has been overwritten
+    pub speed_y: AtomicBool,            // Checks whether the AtomicParticle's speed's y componenet has been overwritten
+    //pub temperature: AtomicBool,      // Checks whether the AtomicParticle's temperature has been overwritten
+    //pub cloned_material: AtomicBool,  // Checks whether the AtomicParticle's cloned_material has been overwritten
+    //pub life_stage: AtomicBool,       // Checks whether the AtomicParticle's life_stage has been overwritten
+    //pub energy: AtomicBool,           // Checks whether the AtomicParticle's energy has been overwritten
+    pub updated: AtomicBool,            // Checks whether the AtomicParticle's updated field has been overwritten
+    //pub display_color: AtomicBool,    // Checks whether the AtomicParticle's display_color has been overwritten
 }
 
 impl AtomicParticle {
-    pub fn new(
-        written: bool,
-        _material_id: bool,
-        speed: bool,
-        _temperature: bool,
-        _cloned_material: bool,
-        _life_stage: bool,
-        _energy: bool,
-        updated: bool,
-        _display_color: bool,
-    ) -> Self {
+    pub fn new(written: bool, speed: bool, updated: bool) -> Self {
         Self {
             written: AtomicBool::new(written),
             //material_id: AtomicBool::new(material_id),
-            speed: AtomicBool::new(speed),
+            speed_x: AtomicBool::new(speed),
+            speed_y: AtomicBool::new(speed),
             //temperature: AtomicBool::new(temperature),
             //cloned_material: AtomicBool::new(cloned_material),
             //life_stage: AtomicBool::new(life_stage),
@@ -79,8 +71,6 @@ impl AtomicParticle {
 
 impl Default for AtomicParticle {
     fn default() -> Self {
-        Self::new(
-            false, false, false, false, false, false, false, false, false,
-        )
+        Self::new(false, false, false)
     }
 }
