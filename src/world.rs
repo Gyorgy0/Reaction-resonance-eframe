@@ -118,15 +118,16 @@ pub fn update_board(
     }
 }
 
+/// A method that returns an index inside the specified height and width
 #[inline(always)]
 pub fn get_safe_i(rows: &usize, cols: &usize, pos: &(usize, usize)) -> usize {
     let row = pos.0.clamp(0_usize, *rows);
-    let col = pos.1;
-    // NEEDS REFACTORING
-    /*if (col / (*cols)) >= *rows && col > *cols {
-
-    }*/
-    (row * cols) + col
+    let mut col = pos.1;
+    if col > usize::MAX - cols {
+        col = 0_usize;
+    }
+    col = col.clamp(0_usize, *cols - 1_usize);
+    ((row * cols) + col)
 }
 
 /// A thread-safe wrapper for a slice, allowing concurrent writes to distinct indexes.
@@ -174,18 +175,17 @@ pub unsafe fn swap_particle(
         let data_ptr = slice.data.get();
         let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
-        //NEEDS NEW SYSTEM!!!!
-        /*if !check_board[index_1].written.swap(true, Ordering::Relaxed)
+        if !check_board[index_1].written.swap(true, Ordering::Relaxed)
             && !check_board[index_2].written.swap(true, Ordering::Relaxed)
-        {*/
-        // Get a mutable pointer to the element at `index`
-        let elem_1_ptr = vec.as_mut_ptr().add(index_1);
-        let particle_1 = slice.data.get().as_ref().unwrap()[index_1];
-        let elem_2_ptr = vec.as_mut_ptr().add(index_2);
-        let particle_2 = slice.data.get().as_ref().unwrap()[index_2];
-        *elem_1_ptr = particle_2;
-        *elem_2_ptr = particle_1;
-        //}
+        {
+            // Get a mutable pointer to the element at `index`
+            let elem_1_ptr = vec.as_mut_ptr().add(index_1);
+            let particle_1 = slice.data.get().as_ref().unwrap()[index_1];
+            let elem_2_ptr = vec.as_mut_ptr().add(index_2);
+            let particle_2 = slice.data.get().as_ref().unwrap()[index_2];
+            *elem_1_ptr = particle_2;
+            *elem_2_ptr = particle_1;
+        }
     }
 }
 
@@ -195,6 +195,7 @@ pub unsafe fn write_particle(
     index: usize,
     value: Particle,
     check_board: &Arc<Vec<AtomicParticle>>,
+    _check_value: u8,
 ) {
     unsafe {
         // Get a raw pointer to the underlying Vec

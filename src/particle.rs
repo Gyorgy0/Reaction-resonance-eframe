@@ -40,7 +40,7 @@ impl Default for Particle {
 }
 #[rustfmt::skip]
 pub struct AtomicParticle {
-    pub written: AtomicBool,            // Checks whether the AtomicParticle has been overwritten
+    pub written: AtomicBool,              // Checks whether the AtomicParticle has been overwritten
     //pub material_id: AtomicBool,      // Checks whether the AtomicParticle's material_id has been overwritten
     pub speed_x: AtomicBool,            // Checks whether the AtomicParticle's speed's x componenet has been overwritten
     pub speed_y: AtomicBool,            // Checks whether the AtomicParticle's speed's y componenet has been overwritten

@@ -619,8 +619,8 @@ pub fn solve_particle(
                             + 1_f32)) as i32;
                 }
             }
-
-            for _k in 0..orientation.abs() {
+            let mut xchange = 0_i32;
+            for _k in 0_i32..orientation.abs() {
                 // This condition checks, whether the particle can fall to the determined side
                 if slice_board
                     .get(get_safe_i(
@@ -687,30 +687,8 @@ pub fn solve_particle(
                         }),
                     ))
                 {
-                    unsafe {
-                        swap_particle(
-                            slice_board,
-                            get_safe_i(height, width, &(i, j)),
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                            ),
-                            check_board,
-                        )
-                    };
-                    unsafe {
-                        write_updated_field(
-                            slice_board,
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                            ),
-                            true,
-                            check_board,
-                        )
-                    };
+                    xchange = _k;
+                    continue;
                 } else {
                     unsafe {
                         write_x_speed_field(
@@ -726,6 +704,31 @@ pub fn solve_particle(
                     break;
                 }
             }
+            unsafe {
+                swap_particle(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    get_safe_i(
+                        height,
+                        width,
+                        &(
+                            i,
+                            (j.wrapping_add((orientation.signum() * xchange) as usize)),
+                        ),
+                    ),
+                    check_board,
+                );
+                write_updated_field(
+                    slice_board,
+                    get_safe_i(
+                        height,
+                        width,
+                        &(i, j.wrapping_add((orientation.signum() * xchange) as usize)),
+                    ),
+                    true,
+                    check_board,
+                )
+            };
             // This marks that the particle's position has been calculated
             unsafe {
                 write_updated_field(
@@ -741,7 +744,7 @@ pub fn solve_particle(
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Gas { boiling_point: _ } => {
             // Rng determines which side should the particle fall
-            let mut orientation: i32 = 0_i32;
+            let mut orientation_y: i32 = 0_i32;
             // This calculates the position on the Y axis
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
@@ -773,7 +776,7 @@ pub fn solve_particle(
                         check_board,
                     );
                 }
-                orientation = (slice_board
+                orientation_y = (slice_board
                     .get_elem(get_safe_i(height, width, &(i, j)))
                     .speed
                     .y
@@ -785,14 +788,14 @@ pub fn solve_particle(
                         .abs()
                         + 1_f32)) as i32;
             }
-
-            for _k in 0..orientation.abs() {
+            let mut ychange = 0_i32;
+            for k in 0_i32..orientation_y.abs() {
                 // This condition checks, whether the particle can fall to the determined side
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                        &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                     ))
                     .is_some()
                     && std::mem::discriminant(
@@ -800,7 +803,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -815,14 +818,14 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                        &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                     ))
                     .is_some()
                     && (materials[slice_board
                         .get(get_safe_i(
                             height,
                             width,
-                            &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                         ))
                         .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
@@ -838,7 +841,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -854,7 +857,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -866,31 +869,22 @@ pub fn solve_particle(
                         boiling_point: 0_f32,
                     }))
                 {
+                    ychange = k;
                     unsafe {
-                        swap_particle(
-                            slice_board,
-                            get_safe_i(height, width, &(i, j)),
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
-                            ),
-                            check_board,
-                        );
                         write_updated_field(
                             slice_board,
                             get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ),
                             true,
                             check_board,
-                        );
+                        )
                     };
                 }
             }
-            orientation = 0;
+            let mut orientation_x = 0;
             // This calculates the position on the X axis
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
@@ -908,8 +902,7 @@ pub fn solve_particle(
                     );
                 }
             } else {
-                let rnd = seeds[get_safe_i(height, width, &(i, j))].signum()
-                    * rngs[get_safe_i(height, width, &(i, j))];
+                let rnd = rngs[get_safe_i(height, width, &(i, j))];
                 unsafe {
                     write_x_speed_field(
                         slice_board,
@@ -922,11 +915,7 @@ pub fn solve_particle(
                         check_board,
                     );
                 };
-                orientation = (slice_board
-                    .get_elem(get_safe_i(height, width, &(i, j)))
-                    .speed
-                    .x
-                    .signum()
+                orientation_x = (rnd.signum()
                     * (slice_board
                         .get_elem(get_safe_i(height, width, &(i, j)))
                         .speed
@@ -935,13 +924,14 @@ pub fn solve_particle(
                         + 1_f32)) as i32;
             }
 
-            for _k in 0..orientation.abs() {
+            let mut xchange = 0_i32;
+            for _k in 0..orientation_x.abs() {
                 // This condition checks, whether the particle can fall to the determined side
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                        &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                     ))
                     .is_some()
                     && std::mem::discriminant(
@@ -949,7 +939,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -964,14 +954,14 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                        &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                     ))
                     .is_some()
                     && materials[slice_board
                         .get(get_safe_i(
                             height,
                             width,
-                            &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                         ))
                         .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
@@ -987,7 +977,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1003,7 +993,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1017,31 +1007,35 @@ pub fn solve_particle(
                         }),
                     ))
                 {
-                    unsafe {
-                        swap_particle(
-                            slice_board,
-                            get_safe_i(height, width, &(i, j)),
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                            ),
-                            check_board,
-                        )
-                    };
+                    xchange = _k;
                     unsafe {
                         write_updated_field(
                             slice_board,
                             get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ),
                             true,
                             check_board,
                         );
                     }
                 }
+            }
+            unsafe {
+                swap_particle(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    get_safe_i(
+                        height,
+                        width,
+                        &(
+                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                            j.wrapping_add((orientation_x.signum() * xchange) as usize),
+                        ),
+                    ),
+                    check_board,
+                )
             }
             // This marks that the particle's position has been calculated
             unsafe {
@@ -1077,7 +1071,7 @@ pub fn solve_particle(
             }*/
 
             // Rng determines which side should the particle fall
-            let mut orientation: i32 = 0_i32;
+            let mut orientation_y: i32 = 0_i32;
             // This calculates the position on the Y axis
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
@@ -1109,7 +1103,7 @@ pub fn solve_particle(
                         check_board,
                     );
                 }
-                orientation = (slice_board
+                orientation_y = (slice_board
                     .get_elem(get_safe_i(height, width, &(i, j)))
                     .speed
                     .y
@@ -1121,14 +1115,14 @@ pub fn solve_particle(
                         .abs()
                         + 1_f32)) as i32;
             }
-
-            for _k in 0..orientation.abs() {
+            let mut ychange = 0_i32;
+            for k in 0_i32..orientation_y.abs() {
                 // This condition checks, whether the particle can fall to the determined side
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                        &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                     ))
                     .is_some()
                     && std::mem::discriminant(
@@ -1136,7 +1130,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1151,14 +1145,14 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                        &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                     ))
                     .is_some()
                     && (materials[slice_board
                         .get(get_safe_i(
                             height,
                             width,
-                            &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                            &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                         ))
                         .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
@@ -1174,7 +1168,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1190,7 +1184,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1202,31 +1196,22 @@ pub fn solve_particle(
                         boiling_point: 0_f32,
                     }))
                 {
+                    ychange = k;
                     unsafe {
-                        swap_particle(
-                            slice_board,
-                            get_safe_i(height, width, &(i, j)),
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
-                            ),
-                            check_board,
-                        );
                         write_updated_field(
                             slice_board,
                             get_safe_i(
                                 height,
                                 width,
-                                &(i.wrapping_add((orientation.signum() * _k) as usize), j),
+                                &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                             ),
                             true,
                             check_board,
-                        );
+                        )
                     };
                 }
             }
-            orientation = 0;
+            let mut orientation_x = 0;
             // This calculates the position on the X axis
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
@@ -1244,8 +1229,7 @@ pub fn solve_particle(
                     );
                 }
             } else {
-                let rnd = seeds[get_safe_i(height, width, &(i, j))].signum()
-                    * rngs[get_safe_i(height, width, &(i, j))];
+                let rnd = rngs[get_safe_i(height, width, &(i, j))];
                 unsafe {
                     write_x_speed_field(
                         slice_board,
@@ -1258,11 +1242,7 @@ pub fn solve_particle(
                         check_board,
                     );
                 };
-                orientation = (slice_board
-                    .get_elem(get_safe_i(height, width, &(i, j)))
-                    .speed
-                    .x
-                    .signum()
+                orientation_x = (rnd.signum()
                     * (slice_board
                         .get_elem(get_safe_i(height, width, &(i, j)))
                         .speed
@@ -1271,13 +1251,14 @@ pub fn solve_particle(
                         + 1_f32)) as i32;
             }
 
-            for _k in 0..orientation.abs() {
+            let mut xchange = 0_i32;
+            for _k in 0..orientation_x.abs() {
                 // This condition checks, whether the particle can fall to the determined side
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                        &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                     ))
                     .is_some()
                     && std::mem::discriminant(
@@ -1285,7 +1266,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1300,14 +1281,14 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                        &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                     ))
                     .is_some()
                     && materials[slice_board
                         .get(get_safe_i(
                             height,
                             width,
-                            &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                            &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                         ))
                         .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
@@ -1323,7 +1304,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1339,7 +1320,7 @@ pub fn solve_particle(
                             .get(get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ))
                             .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                             .material_id]
@@ -1353,31 +1334,35 @@ pub fn solve_particle(
                         }),
                     ))
                 {
-                    unsafe {
-                        swap_particle(
-                            slice_board,
-                            get_safe_i(height, width, &(i, j)),
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                            ),
-                            check_board,
-                        )
-                    };
+                    xchange = _k;
                     unsafe {
                         write_updated_field(
                             slice_board,
                             get_safe_i(
                                 height,
                                 width,
-                                &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
+                                &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                             ),
                             true,
                             check_board,
                         );
                     }
                 }
+            }
+            unsafe {
+                swap_particle(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    get_safe_i(
+                        height,
+                        width,
+                        &(
+                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                            j.wrapping_add((orientation_x.signum() * xchange) as usize),
+                        ),
+                    ),
+                    check_board,
+                )
             }
             // This marks that the particle's position has been calculated
             unsafe {
