@@ -8,7 +8,7 @@ use egui::{
 
 use crate::egui_input::BrushShape;
 use crate::physics::Phase;
-use crate::reactions::MaterialType;
+use crate::reactions::{MachineTypes, MaterialType};
 use crate::world::Board;
 
 impl fmt::Display for Phase {
@@ -42,14 +42,22 @@ impl fmt::Display for MaterialType {
                 survival: _,
                 stages: _,
             } => write!(f, "Cellular automaton"),
-            MaterialType::Cloner => write!(f, "Cloner"),
+            MaterialType::Machine { machine } => write!(f, "Machine {}", machine),
+            MaterialType::Metal => write!(f, "Metal"),
             MaterialType::Explosive => write!(f, "Explosive"),
             MaterialType::Fuel => write!(f, "Fuel"),
             MaterialType::Glass => write!(f, "Glass"),
             MaterialType::Oxidizer => write!(f, "Oxidizer"),
             MaterialType::Decor => write!(f, "Decor"),
-            MaterialType::Sink => write!(f, "Sink"),
             MaterialType::Solution => write!(f, "Solution"),
+        }
+    }
+}
+impl fmt::Display for MachineTypes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            MachineTypes::Cloner => write!(f, "Cloner"),
+            MachineTypes::Sink => write!(f, "Sink"),
         }
     }
 }

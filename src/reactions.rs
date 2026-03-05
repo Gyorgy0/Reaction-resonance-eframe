@@ -42,26 +42,39 @@ pub(crate) enum MaterialType {
     CAutomata {survival: u8, birth:u8, stages: u8},
     // Hard, brittle, heat-resistant, and corrosion-resistant material
     Ceramic,
-    // Material that clones the last new material it came in contact with
-    Cloner,
     // A material that generates a lot of energy and lot of gases
     Explosive,
     // Flammable material under normal circumstances
     Fuel,
     // Amorphous material formed from a molten material and it's cooled without proper crystalization
     Glass,
+    // Machines e.g. cloners, sinks, pumps, conveyor belts, etc...
+    Machine {machine: MachineTypes},
+    // Conductive materials, they react based on their reactivity series
+    // They are capable of coloring flames 
+    Metal,
     // This material can enhance the explosive power of
     // explosives or the burning of fuels by aiding their combustion
     Oxidizer,
     // This material is indestructible and completely inert it's used for 
     // decoration purposes, mainly pixelart, map making, etc...
     Decor,
-    // This material swallows any material it comes in contact with it
-    Sink,
     // Material that contains other materials e.g. salts, if heated it leaves the
     // dissolved materials behind
     // Also dissolves certain materials
     Solution,
+}
+
+#[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
+pub(crate) enum MachineTypes {
+    Cloner,
+    Sink,
+}
+
+impl Default for MachineTypes {
+    fn default() -> Self {
+        Self::Cloner
+    }
 }
 
 impl MaterialType {
