@@ -1,7 +1,8 @@
-use crate::material::Material;
-use crate::neighbour_reactions::solve_by_neighbours;
-use crate::particle::Particle;
+use crate::particle::{AtomicParticle, Particle};
+use crate::world::get_safe_i;
+use crate::{material::Material, world::AtomicComparedSlice};
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use strum_macros::EnumIter;
 
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
@@ -112,237 +113,49 @@ impl MaterialType {
 }
 #[inline(always)]
 pub(crate) fn solve_reactions(
+    slice_board: &AtomicComparedSlice<Particle>,
+    check_board: &Arc<Vec<AtomicParticle>>,
     prev_board: &Vec<Particle>,
-    board_rngs: &Vec<f32>,
     materials: &Vec<(String, Material)>,
+    rngs: &Vec<f32>,
+    seeds: &Vec<f32>,
     height: &usize,
     width: &usize,
     i: usize,
     j: usize,
-    _framedelta: f32,
-    _framecount: u64,
-) -> Particle {
-    /*match &materials[prev_board[(i, j)].material_id].1.material_type {
+    gravity: f32,
+    framedelta: f32,
+) {
+    let neumann_positions = [
+        (i.wrapping_add(1), j),
+        (i.saturating_sub(1), j),
+        (i, j.wrapping_add(1)),
+        (i, j.saturating_sub(1)),
+    ];
+    let moore_positions = [
+        (i.wrapping_add(1), j.wrapping_add(1)),
+        (i.wrapping_add(1), j),
+        (i.wrapping_add(1), j.saturating_sub(1)),
+        (i.saturating_sub(1), j.wrapping_add(1)),
+        (i.saturating_sub(1), j),
+        (i.saturating_sub(1), j.saturating_sub(1)),
+        (i, j.wrapping_add(1)),
+        (i, j.saturating_sub(1)),
+    ];
+    match &materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
+        .1
+        .material_type
+    {
         MaterialType::Fuel => {
             let rnd = rand::random_range(0_u8..4_u8);
-            if std::mem::discriminant(
-                &materials[prev_board
-                    .get(i, j.wrapping_add(1))
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    .phase,
-            ) == std::mem::discriminant(&(Phase::Plasma))
-                && prev_board.get(i, j.wrapping_add(1)).is_some()
-                && rnd == 0_u8
-            {
-                new_particle = prev_board[(i, j.wrapping_add(1))];
-                new_particle.material_id = 7_usize;
-                new_particle.energy = 20_f32;
-                new_particle.display_color = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[prev_board[(i, j)].material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        board_rngs[(i, j)],
-                    ));
-                new_particle.display_color[3] = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-            } else if std::mem::discriminant(
-                &materials[prev_board
-                    .get(i, j.saturating_sub(1))
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    .phase,
-            ) == std::mem::discriminant(&(Phase::Plasma))
-                && prev_board.get(i, j.saturating_sub(1)).is_some()
-                && rnd == 1
-            {
-                new_particle.material_id = 7_usize;
-                new_particle.energy = 20_f32;
-                new_particle.display_color = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[prev_board[(i, j)].material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        board_rngs[(i, j)],
-                    ));
-                new_particle.display_color[3] = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-            } else if std::mem::discriminant(
-                &materials[prev_board
-                    .get(i.wrapping_add(1), j)
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    .phase,
-            ) == std::mem::discriminant(&(Phase::Plasma))
-                && rnd == 2
-            {
-                new_particle.material_id = 7_usize;
-                new_particle.energy = 20_f32;
-                new_particle.display_color = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[prev_board[(i, j)].material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        board_rngs[(i, j)],
-                    ));
-                new_particle.display_color[3] = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-            } else if std::mem::discriminant(
-                &materials[prev_board
-                    .get(i.saturating_sub(1), j)
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    .phase,
-            ) == std::mem::discriminant(&(Phase::Plasma))
-                && rnd == 3
-            {
-                new_particle.material_id = 7_usize;
-                new_particle.energy = 20_f32;
-                new_particle.display_color = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[prev_board[(i, j)].material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        board_rngs[(i, j)],
-                    ));
-                new_particle.display_color[3] = materials[prev_board[(i, j)].material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-            }
         }
-        MaterialType::Cloner => {
-            if prev_board[(i, j)].cloned_material == 0_usize {
-                if materials[prev_board
-                    .get(i, j.wrapping_add(1))
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    != VOID
-                    && materials[prev_board
-                        .get(i, j.wrapping_add(1))
-                        .unwrap_or(&prev_board[(i, j)])
-                        .material_id]
-                        .1
-                        .material_type
-                        != MaterialType::Cloner
-                {
-                    new_particle.cloned_material = prev_board[(i, j.wrapping_add(1))].material_id;
-                } else if materials[prev_board
-                    .get(i, j.saturating_sub(1))
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    != VOID
-                    && materials[prev_board
-                        .get(i, j.saturating_sub(1))
-                        .unwrap_or(&prev_board[(i, j)])
-                        .material_id]
-                        .1
-                        .material_type
-                        != MaterialType::Cloner
-                {
-                    new_particle.cloned_material = prev_board[(i, j.saturating_sub(1))].material_id;
-                } else if materials[prev_board
-                    .get(i.wrapping_add(1), j)
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    != VOID
-                    && materials[prev_board
-                        .get(i.wrapping_add(1), j)
-                        .unwrap_or(&prev_board[(i, j)])
-                        .material_id]
-                        .1
-                        .material_type
-                        != MaterialType::Cloner
-                {
-                    new_particle.cloned_material = prev_board[(i.wrapping_add(1), j)].material_id;
-                } else if materials[prev_board
-                    .get(i.saturating_sub(1), j)
-                    .unwrap_or(&prev_board[(i, j)])
-                    .material_id]
-                    .1
-                    != VOID
-                    && materials[prev_board
-                        .get(i.saturating_sub(1), j)
-                        .unwrap_or(&prev_board[(i, j)])
-                        .material_id]
-                        .1
-                        .material_type
-                        != MaterialType::Cloner
-                {
-                    new_particle.cloned_material = prev_board[(i.saturating_sub(1), j)].material_id;
-                }
-            }
-        }
-        MaterialType::Decor => {
-            if prev_board[(i, j)].display_color == Color32::from_rgba_unmultiplied(0, 0, 0, 0) {
-                new_particle.display_color = Hsva::new(
-                    ((framecount / 4) % (355)) as f32 / (355_f32),
-                    1_f32,
-                    1_f32,
-                    1_f32,
-                )
-                .into();
-                new_particle.display_color = Hsva::new(
-                    ((framecount / 4) % (355)) as f32 / (355_f32),
-                    1_f32,
-                    1_f32,
-                    1_f32,
-                )
-                .into();
-                new_particle.display_color = prev_board[(i, j)].display_color.gamma_multiply(lerp(
-                    tuple_to_rangeinclusive(
-                        materials[prev_board[(i, j)].material_id]
-                            .1
-                            .material_color
-                            .shinyness,
-                    ),
-                    board_rngs[(i, j)],
-                ));
-            }
-        }
+        MaterialType::Machine {
+            machine: machine_type,
+        } => match machine_type {
+            MachineTypes::Cloner => {}
+            MachineTypes::Sink => {}
+        },
+        MaterialType::Decor => {}
         _ => {}
-    }*/
-    solve_by_neighbours(prev_board, board_rngs, materials, height, width, i, j)
+    }
 }

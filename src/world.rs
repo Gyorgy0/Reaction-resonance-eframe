@@ -7,6 +7,7 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
 use crate::egui_input::BrushShape;
+use crate::life_reactions::solve_cells;
 use crate::material::Material;
 use crate::particle::AtomicParticle;
 use crate::particle::Particle;
@@ -85,35 +86,60 @@ pub fn update_board(
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        let _prev_board: Vec<Particle> = game_board.contents.clone();
         let board_slice: AtomicComparedSlice<Particle> =
             AtomicComparedSlice::new(game_board.contents.clone());
+        let mut prev_board: Vec<Particle> = game_board.contents.clone();
         let mut check_board: Arc<Vec<AtomicParticle>> = Arc::new(vec![]);
-        let width = game_board.width;
+        let height = game_board.height as usize;
+        let width = game_board.width as usize;
         let mut atomicvec: Vec<AtomicParticle> = vec![];
         (0_usize..(row_count * col_count) as usize).for_each(|_count| {
             atomicvec.push(AtomicParticle::default());
         });
         check_board = Arc::new(atomicvec);
-        (0_usize..(row_count * col_count) as usize)
-            .into_par_iter()
-            .for_each(|count: usize| {
-                let i = count / width as usize;
-                let j = count % width as usize;
-                solve_particle(
-                    &board_slice,
-                    &check_board,
-                    materials,
-                    &game_board.rngs,
-                    &game_board.rngs,
-                    &(game_board.height as usize),
-                    &(game_board.width as usize),
-                    i,
-                    j,
-                    game_board.gravity,
-                    framedelta,
-                );
-            });
+        match *framecount % 2_u64 {
+            0_u64 => {
+                (0_usize..(row_count * col_count) as usize)
+                    .into_par_iter()
+                    .for_each(|count: usize| {
+                        let i = count / width as usize;
+                        let j = count % width as usize;
+                        solve_particle(
+                            &board_slice,
+                            &check_board,
+                            materials,
+                            &game_board.rngs,
+                            &game_board.seeds,
+                            &height,
+                            &width,
+                            i,
+                            j,
+                            game_board.gravity,
+                            framedelta,
+                        );
+                    });
+            }
+            1_u64 => {
+                (0_usize..(row_count * col_count) as usize)
+                    .into_par_iter()
+                    .for_each(|count: usize| {
+                        let i = count / width as usize;
+                        let j = count % width as usize;
+                        solve_cells(
+                            &board_slice,
+                            &check_board,
+                            &prev_board,
+                            &game_board.rngs,
+                            materials,
+                            &height,
+                            &width,
+                            i,
+                            j,
+                        );
+                    });
+            }
+            _ => {}
+        }
         game_board.contents = board_slice.data.into_inner();
     }
 }
@@ -195,7 +221,6 @@ pub unsafe fn write_particle(
     index: usize,
     value: Particle,
     check_board: &Arc<Vec<AtomicParticle>>,
-    _check_value: u8,
 ) {
     unsafe {
         // Get a raw pointer to the underlying Vec

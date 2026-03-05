@@ -35,7 +35,11 @@
                     "melting_point": -1.0
                 }
             },
-            "material_type": "Cloner",
+            "material_type": {
+                "Machine": {
+                    "machine": "Cloner"
+                }
+            },
             "durability": -1,
             "material_color": {
                 "color": [
@@ -61,7 +65,11 @@
                     "melting_point": -1.0
                 }
             },
-            "material_type": "Sink",
+            "material_type": {
+                "Machine": {
+                    "machine": "Cloner"
+                }
+            },
             "durability": -1,
             "material_color": {
                 "color": [

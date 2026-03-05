@@ -1,4 +1,5 @@
 use crate::{
+    life_reactions::solve_cells,
     material::Material,
     particle::{AtomicParticle, Particle},
     world::{

@@ -1,12 +1,17 @@
 use crate::material::tuple_to_rangeinclusive;
+use crate::particle::AtomicParticle;
 use crate::reactions::MaterialType;
-use crate::world::get_safe_i;
+use crate::world::{AtomicComparedSlice, get_safe_i, write_particle};
 use crate::{material::Material, particle::Particle};
 use egui::lerp;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::mem::discriminant;
+use std::sync::Arc;
 
-#[inline(always)]
+#[inline(never)]
 pub(crate) fn solve_cells(
+    slice_board: &AtomicComparedSlice<Particle>,
+    check_board: &Arc<Vec<AtomicParticle>>,
     prev_board: &Vec<Particle>,
     board_rngs: &Vec<f32>,
     materials: &Vec<(String, Material)>,
@@ -14,7 +19,7 @@ pub(crate) fn solve_cells(
     width: &usize,
     i: usize,
     j: usize,
-) -> Particle {
+) {
     // Cellular Automaton solving
     let cell_positions = [
         (i.wrapping_add(1), j.wrapping_add(1)),
@@ -29,7 +34,7 @@ pub(crate) fn solve_cells(
     let mut automatons: Vec<usize> = vec![];
     let mut new_particle = prev_board[get_safe_i(height, width, &(i, j))];
 
-    (0_usize..8_usize).for_each(|pos: usize| {
+    (0_usize..cell_positions.len()).for_each(|pos: usize| {
         if discriminant(
             &materials[prev_board
                 .get(get_safe_i(
@@ -114,7 +119,7 @@ pub(crate) fn solve_cells(
                 .color
                 .a();
         }
-        (0_usize..8_usize).for_each(|pos: usize| {
+        (0_usize..cell_positions.len()).for_each(|pos: usize| {
             if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
                 == alive_neighbours
             {
@@ -166,5 +171,12 @@ pub(crate) fn solve_cells(
             birth <<= 1;
         });
     });
-    new_particle
+    unsafe {
+        write_particle(
+            slice_board,
+            get_safe_i(height, width, &(i, j)),
+            new_particle,
+            check_board,
+        )
+    };
 }
