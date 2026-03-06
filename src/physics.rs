@@ -8,7 +8,10 @@ use crate::{
     },
 };
 use serde::{Deserialize, Serialize};
-use std::{mem::discriminant, sync::Arc};
+use std::{
+    mem::discriminant,
+    sync::{Arc, atomic::Ordering},
+};
 
 #[rustfmt::skip]
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]

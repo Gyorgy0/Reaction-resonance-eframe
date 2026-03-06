@@ -97,49 +97,36 @@ pub fn update_board(
             atomicvec.push(AtomicParticle::default());
         });
         check_board = Arc::new(atomicvec);
-        match *framecount % 2_u64 {
-            0_u64 => {
-                (0_usize..(row_count * col_count) as usize)
-                    .into_par_iter()
-                    .for_each(|count: usize| {
-                        let i = count / width as usize;
-                        let j = count % width as usize;
-                        solve_particle(
-                            &board_slice,
-                            &check_board,
-                            materials,
-                            &game_board.rngs,
-                            &game_board.seeds,
-                            &height,
-                            &width,
-                            i,
-                            j,
-                            game_board.gravity,
-                            framedelta,
-                        );
-                    });
-            }
-            1_u64 => {
-                (0_usize..(row_count * col_count) as usize)
-                    .into_par_iter()
-                    .for_each(|count: usize| {
-                        let i = count / width as usize;
-                        let j = count % width as usize;
-                        solve_cells(
-                            &board_slice,
-                            &check_board,
-                            &prev_board,
-                            &game_board.rngs,
-                            materials,
-                            &height,
-                            &width,
-                            i,
-                            j,
-                        );
-                    });
-            }
-            _ => {}
-        }
+        (0_usize..(row_count * col_count) as usize)
+            .into_par_iter()
+            .for_each(|count: usize| {
+                let i = count / width as usize;
+                let j = count % width as usize;
+                solve_particle(
+                    &board_slice,
+                    &check_board,
+                    materials,
+                    &game_board.rngs,
+                    &game_board.seeds,
+                    &height,
+                    &width,
+                    i,
+                    j,
+                    game_board.gravity,
+                    framedelta,
+                );
+                solve_cells(
+                    &board_slice,
+                    &check_board,
+                    &prev_board,
+                    &game_board.rngs,
+                    materials,
+                    &height,
+                    &width,
+                    i,
+                    j,
+                );
+            });
         game_board.contents = board_slice.data.into_inner();
     }
 }
@@ -216,7 +203,7 @@ pub unsafe fn swap_particle(
 }
 
 /// Write a value to a specific index.
-pub unsafe fn write_particle(
+pub unsafe fn write_life_particle(
     slice: &AtomicComparedSlice<Particle>,
     index: usize,
     value: Particle,
@@ -228,7 +215,10 @@ pub unsafe fn write_particle(
         let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
         // Checks whether the particle was overwritten
-        if !check_board[index].written.swap(true, Ordering::Relaxed) {
+        if !check_board[index]
+            .life_written
+            .swap(true, Ordering::Relaxed)
+        {
             // Get a mutable pointer to the element at `index`
             let elem_ptr = vec.as_mut_ptr().add(index);
 
