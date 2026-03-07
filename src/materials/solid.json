@@ -67,7 +67,7 @@
             },
             "material_type": {
                 "Machine": {
-                    "machine": "Cloner"
+                    "machine": "Sink"
                 }
             },
             "durability": -1,

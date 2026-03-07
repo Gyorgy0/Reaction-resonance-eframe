@@ -12,6 +12,7 @@ use crate::material::Material;
 use crate::particle::AtomicParticle;
 use crate::particle::Particle;
 use crate::physics::solve_particle;
+use crate::reactions::solve_reactions;
 use egui::Color32;
 use egui::Vec2;
 use rand::distr::Distribution;
@@ -88,7 +89,7 @@ pub fn update_board(
     if !is_stopped {
         let board_slice: AtomicComparedSlice<Particle> =
             AtomicComparedSlice::new(game_board.contents.clone());
-        let mut prev_board: Vec<Particle> = game_board.contents.clone();
+        let prev_board: Vec<Particle> = game_board.contents.clone();
         let mut check_board: Arc<Vec<AtomicParticle>> = Arc::new(vec![]);
         let height = game_board.height as usize;
         let width = game_board.width as usize;
@@ -100,8 +101,25 @@ pub fn update_board(
         (0_usize..(row_count * col_count) as usize)
             .into_par_iter()
             .for_each(|count: usize| {
-                let i = count / width as usize;
-                let j = count % width as usize;
+                let i = count / width;
+                let j = count % width;
+                solve_cells(
+                    &board_slice,
+                    &check_board,
+                    &prev_board,
+                    &game_board.rngs,
+                    materials,
+                    &height,
+                    &width,
+                    i,
+                    j,
+                );
+            });
+        (0_usize..(row_count * col_count) as usize)
+            .into_par_iter()
+            .for_each(|count: usize| {
+                let i = count / width;
+                let j = count % width;
                 solve_particle(
                     &board_slice,
                     &check_board,
@@ -115,18 +133,27 @@ pub fn update_board(
                     game_board.gravity,
                     framedelta,
                 );
-                solve_cells(
+                solve_reactions(
                     &board_slice,
                     &check_board,
                     &prev_board,
-                    &game_board.rngs,
                     materials,
+                    &game_board.rngs,
+                    &game_board.seeds,
                     &height,
                     &width,
                     i,
                     j,
+                    *framecount,
                 );
             });
+        /*(0_usize..(row_count * col_count) as usize)
+        .into_par_iter()
+        .for_each(|count: usize| {
+            let i = count / width as usize;
+            let j = count % width as usize;
+
+        });*/
         game_board.contents = board_slice.data.into_inner();
     }
 }
@@ -140,7 +167,7 @@ pub fn get_safe_i(rows: &usize, cols: &usize, pos: &(usize, usize)) -> usize {
         col = 0_usize;
     }
     col = col.clamp(0_usize, *cols - 1_usize);
-    ((row * cols) + col)
+    (row * cols) + col 
 }
 
 /// A thread-safe wrapper for a slice, allowing concurrent writes to distinct indexes.
@@ -217,6 +244,32 @@ pub unsafe fn write_life_particle(
         // Checks whether the particle was overwritten
         if !check_board[index]
             .life_written
+            .swap(true, Ordering::Relaxed)
+        {
+            // Get a mutable pointer to the element at `index`
+            let elem_ptr = vec.as_mut_ptr().add(index);
+
+            // Write the value into the element (replaces the old value)
+            *elem_ptr = value;
+        }
+    }
+}
+
+/// Write a value to a specific index.
+pub unsafe fn write_particle(
+    slice: &AtomicComparedSlice<Particle>,
+    index: usize,
+    value: Particle,
+    check_board: &Arc<Vec<AtomicParticle>>,
+) {
+    unsafe {
+        // Get a raw pointer to the underlying Vec
+        let data_ptr = slice.data.get();
+        let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
+
+        // Checks whether the particle was overwritten
+        if !check_board[index]
+            .reaction_written
             .swap(true, Ordering::Relaxed)
         {
             // Get a mutable pointer to the element at `index`

@@ -4,7 +4,7 @@ use crate::reactions::MaterialType;
 use crate::world::{AtomicComparedSlice, get_safe_i, write_life_particle};
 use crate::{material::Material, particle::Particle};
 use egui::lerp;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rayon::iter::ParallelIterator;
 use std::mem::discriminant;
 use std::sync::Arc;
 
@@ -171,20 +171,12 @@ pub(crate) fn solve_cells(
             });
         }
     });
-    if !check_board[get_safe_i(height, width, &(i, j))]
-        .written
-        .load(std::sync::atomic::Ordering::Relaxed)
-        && !check_board[get_safe_i(height, width, &(i, j))]
-            .life_written
-            .load(std::sync::atomic::Ordering::Relaxed)
-    {
-        unsafe {
-            write_life_particle(
-                slice_board,
-                get_safe_i(height, width, &(i, j)),
-                new_particle,
-                check_board,
-            )
-        };
-    }
+    unsafe {
+        write_life_particle(
+            slice_board,
+            get_safe_i(height, width, &(i, j)),
+            new_particle,
+            check_board,
+        )
+    };
 }

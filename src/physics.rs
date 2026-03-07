@@ -1,5 +1,4 @@
 use crate::{
-    life_reactions::solve_cells,
     material::Material,
     particle::{AtomicParticle, Particle},
     world::{
@@ -10,7 +9,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{
     mem::discriminant,
-    sync::{Arc, atomic::Ordering},
+    sync::Arc,
 };
 
 #[rustfmt::skip]
@@ -906,7 +905,8 @@ pub fn solve_particle(
                     );
                 }
             } else {
-                let rnd = rngs[get_safe_i(height, width, &(i, j))];
+                let rnd = rngs[get_safe_i(height, width, &(i, j))]
+                    * seeds[get_safe_i(height, width, &(i, j))];
                 unsafe {
                     write_x_speed_field(
                         slice_board,
@@ -1094,7 +1094,8 @@ pub fn solve_particle(
                 }
             } else {
                 // Rand range: (-1_f32..1_f32)
-                let rnd = rngs[get_safe_i(height, width, &(i, j))];
+                let rnd = rngs[get_safe_i(height, width, &(i, j))]
+                    * seeds[get_safe_i(height, width, &(i, j))];
                 unsafe {
                     write_y_speed_field(
                         slice_board,

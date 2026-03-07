@@ -1,6 +1,10 @@
+use crate::material::tuple_to_rangeinclusive;
 use crate::particle::{AtomicParticle, Particle};
-use crate::world::get_safe_i;
+use crate::physics::Phase;
+use crate::world::{get_safe_i, write_particle};
 use crate::{material::Material, world::AtomicComparedSlice};
+use egui::epaint::Hsva;
+use egui::{Color32, lerp};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use strum_macros::EnumIter;
@@ -67,16 +71,13 @@ pub(crate) enum MaterialType {
 }
 
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
+#[derive(Default)]
 pub(crate) enum MachineTypes {
+    #[default]
     Cloner,
     Sink,
 }
 
-impl Default for MachineTypes {
-    fn default() -> Self {
-        Self::Cloner
-    }
-}
 
 impl MaterialType {
     pub fn discriminant(&self) -> u8 {
@@ -110,6 +111,13 @@ impl MaterialType {
         };
         returnval
     }
+    pub fn get_machine_type(&self) -> MachineTypes {
+        let mut returnval: MachineTypes = MachineTypes::default();
+        if let MaterialType::Machine { machine } = self {
+            returnval = *machine;
+        };
+        returnval
+    }
 }
 #[inline(always)]
 pub(crate) fn solve_reactions(
@@ -118,11 +126,12 @@ pub(crate) fn solve_reactions(
     prev_board: &Vec<Particle>,
     materials: &Vec<(String, Material)>,
     rngs: &Vec<f32>,
-    seeds: &Vec<f32>,
+    _seeds: &Vec<f32>,
     height: &usize,
     width: &usize,
     i: usize,
     j: usize,
+    framecount: u64,
 ) {
     let neumann_positions = [
         (i.wrapping_add(1), j),
@@ -130,7 +139,7 @@ pub(crate) fn solve_reactions(
         (i, j.wrapping_add(1)),
         (i, j.saturating_sub(1)),
     ];
-    let moore_positions = [
+    let _moore_positions = [
         (i.wrapping_add(1), j.wrapping_add(1)),
         (i.wrapping_add(1), j),
         (i.wrapping_add(1), j.saturating_sub(1)),
@@ -140,20 +149,172 @@ pub(crate) fn solve_reactions(
         (i, j.wrapping_add(1)),
         (i, j.saturating_sub(1)),
     ];
+    let mut new_particle = *slice_board.get_elem(get_safe_i(height, width, &(i, j)));
     match &materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
         .1
         .material_type
     {
         MaterialType::Fuel => {
-            let rnd = rand::random_range(0_u8..4_u8);
+            let rnd = rand::random_range(0..4_u8);
+            if std::mem::discriminant(
+                &materials[prev_board
+                    .get(get_safe_i(height, width, &neumann_positions[rnd as usize]))
+                    .unwrap_or(&prev_board[get_safe_i(height, width, &(i, j))])
+                    .material_id]
+                    .1
+                    .phase,
+            ) == std::mem::discriminant(&(Phase::Plasma))
+                && prev_board
+                    .get(get_safe_i(height, width, &neumann_positions[rnd as usize]))
+                    .is_some()
+            {
+                new_particle =
+                    prev_board[get_safe_i(height, width, &neumann_positions[rnd as usize])];
+                new_particle.material_id = 7_usize;
+                new_particle.energy = 20_f32;
+                new_particle.display_color = materials[prev_board
+                    [get_safe_i(height, width, &neumann_positions[rnd as usize])]
+                .material_id]
+                    .1
+                    .material_color
+                    .color
+                    .gamma_multiply(lerp(
+                        tuple_to_rangeinclusive(
+                            materials[prev_board
+                                [get_safe_i(height, width, &neumann_positions[rnd as usize])]
+                            .material_id]
+                                .1
+                                .material_color
+                                .shinyness,
+                        ),
+                        rngs[get_safe_i(height, width, &neumann_positions[rnd as usize])],
+                    ));
+                new_particle.display_color[3] = materials[prev_board
+                    [get_safe_i(height, width, &neumann_positions[rnd as usize])]
+                .material_id]
+                    .1
+                    .material_color
+                    .color
+                    .a();
+                if !check_board[get_safe_i(height, width, &(i, j))]
+                    .reaction_written
+                    .load(std::sync::atomic::Ordering::Relaxed)
+                {
+                    unsafe {
+                        write_particle(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            new_particle,
+                            check_board,
+                        )
+                    };
+                }
+            }
         }
         MaterialType::Machine {
             machine: machine_type,
         } => match machine_type {
-            MachineTypes::Cloner => {}
-            MachineTypes::Sink => {}
+            MachineTypes::Cloner => {
+                for pos in neumann_positions.into_iter() {
+                    if new_particle.cloned_material == 0_usize
+                        && new_particle.material_id
+                            != prev_board
+                                .get(get_safe_i(height, width, &pos))
+                                .unwrap_or(&prev_board[get_safe_i(height, width, &(i, j))])
+                                .material_id
+                    {
+                        new_particle.cloned_material =
+                            prev_board[get_safe_i(height, width, &pos)].material_id;
+                        unsafe {
+                            write_particle(
+                                slice_board,
+                                get_safe_i(height, width, &(i, j)),
+                                new_particle,
+                                check_board,
+                            )
+                        };
+                    } else if new_particle.cloned_material != 0_usize
+                        && prev_board[get_safe_i(height, width, &pos)].material_id == 0_usize
+                    {
+                        new_particle.material_id =
+                            prev_board[get_safe_i(height, width, &(i, j))].cloned_material;
+                        new_particle.display_color =
+                            materials[new_particle.material_id].1.material_color.color;
+                        new_particle.display_color =
+                            new_particle.display_color.gamma_multiply(lerp(
+                                tuple_to_rangeinclusive(
+                                    materials[new_particle.material_id]
+                                        .1
+                                        .material_color
+                                        .shinyness,
+                                ),
+                                rngs[get_safe_i(height, width, &(i, j))],
+                            ));
+                        new_particle.display_color[3] = materials[new_particle.material_id]
+                            .1
+                            .material_color
+                            .color
+                            .a();
+                        unsafe {
+                            write_particle(
+                                slice_board,
+                                get_safe_i(height, width, &pos),
+                                new_particle,
+                                check_board,
+                            )
+                        };
+                    }
+                }
+            }
+            MachineTypes::Sink => {
+                for pos in neumann_positions.into_iter() {
+                    if materials[prev_board[get_safe_i(height, width, &pos)].material_id]
+                        .1
+                        .material_type
+                        .get_machine_type()
+                        != MachineTypes::Sink
+                    {
+                        new_particle = Particle::default();
+                        unsafe {
+                            write_particle(
+                                slice_board,
+                                get_safe_i(height, width, &pos),
+                                new_particle,
+                                check_board,
+                            )
+                        };
+                    }
+                }
+            }
         },
-        MaterialType::Decor => {}
+        MaterialType::Decor => {
+            if new_particle.display_color == Color32::from_rgba_unmultiplied(0, 0, 0, 0) {
+                new_particle.display_color = Hsva::new(
+                    ((framecount / 4) % (356)) as f32 / (356_f32),
+                    1_f32,
+                    1_f32,
+                    1_f32,
+                )
+                .into();
+                new_particle.display_color = new_particle.display_color.gamma_multiply(lerp(
+                    tuple_to_rangeinclusive(
+                        materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
+                            .1
+                            .material_color
+                            .shinyness,
+                    ),
+                    rngs[get_safe_i(height, width, &(i, j))],
+                ));
+                unsafe {
+                    write_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        new_particle,
+                        check_board,
+                    )
+                };
+            }
+        }
         _ => {}
     }
 }

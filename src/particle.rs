@@ -42,6 +42,7 @@ impl Default for Particle {
 pub struct AtomicParticle {
     pub written: AtomicBool,            // Checks whether the AtomicParticle has been overwritten by a physics reaction
     pub life_written: AtomicBool,       // Checks whether the AtomicParticle has been overwritten by a life reaction
+    pub reaction_written: AtomicBool,   // Checks whether the AtomicParticle has been overwritten by a chemical reaction
     //pub material_id: AtomicBool,      // Checks whether the AtomicParticle's material_id has been overwritten
     pub speed_x: AtomicBool,            // Checks whether the AtomicParticle's speed's x componenet has been overwritten
     pub speed_y: AtomicBool,            // Checks whether the AtomicParticle's speed's y componenet has been overwritten
@@ -57,6 +58,7 @@ impl AtomicParticle {
     pub fn new(
         written: bool,
         life_written: bool,
+        reaction_written: bool,
         speed_x: bool,
         speed_y: bool,
         updated: bool,
@@ -64,6 +66,7 @@ impl AtomicParticle {
         Self {
             written: AtomicBool::new(written),
             life_written: AtomicBool::new(life_written),
+            reaction_written: AtomicBool::new(reaction_written),
             //material_id: AtomicBool::new(material_id),
             speed_x: AtomicBool::new(speed_x),
             speed_y: AtomicBool::new(speed_y),
@@ -79,6 +82,6 @@ impl AtomicParticle {
 
 impl Default for AtomicParticle {
     fn default() -> Self {
-        Self::new(false, false, false, false, false)
+        Self::new(false, false, false, false, false, false)
     }
 }
