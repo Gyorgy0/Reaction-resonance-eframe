@@ -31,10 +31,11 @@ pub(crate) fn solve_cells(
         (i, j.wrapping_add(1)),
         (i, j.saturating_sub(1)),
     ];
+    let cell_positions_len = cell_positions.len();
     let mut automatons: [Option<usize>; 8] = [Option::None; 8];
     let mut new_particle = *slice_board.get_elem(get_safe_i(height, width, &(i, j)));
 
-    (0_usize..cell_positions.len()).for_each(|pos: usize| {
+    (0_usize..cell_positions_len).for_each(|pos: usize| {
         if discriminant(
             &materials[prev_board
                 .get(get_safe_i(
@@ -63,7 +64,7 @@ pub(crate) fn solve_cells(
             );
         }
     });
-    (0_usize..cell_positions.len()).for_each(|automaton| {
+    (0_usize..cell_positions_len).for_each(|automaton| {
         if automatons[automaton].is_some() {
             let mut alive_neighbours = 0_u8;
             let mut birth = materials[automatons[automaton].unwrap()]
@@ -74,7 +75,7 @@ pub(crate) fn solve_cells(
                 .1
                 .material_type
                 .get_survival();
-            (0_usize..cell_positions.len()).for_each(|pos: usize| {
+            (0_usize..cell_positions_len).for_each(|pos: usize| {
                 if prev_board
                     .get(get_safe_i(
                         height,
@@ -117,7 +118,7 @@ pub(crate) fn solve_cells(
                     .color
                     .a();
             }
-            (0_usize..cell_positions.len()).for_each(|pos: usize| {
+            (0_usize..cell_positions_len).for_each(|pos: usize| {
                 if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
                     == alive_neighbours
                 {

@@ -123,8 +123,6 @@ pub(crate) fn solve_reactions(
     width: &usize,
     i: usize,
     j: usize,
-    gravity: f32,
-    framedelta: f32,
 ) {
     let neumann_positions = [
         (i.wrapping_add(1), j),
