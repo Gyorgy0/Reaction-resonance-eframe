@@ -194,7 +194,7 @@
             "material_type": {
                 "CAutomata": {
                     "survival": 15,
-                    "birth": 42,
+                    "birth": 47,
                     "stages": 0
                 }
             },
@@ -204,6 +204,38 @@
                     120,
                     12,
                     128,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "Star Wars",
+        {
+            "id": 16,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 60,
+                    "birth": 67,
+                    "stages": 6
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    40,
+                    40,
+                    104,
                     255
                 ],
                 "shinyness": [

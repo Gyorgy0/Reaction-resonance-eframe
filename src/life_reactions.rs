@@ -33,7 +33,7 @@ pub(crate) fn solve_cells(
     ];
     let cell_positions_len = cell_positions.len();
     let mut automatons: [Option<usize>; 8] = [Option::None; 8];
-    let mut new_particle = *slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+    let mut new_particle = prev_board[get_safe_i(height, width, &(i, j))];
 
     (0_usize..cell_positions_len).for_each(|pos: usize| {
         if discriminant(
@@ -85,6 +85,18 @@ pub(crate) fn solve_cells(
                     .unwrap_or(&Particle::default())
                     .material_id
                     == automatons[automaton].unwrap()
+                    && prev_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(cell_positions[pos].0, cell_positions[pos].1),
+                        ))
+                        .unwrap_or(&Particle::default())
+                        .life_stage
+                        == materials[automatons[automaton].unwrap()]
+                            .1
+                            .material_type
+                            .get_max_stage()
                 {
                     alive_neighbours += 1_u8;
                 }
@@ -118,12 +130,17 @@ pub(crate) fn solve_cells(
                     .color
                     .a();
             }
-            (0_usize..cell_positions_len).for_each(|pos: usize| {
+            for pos in (0_usize..cell_positions_len) {
+                // Survival rule check
                 if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
                     == alive_neighbours
+                    && materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
+                        .1
+                        .material_type
+                        .get_max_stage()
+                        == prev_board[get_safe_i(height, width, &(i, j))].life_stage
                 {
-                    new_particle.material_id =
-                        prev_board[get_safe_i(height, width, &(i, j))].material_id;
+                    new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                     new_particle.display_color = materials[new_particle.material_id]
                         .1
                         .material_color
@@ -143,10 +160,52 @@ pub(crate) fn solve_cells(
                         .color
                         .a();
                 }
+                if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
+                    != alive_neighbours
+                    && prev_board[get_safe_i(height, width, &(i, j))].life_stage > 0_u8
+                {
+                    new_particle = prev_board[get_safe_i(height, width, &(i, j))];
+                    new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
+                    new_particle.display_color = materials[new_particle.material_id]
+                        .1
+                        .material_color
+                        .color
+                        .gamma_multiply(lerp(
+                            tuple_to_rangeinclusive(
+                                materials[new_particle.material_id]
+                                    .1
+                                    .material_color
+                                    .shinyness,
+                            ),
+                            board_rngs[get_safe_i(height, width, &(i, j))],
+                        ));
+                    new_particle.display_color[3] = materials[new_particle.material_id]
+                        .1
+                        .material_color
+                        .color
+                        .a();
+                    break;
+                }
+                // Birth rule check
                 if ((birth.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
                     == alive_neighbours
+                    && discriminant(
+                        &materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
+                            .1
+                            .material_type,
+                    ) != discriminant(
+                        &(MaterialType::CAutomata {
+                            stages: 0_u8,
+                            survival: 0_u8,
+                            birth: 0_u8,
+                        }),
+                    )
                 {
                     new_particle.material_id = automatons[automaton].unwrap();
+                    new_particle.life_stage = materials[new_particle.material_id]
+                        .1
+                        .material_type
+                        .get_max_stage();
                     new_particle.display_color = materials[new_particle.material_id]
                         .1
                         .material_color
@@ -168,7 +227,7 @@ pub(crate) fn solve_cells(
                 }
                 survival <<= 1;
                 birth <<= 1;
-            });
+            }
         }
     });
     unsafe {

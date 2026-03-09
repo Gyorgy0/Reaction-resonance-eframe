@@ -167,7 +167,7 @@ pub fn get_safe_i(rows: &usize, cols: &usize, pos: &(usize, usize)) -> usize {
         col = 0_usize;
     }
     col = col.clamp(0_usize, *cols - 1_usize);
-    (row * cols) + col 
+    (row * cols) + col
 }
 
 /// A thread-safe wrapper for a slice, allowing concurrent writes to distinct indexes.

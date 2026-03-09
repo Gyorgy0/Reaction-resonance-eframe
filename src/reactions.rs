@@ -70,14 +70,12 @@ pub(crate) enum MaterialType {
     Solution,
 }
 
-#[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
-#[derive(Default)]
+#[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter, Default)]
 pub(crate) enum MachineTypes {
     #[default]
     Cloner,
     Sink,
 }
-
 
 impl MaterialType {
     pub fn discriminant(&self) -> u8 {
@@ -111,6 +109,20 @@ impl MaterialType {
         };
         returnval
     }
+
+    pub fn get_max_stage(&self) -> u8 {
+        let mut returnval: u8 = 0_u8;
+        if let MaterialType::CAutomata {
+            birth: _,
+            survival: _,
+            stages,
+        } = self
+        {
+            returnval = *stages;
+        };
+        returnval
+    }
+
     pub fn get_machine_type(&self) -> MachineTypes {
         let mut returnval: MachineTypes = MachineTypes::default();
         if let MaterialType::Machine { machine } = self {
