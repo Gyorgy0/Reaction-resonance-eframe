@@ -133,6 +133,12 @@ pub fn update_board(
                     game_board.gravity,
                     framedelta,
                 );
+            });
+        (0_usize..(row_count * col_count) as usize)
+            .into_par_iter()
+            .for_each(|count: usize| {
+                let i = count / width as usize;
+                let j = count % width as usize;
                 solve_reactions(
                     &board_slice,
                     &check_board,
@@ -147,13 +153,6 @@ pub fn update_board(
                     *framecount,
                 );
             });
-        /*(0_usize..(row_count * col_count) as usize)
-        .into_par_iter()
-        .for_each(|count: usize| {
-            let i = count / width as usize;
-            let j = count % width as usize;
-
-        });*/
         game_board.contents = board_slice.data.into_inner();
     }
 }
@@ -161,9 +160,9 @@ pub fn update_board(
 /// A method that returns an index inside the specified height and width
 #[inline(always)]
 pub fn get_safe_i(rows: &usize, cols: &usize, pos: &(usize, usize)) -> usize {
-    let row = pos.0.clamp(0_usize, *rows);
+    let mut row = pos.0.clamp(0_usize, *rows);
     let mut col = pos.1;
-    if col > usize::MAX - cols {
+    if col > (usize::MAX - cols) {
         col = 0_usize;
     }
     col = col.clamp(0_usize, *cols - 1_usize);
