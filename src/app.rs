@@ -9,13 +9,13 @@ use crate::{
 };
 use egui::{
     Color32, ColorImage, Id, Image, RichText, Sense, Stroke, TextureHandle, TextureOptions, Theme,
-    Vec2, load, vec2,
+    Tooltip, Vec2, WidgetText, load, vec2,
 };
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
-#[serde(default)] // if we add new fields, give them default values when deserializing old state
+#[serde(default)] // If we add new fields, give them default values when deserializing old state
 pub struct EFrameApp {
     fullscreen: bool,
     #[serde(skip)]
@@ -344,13 +344,17 @@ impl eframe::App for EFrameApp {
                                     self.selected_material = 0_usize;
                                 }
                                 MaterialType::iter().for_each(|category| {
-                                    if ui
-                                        .add(egui::Button::new(RichText::new(format!(
-                                            "{}",
-                                            category
-                                        ))))
-                                        .clicked()
-                                    {
+                                    let category_button = ui.add(
+                                        egui::Button::new(
+                                            Image::new(category.get_icon())
+                                                .fit_to_exact_size(ctx.used_size() * 0.075_f32),
+                                        )
+                                        .corner_radius(10_u8),
+                                    );
+                                    if category_button.hovered() {
+                                        category_button.show_tooltip_text(category.to_string());
+                                    }
+                                    if category_button.clicked() {
                                         self.selected_category = category;
                                     }
                                 });

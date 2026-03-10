@@ -2,8 +2,8 @@ use std::fmt::{self};
 
 use egui::util::hash;
 use egui::{
-    Color32, ColorImage, Context, Id, LayerId, NumExt, Rect, Response, Stroke, TextureOptions, Ui,
-    Vec2, pos2, vec2,
+    Color32, ColorImage, Context, Id, ImageSource, LayerId, NumExt, Rect, Response, Stroke,
+    TextureOptions, Ui, Vec2, include_image, pos2, vec2,
 };
 
 use crate::egui_input::BrushShape;
@@ -42,7 +42,7 @@ impl fmt::Display for MaterialType {
                 survival: _,
                 stages: _,
             } => write!(f, "Cellular automaton"),
-            MaterialType::Machine { machine } => write!(f, "Machine {}", machine),
+            MaterialType::Machine { machine } => write!(f, "Machine"),
             MaterialType::Metal => write!(f, "Metal"),
             MaterialType::Explosive => write!(f, "Explosive"),
             MaterialType::Fuel => write!(f, "Fuel"),
@@ -58,6 +58,29 @@ impl fmt::Display for MachineTypes {
         match *self {
             MachineTypes::Cloner => write!(f, "Cloner"),
             MachineTypes::Sink => write!(f, "Sink"),
+        }
+    }
+}
+
+impl MaterialType {
+    pub fn get_icon(&self) -> ImageSource {
+        match self {
+            MaterialType::Corrosive => include_image!("assets/corrosives_icon.svg"),
+            MaterialType::Alloy => include_image!("assets/alloys_icon.svg"),
+            MaterialType::CAutomata {
+                survival,
+                birth,
+                stages,
+            } => include_image!("assets/cautomatas_icon.svg"),
+            MaterialType::Ceramic => include_image!("assets/category_background.svg"),
+            MaterialType::Explosive => include_image!("assets/explosives_icon.svg"),
+            MaterialType::Fuel => include_image!("assets/fuels_icon.svg"),
+            MaterialType::Glass => include_image!("assets/glass_icon.svg"),
+            MaterialType::Machine { machine } => include_image!("assets/machines_icon.svg"),
+            MaterialType::Metal => include_image!("assets/metals_icon.svg"),
+            MaterialType::Oxidizer => include_image!("assets/oxidizers_icon.svg"),
+            MaterialType::Decor => include_image!("assets/category_background.svg"),
+            MaterialType::Solution => include_image!("assets/solutions_icon.svg"),
         }
     }
 }

@@ -77,6 +77,7 @@ pub(crate) fn solve_cells(
         )
     {
         new_particle = Particle::default();
+        new_particle.life_stage = prev_board[get_safe_i(height, width, &(i, j))].life_stage;
     }
     // We evaluate each of the valid cellular-automatons found within the neighborhood
     (0_usize..cell_positions_len).for_each(|automaton| {
@@ -91,7 +92,14 @@ pub(crate) fn solve_cells(
                 .1
                 .material_type
                 .get_survival();
-
+            /*println!(
+                "{:?}, current_life: {:?}",
+                materials[automatons[automaton].unwrap()]
+                    .1
+                    .material_type
+                    .get_max_stage(),
+                prev_board[get_safe_i(height, width, &(i, j))].life_stage
+            );*/
             // We count the number of alive neighbours (these neighbours are of the same type and they are "healthy")
             (0_usize..cell_positions_len).for_each(|pos: usize| {
                 if discriminant(
@@ -107,10 +115,7 @@ pub(crate) fn solve_cells(
                         birth: 0_u8,
                         stages: 0_u8,
                     }),
-                ) && materials[prev_board
-                    .get(get_safe_i(height, width, &cell_positions[pos]))
-                    .unwrap_or(&Particle::default())
-                    .material_id]
+                ) && materials[automatons[automaton].unwrap()]
                     .1
                     .material_type
                     .get_max_stage()
@@ -124,57 +129,9 @@ pub(crate) fn solve_cells(
                 // Survival rule check
                 if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
                     == alive_neighbours
-                    && materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
-                        .1
-                        .material_type
-                        .get_max_stage()
-                        == prev_board[get_safe_i(height, width, &(i, j))].life_stage
-                {
-                    new_particle = prev_board[get_safe_i(height, width, &(i, j))];
-                    new_particle.display_color = materials[new_particle.material_id]
-                        .1
-                        .material_color
-                        .color
-                        .gamma_multiply(lerp(
-                            tuple_to_rangeinclusive(
-                                materials[new_particle.material_id]
-                                    .1
-                                    .material_color
-                                    .shinyness,
-                            ),
-                            board_rngs[get_safe_i(height, width, &(i, j))],
-                        ));
-                    new_particle.display_color[3] = materials[new_particle.material_id]
-                        .1
-                        .material_color
-                        .color
-                        .a();
-                }
-                // Survival by health check
-                else if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
-                    != alive_neighbours
-                    && prev_board[get_safe_i(height, width, &(i, j))].life_stage > 0_u8
                 {
                     new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                     new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
-                    new_particle.display_color = materials[new_particle.material_id]
-                        .1
-                        .material_color
-                        .color
-                        .gamma_multiply(lerp(
-                            tuple_to_rangeinclusive(
-                                materials[new_particle.material_id]
-                                    .1
-                                    .material_color
-                                    .shinyness,
-                            ),
-                            board_rngs[get_safe_i(height, width, &(i, j))],
-                        ));
-                    new_particle.display_color[3] = materials[new_particle.material_id]
-                        .1
-                        .material_color
-                        .color
-                        .a();
                 }
                 // Birth rule check
                 if ((birth.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
@@ -183,7 +140,7 @@ pub(crate) fn solve_cells(
                         != automatons[automaton].unwrap()
                 {
                     new_particle.material_id = automatons[automaton].unwrap();
-                    new_particle.life_stage = materials[new_particle.material_id]
+                    new_particle.life_stage = materials[automatons[automaton].unwrap()]
                         .1
                         .material_type
                         .get_max_stage();
@@ -209,6 +166,11 @@ pub(crate) fn solve_cells(
                 survival <<= 1;
                 birth <<= 1;
             }
+            if prev_board[get_safe_i(height, width, &(i, j))].life_stage > 0_u8 {
+                new_particle = prev_board[get_safe_i(height, width, &(i, j))];
+                new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
+            }
+            // Survival by health check
         }
     });
     unsafe {
