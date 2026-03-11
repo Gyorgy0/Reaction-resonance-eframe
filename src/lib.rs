@@ -6,6 +6,7 @@ mod material;
 mod particle;
 mod physics;
 mod reactions;
+mod system_data;
 mod system_ui;
 mod world;
 pub use app::EFrameApp;

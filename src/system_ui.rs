@@ -42,7 +42,7 @@ impl fmt::Display for MaterialType {
                 survival: _,
                 stages: _,
             } => write!(f, "Cellular automaton"),
-            MaterialType::Machine { machine } => write!(f, "Machine"),
+            MaterialType::Machine { machine: _ } => write!(f, "Machine"),
             MaterialType::Metal => write!(f, "Metal"),
             MaterialType::Explosive => write!(f, "Explosive"),
             MaterialType::Fuel => write!(f, "Fuel"),
@@ -63,24 +63,44 @@ impl fmt::Display for MachineTypes {
 }
 
 impl MaterialType {
-    pub fn get_icon(&self) -> ImageSource {
+    pub fn get_icon(&self) -> ImageSource<'_> {
         match self {
             MaterialType::Corrosive => include_image!("assets/corrosives_icon.svg"),
             MaterialType::Alloy => include_image!("assets/alloys_icon.svg"),
             MaterialType::CAutomata {
-                survival,
-                birth,
-                stages,
+                survival: _,
+                birth: _,
+                stages: _,
             } => include_image!("assets/cautomatas_icon.svg"),
             MaterialType::Ceramic => include_image!("assets/category_background.svg"),
             MaterialType::Explosive => include_image!("assets/explosives_icon.svg"),
             MaterialType::Fuel => include_image!("assets/fuels_icon.svg"),
             MaterialType::Glass => include_image!("assets/glass_icon.svg"),
-            MaterialType::Machine { machine } => include_image!("assets/machines_icon.svg"),
+            MaterialType::Machine { machine: _ } => include_image!("assets/machines_icon.svg"),
             MaterialType::Metal => include_image!("assets/metals_icon.svg"),
             MaterialType::Oxidizer => include_image!("assets/oxidizers_icon.svg"),
             MaterialType::Decor => include_image!("assets/category_background.svg"),
             MaterialType::Solution => include_image!("assets/solutions_icon.svg"),
+        }
+    }
+    pub fn get_name(&self) -> &str {
+        match self {
+            MaterialType::Corrosive => "Corrosive materials",
+            MaterialType::Alloy => "Alloys",
+            MaterialType::CAutomata {
+                survival: _,
+                birth: _,
+                stages: _,
+            } => "Cellular automatons",
+            MaterialType::Ceramic => "Ceramics",
+            MaterialType::Explosive => "Explosive materials",
+            MaterialType::Fuel => "Fuels",
+            MaterialType::Glass => "Glass materials",
+            MaterialType::Machine { machine: _ } => "Machines",
+            MaterialType::Metal => "Metals",
+            MaterialType::Oxidizer => "Oxidizers",
+            MaterialType::Decor => "Decorative materials",
+            MaterialType::Solution => "Solutions",
         }
     }
 }

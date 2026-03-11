@@ -137,8 +137,8 @@ pub fn update_board(
         (0_usize..(row_count * col_count) as usize)
             .into_par_iter()
             .for_each(|count: usize| {
-                let i = count / width as usize;
-                let j = count % width as usize;
+                let i = count / width;
+                let j = count % width;
                 solve_reactions(
                     &board_slice,
                     &check_board,
@@ -160,7 +160,7 @@ pub fn update_board(
 /// A method that returns an index inside the specified height and width
 #[inline(always)]
 pub fn get_safe_i(rows: &usize, cols: &usize, pos: &(usize, usize)) -> usize {
-    let mut row = pos.0.clamp(0_usize, *rows);
+    let row = pos.0.clamp(0_usize, *rows);
     let mut col = pos.1;
     if col > (usize::MAX - cols) {
         col = 0_usize;

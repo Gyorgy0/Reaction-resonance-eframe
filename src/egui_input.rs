@@ -1,3 +1,4 @@
+use crate::system_data::ApplicationOptions;
 use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
 use crate::{material::VOID, particle::Particle};
@@ -5,6 +6,7 @@ use egui::{Key, Response, Vec2, lerp, pos2, vec2};
 use std::ops::{AddAssign, Not, RangeInclusive};
 use strum_macros::EnumIter;
 
+// Handles mouse/touch controls
 pub fn handle_mouse_input(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
@@ -84,11 +86,38 @@ pub fn handle_mouse_input(
     }
 }
 
-pub fn handle_key_inputs(game_board: &mut Board, is_paused: &mut bool, response: Response) {
+// Handles keyboard inputs
+pub fn handle_key_inputs(
+    game_board: &mut Board,
+    materials: &Vec<(String, Material)>,
+    program_options: &mut ApplicationOptions,
+    framecount: &mut u64,
+    framedelta: f32,
+    response: Response,
+) {
+    // R key - Resets the board
     if response.ctx.input(|i| i.key_pressed(Key::R)) {
         game_board.create_board();
-    } else if response.ctx.input(|i| i.key_pressed(Key::Space)) {
-        *is_paused = is_paused.not();
+    }
+    // Space key - Pauses the simulation
+    if response.ctx.input(|i| i.key_pressed(Key::Space)) {
+        program_options.simulation_stopped = program_options.simulation_stopped.not();
+    }
+    // A key - Advances the simulation by one step
+    if response.ctx.input(|i| i.key_pressed(Key::A)) {
+        program_options.simulation_stopped = false;
+        update_board(
+            game_board,
+            materials,
+            program_options.simulation_stopped,
+            framecount,
+            framedelta,
+        );
+        program_options.simulation_stopped = true;
+    }
+    // F3 key - Toggles debug mode
+    if response.ctx.input(|i| i.key_pressed(Key::F3)) {
+        program_options.debug_mode = program_options.debug_mode.not();
     }
 }
 

@@ -1,5 +1,6 @@
 use std::{mem::discriminant, u8};
 
+use crate::system_data::ApplicationOptions;
 use crate::{
     egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
     material::{Material, VOID},
@@ -9,7 +10,7 @@ use crate::{
 };
 use egui::{
     Color32, ColorImage, Id, Image, RichText, Sense, Stroke, TextureHandle, TextureOptions, Theme,
-    Tooltip, Vec2, WidgetText, load, vec2,
+    Vec2, load, vec2,
 };
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
@@ -27,11 +28,11 @@ pub struct EFrameApp {
     #[serde(skip)]
     material_categories: Vec<Vec<(String, Material)>>,
     #[serde(skip)]
+    program_options: ApplicationOptions,
+    #[serde(skip)]
     selected_material: usize,
     #[serde(skip)]
     selected_category: MaterialType,
-    #[serde(skip)]
-    is_stopped: bool,
     #[serde(skip)]
     framecount: u64,
     #[serde(skip)]
@@ -142,7 +143,7 @@ impl Default for EFrameApp {
             texture,
             selected_material,
             selected_category,
-            is_stopped: false,
+            program_options: ApplicationOptions::default(),
             framecount: 0,
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
             response_text: response_text.clone(),
@@ -407,7 +408,14 @@ impl eframe::App for EFrameApp {
                         self.selected_material,
                         board.clone(),
                     );
-                    handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
+                    handle_key_inputs(
+                        &mut self.game_board,
+                        &self.materials,
+                        &mut self.program_options,
+                        &mut self.framecount,
+                        ctx.input(|time| time.unstable_dt),
+                        board,
+                    );
                 });
             } else {
                 ui.vertical_centered(|ui| {
@@ -423,13 +431,20 @@ impl eframe::App for EFrameApp {
                         self.selected_material,
                         board.clone(),
                     );
-                    handle_key_inputs(&mut self.game_board, &mut self.is_stopped, board);
+                    handle_key_inputs(
+                        &mut self.game_board,
+                        &self.materials,
+                        &mut self.program_options,
+                        &mut self.framecount,
+                        ctx.input(|time| time.unstable_dt),
+                        board,
+                    );
                 });
             }
             update_board(
                 &mut self.game_board,
                 &self.materials,
-                self.is_stopped,
+                self.program_options.simulation_stopped,
                 &mut self.framecount,
                 ctx.input(|time| time.unstable_dt),
             );
