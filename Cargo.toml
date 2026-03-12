@@ -53,7 +53,9 @@ codegen-units = 1
 
 [profile.release]
 opt-level = 's'
-#lto = true
+strip = true
+#lto = "fat"
+panic = "abort"
 codegen-units = 1
 
 [package.metadata.android]

@@ -37,9 +37,9 @@ pub fn handle_mouse_input(
                     && (game_board.contents.get(cellpos).unwrap().material_id == VOID.id
                         || selected_material_id == VOID.id)
                 {
-                    game_board.contents[cellpos] =
+                    let mut new_particle =
                         Particle::new(&materials[material].1, vec2(0_f32, 0_f32), 293.15);
-                    game_board.contents[cellpos].display_color = materials[selected_material_id]
+                    new_particle.display_color = materials[selected_material_id]
                         .1
                         .material_color
                         .color
@@ -50,8 +50,9 @@ pub fn handle_mouse_input(
                             ),
                             game_board.rngs[cellpos],
                         ));
-                    game_board.contents[cellpos].display_color[3] =
+                    new_particle.display_color[3] =
                         materials[selected_material_id].1.material_color.color.a();
+                    unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
                 }
             }
         }
@@ -71,7 +72,9 @@ pub fn handle_mouse_input(
                 if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
                     && game_board.contents.get(cellpos).is_some()
                 {
-                    game_board.contents[cellpos] = Particle::default();
+                    unsafe {
+                        write_particle_seq(&game_board.contents, cellpos, Particle::default())
+                    };
                 }
             }
         }

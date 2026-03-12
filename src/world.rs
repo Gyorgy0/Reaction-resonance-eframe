@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
 use egui::vec2;
+use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
@@ -40,12 +41,11 @@ pub(crate) struct MaterialColor{
 }
 
 #[rustfmt::skip]
-#[derive(Clone)]
 pub struct Board {
     pub rng: rand::rngs::SmallRng,
     pub width: u16,
     pub height: u16,
-    pub contents: Vec<Particle>,
+    pub contents: AtomicComparedSlice<Particle>,
     pub gravity: f32,
     pub brush_size: Vec2,
     pub brush_shape: BrushShape,
@@ -57,7 +57,10 @@ pub struct Board {
 impl Board {
     pub fn create_board(&mut self) {
         let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
-        self.contents = vec![Particle::default(); self.height as usize * self.width as usize];
+        self.contents = AtomicComparedSlice::new(vec![
+            Particle::default();
+            self.height as usize * self.width as usize
+        ]);
         self.rngs = vec![0_f32; self.height as usize * self.width as usize];
         self.rngs
             .iter_mut()
@@ -87,9 +90,7 @@ pub fn update_board(
     let col_count: i32 = game_board.width as i32;
 
     if !is_stopped {
-        let board_slice: AtomicComparedSlice<Particle> =
-            AtomicComparedSlice::new(game_board.contents.clone());
-        let prev_board: Vec<Particle> = game_board.contents.clone();
+        let prev_board: Vec<Particle> = game_board.contents.clone_inner();
         let mut check_board: Arc<Vec<AtomicParticle>> = Arc::new(vec![]);
         let height = game_board.height as usize;
         let width = game_board.width as usize;
@@ -104,7 +105,7 @@ pub fn update_board(
                 let i = count / width;
                 let j = count % width;
                 solve_cells(
-                    &board_slice,
+                    &game_board.contents,
                     &check_board,
                     &prev_board,
                     &game_board.rngs,
@@ -121,7 +122,7 @@ pub fn update_board(
                 let i = count / width;
                 let j = count % width;
                 solve_particle(
-                    &board_slice,
+                    &game_board.contents,
                     &check_board,
                     materials,
                     &game_board.rngs,
@@ -133,14 +134,8 @@ pub fn update_board(
                     game_board.gravity,
                     framedelta,
                 );
-            });
-        (0_usize..(row_count * col_count) as usize)
-            .into_par_iter()
-            .for_each(|count: usize| {
-                let i = count / width;
-                let j = count % width;
                 solve_reactions(
-                    &board_slice,
+                    &game_board.contents,
                     &check_board,
                     &prev_board,
                     materials,
@@ -153,7 +148,6 @@ pub fn update_board(
                     *framecount,
                 );
             });
-        game_board.contents = board_slice.data.into_inner();
     }
 }
 
@@ -178,6 +172,16 @@ pub struct AtomicComparedSlice<T> {
 // unsafe impls: Manually mark ThreadSafeSlice as Send and Sync.
 unsafe impl<T: Send> Send for AtomicComparedSlice<T> {}
 unsafe impl<T: Send> Sync for AtomicComparedSlice<T> {}
+
+impl<T: Clone> AtomicComparedSlice<T> {
+    pub fn clone_inner(&self) -> Vec<T> {
+        
+        unsafe {
+            // [#2]
+            (*self.data.get()).clone()
+        }
+    }
+}
 
 impl<T> AtomicComparedSlice<T> {
     /// Create a new ThreadSafeSlice from a Vec<T>.
@@ -251,6 +255,24 @@ pub unsafe fn write_life_particle(
             // Write the value into the element (replaces the old value)
             *elem_ptr = value;
         }
+    }
+}
+
+/// Write a value to a specific index.
+pub unsafe fn write_particle_seq(
+    slice: &AtomicComparedSlice<Particle>,
+    index: usize,
+    value: Particle,
+) {
+    unsafe {
+        // Get a raw pointer to the underlying Vec
+        let data_ptr = slice.data.get();
+        let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
+        // Get a mutable pointer to the element at `index`
+        let elem_ptr = vec.as_mut_ptr().add(index);
+
+        // Write the value into the element (replaces the old value)
+        *elem_ptr = value;
     }
 }
 

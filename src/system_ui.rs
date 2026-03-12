@@ -107,7 +107,12 @@ impl MaterialType {
 
 impl Board {
     pub fn draw_board(&mut self) -> Vec<Color32> {
-        self.contents.iter().map(|px| px.display_color).collect()
+        let pixels: Vec<Color32> = vec![Color32::BLACK; self.contents.len()];
+        pixels
+            .iter()
+            .enumerate()
+            .map(|px| self.contents.get_elem(px.0).display_color)
+            .collect()
     }
 }
 
@@ -116,7 +121,7 @@ pub fn draw_brush_outlines(game_board: &Board, board: &Response, ui: &mut Ui, ct
     if game_board.brush_size.min_elem() <= 0_f32 {
         ui.painter()
             .clone()
-            .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0))))
+            .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0_i32))))
             .with_clip_rect(ctx.content_rect())
             .rect(
                 Rect::from_min_size(

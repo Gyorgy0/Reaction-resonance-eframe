@@ -1,6 +1,8 @@
 use std::{mem::discriminant, u8};
 
+use crate::particle::Particle;
 use crate::system_data::ApplicationOptions;
+use crate::world::{AtomicComparedSlice, get_safe_i};
 use crate::{
     egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
     material::{Material, VOID},
@@ -8,9 +10,12 @@ use crate::{
     system_ui::draw_brush_outlines,
     world::{Board, update_board},
 };
+use egui::epaint::TextShape;
+use egui::text::LayoutJob;
+use egui::util::hash;
 use egui::{
-    Color32, ColorImage, Id, Image, RichText, Sense, Stroke, TextureHandle, TextureOptions, Theme,
-    Vec2, load, vec2,
+    Color32, ColorImage, FontId, Id, Image, LayerId, Pos2, RichText, Sense, Stroke, TextFormat, TextureHandle, TextureOptions, Theme,
+    Vec2, load, pos2, vec2,
 };
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
@@ -19,6 +24,10 @@ use strum::IntoEnumIterator;
 #[serde(default)] // If we add new fields, give them default values when deserializing old state
 pub struct EFrameApp {
     fullscreen: bool,
+    #[serde(skip)]
+    fps_values: Vec<f32>,
+    #[serde(skip)]
+    debug_text_job: LayoutJob,
     #[serde(skip)]
     texture: TextureHandle,
     #[serde(skip)]
@@ -45,9 +54,9 @@ impl Default for EFrameApp {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 512_u16,
-            height: 256_u16,
-            contents: vec![],
+            width: 768_u16,
+            height: 384_u16,
+            contents: AtomicComparedSlice::new(vec![]),
             gravity: 9.81_f32,
             brush_size: vec2(6_f32, 6_f32),
             brush_shape: BrushShape::Rectangle,
@@ -135,8 +144,11 @@ impl Default for EFrameApp {
         }
         let selected_material = 0_usize;
         let selected_category = MaterialType::Fuel;
+        let debug_text_job = LayoutJob::default();
         Self {
             fullscreen: false,
+            fps_values: vec![0_f32; 256_usize],
+            debug_text_job,
             game_board,
             materials,
             material_categories,
@@ -298,7 +310,6 @@ impl eframe::App for EFrameApp {
                     self.game_board.create_board();
                 }
             });
-            ui.label("FPS: ".to_owned() + &ui.input(|i| (1_f32 / i.unstable_dt).to_string()));
         });
         egui::TopBottomPanel::bottom(Id::new("materials"))
             .exact_height(50_f32)
@@ -401,6 +412,60 @@ impl eframe::App for EFrameApp {
                         width / self.game_board.width as f32,
                         width / self.game_board.width as f32,
                     );
+                    if self.program_options.debug_mode {
+                        let cursor_position =
+                            board.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
+                        let pos = ((cursor_position - board.interact_rect.min)
+                            / self.game_board.cellsize)
+                            .floor()
+                            .to_pos2();
+                        let default_particle = Particle::default();
+                        let viewed_particle = self
+                            .game_board
+                            .contents
+                            .get(get_safe_i(
+                                &(self.game_board.height as usize),
+                                &(self.game_board.width as usize),
+                                &(pos.y as usize, pos.x as usize),
+                            ))
+                            .unwrap_or(&default_particle);
+
+                        let fps_interval_len = 100_usize;
+                        let fps_value = ui.input(|i| 1_f32 / i.stable_dt );
+                        self.fps_values.insert(0_usize, fps_value);
+                        self.fps_values.remove(fps_interval_len - 1_usize);
+
+                        let mean_fps =
+                            self.fps_values.iter().sum::<f32>() / self.fps_values.len() as f32;
+                        self.debug_text_job.append(
+                            format!(
+                                "FPS: {}\n\nName: {}\nParticle:\n{:?}",
+                                mean_fps.round(),
+                                self.materials[viewed_particle.material_id].0,
+                                viewed_particle
+                            )
+                            .as_str(),
+                            0_f32,
+                            TextFormat {
+                                font_id: FontId::new(18_f32, egui::FontFamily::Monospace),
+                                color: Color32::WHITE,
+                                ..Default::default()
+                            },
+                        );
+                        ui.painter()
+                            .clone()
+                            .with_clip_rect(ctx.used_rect())
+                            .with_layer_id(LayerId::new(
+                                egui::Order::Foreground,
+                                Id::new(hash(0_i32)),
+                            ))
+                            .add(TextShape::new(
+                                Pos2::new(5_f32, 45_f32),
+                                ctx.fonts_mut(|font| font.layout_job(self.debug_text_job.clone())),
+                                Color32::WHITE,
+                            ));
+                        self.debug_text_job = LayoutJob::default();
+                    }
                     draw_brush_outlines(&self.game_board, &board, ui, ctx);
                     handle_mouse_input(
                         &mut self.game_board,
@@ -424,6 +489,60 @@ impl eframe::App for EFrameApp {
                         height / self.game_board.height as f32,
                         height / self.game_board.height as f32,
                     );
+                    if self.program_options.debug_mode {
+                        let cursor_position =
+                            board.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
+                        let pos = ((cursor_position - board.interact_rect.min)
+                            / self.game_board.cellsize)
+                            .floor()
+                            .to_pos2();
+                        let default_particle = Particle::default();
+                        let viewed_particle = self
+                            .game_board
+                            .contents
+                            .get(get_safe_i(
+                                &(self.game_board.height as usize),
+                                &(self.game_board.width as usize),
+                                &(pos.y as usize, pos.x as usize),
+                            ))
+                            .unwrap_or(&default_particle);
+
+                        let fps_interval_len = 100_usize;
+                        let fps_value = ui.input(|i| 1_f32 / i.stable_dt );
+                        self.fps_values.insert(0_usize, fps_value);
+                        self.fps_values.remove(fps_interval_len - 1_usize);
+
+                        let mean_fps =
+                            self.fps_values.iter().sum::<f32>() / self.fps_values.len() as f32;
+                        self.debug_text_job.append(
+                            format!(
+                                "FPS: {}\n\nName: {}\nParticle:\n{:?}",
+                                mean_fps.round(),
+                                self.materials[viewed_particle.material_id].0,
+                                viewed_particle
+                            )
+                            .as_str(),
+                            0_f32,
+                            TextFormat {
+                                font_id: FontId::new(18_f32, egui::FontFamily::Monospace),
+                                color: Color32::WHITE,
+                                ..Default::default()
+                            },
+                        );
+                        ui.painter()
+                            .clone()
+                            .with_clip_rect(ctx.used_rect())
+                            .with_layer_id(LayerId::new(
+                                egui::Order::Foreground,
+                                Id::new(hash(0_i32)),
+                            ))
+                            .add(TextShape::new(
+                                Pos2::new(5_f32, 45_f32),
+                                ctx.fonts_mut(|font| font.layout_job(self.debug_text_job.clone())),
+                                Color32::WHITE,
+                            ));
+                        self.debug_text_job = LayoutJob::default();
+                    }
                     draw_brush_outlines(&self.game_board, &board, ui, ctx);
                     handle_mouse_input(
                         &mut self.game_board,

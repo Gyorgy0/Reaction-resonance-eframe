@@ -176,34 +176,35 @@ pub(crate) fn solve_reactions(
                     .1
                     .phase,
             ) == std::mem::discriminant(&(Phase::Plasma))
+                && std::mem::discriminant(
+                    &materials[prev_board
+                        .get(get_safe_i(height, width, &(i, j)))
+                        .unwrap_or(&prev_board[get_safe_i(height, width, &(i, j))])
+                        .material_id]
+                        .1
+                        .phase,
+                ) != std::mem::discriminant(&(Phase::Plasma))
                 && prev_board
                     .get(get_safe_i(height, width, &neumann_positions[rnd as usize]))
                     .is_some()
             {
-                new_particle =
-                    prev_board[get_safe_i(height, width, &neumann_positions[rnd as usize])];
+                new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                 new_particle.material_id = 7_usize;
                 new_particle.energy = 20_f32;
-                new_particle.display_color = materials[prev_board
-                    [get_safe_i(height, width, &neumann_positions[rnd as usize])]
-                .material_id]
+                new_particle.display_color = materials[new_particle.material_id]
                     .1
                     .material_color
                     .color
                     .gamma_multiply(lerp(
                         tuple_to_rangeinclusive(
-                            materials[prev_board
-                                [get_safe_i(height, width, &neumann_positions[rnd as usize])]
-                            .material_id]
+                            materials[new_particle.material_id]
                                 .1
                                 .material_color
                                 .shinyness,
                         ),
-                        rngs[get_safe_i(height, width, &neumann_positions[rnd as usize])],
+                        rngs[get_safe_i(height, width, &(i, j))],
                     ));
-                new_particle.display_color[3] = materials[prev_board
-                    [get_safe_i(height, width, &neumann_positions[rnd as usize])]
-                .material_id]
+                new_particle.display_color[3] = materials[new_particle.material_id]
                     .1
                     .material_color
                     .color
