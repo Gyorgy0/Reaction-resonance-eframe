@@ -1,15 +1,20 @@
 use std::fmt::{self};
 
+use egui::epaint::TextShape;
+use egui::text::LayoutJob;
 use egui::util::hash;
 use egui::{
-    Color32, ColorImage, Context, Id, ImageSource, LayerId, NumExt, Rect, Response, Stroke,
-    TextureOptions, Ui, Vec2, include_image, pos2, vec2,
+    Color32, ColorImage, Context, FontId, Id, Image, ImageSource, LayerId, NumExt, Pos2, Rect,
+    Response, Stroke, TextFormat, TextureOptions, Ui, Vec2, include_image, pos2, vec2,
 };
 
+use crate::EFrameApp;
 use crate::egui_input::BrushShape;
+use crate::material::Material;
+use crate::particle::Particle;
 use crate::physics::Phase;
 use crate::reactions::{MachineTypes, MaterialType};
-use crate::world::Board;
+use crate::world::{Board, get_safe_i};
 
 impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -271,4 +276,60 @@ pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, x: i64, y: i64) -> (
         }
     }
     (background, false)
+}
+
+pub fn debug_text_rendering(
+    game_board: &Board,
+    materials: &Vec<(String, Material)>,
+    debug_text_job: &mut LayoutJob,
+    fps_values: &mut Vec<f32>,
+    board: &Response,
+    ctx: &Context,
+    ui: &mut Ui,
+) {
+    let cursor_position = board.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
+    let pos = ((cursor_position - board.interact_rect.min) / game_board.cellsize)
+        .floor()
+        .to_pos2();
+    let default_particle = Particle::default();
+    let viewed_particle: &Particle = game_board
+        .contents
+        .get(get_safe_i(
+            &(game_board.height as usize),
+            &(game_board.width as usize),
+            &(pos.y as usize, pos.x as usize),
+        ))
+        .unwrap_or(&default_particle);
+
+    let fps_interval_len = 100_usize;
+    let fps_value = ui.input(|i| 1_f32 / i.stable_dt);
+    fps_values.insert(0_usize, fps_value);
+    fps_values.remove(fps_interval_len - 1_usize);
+
+    let mean_fps = fps_values.iter().sum::<f32>() / fps_values.len() as f32;
+    debug_text_job.append(
+        format!(
+            "FPS: {}\n\nName: {}\nParticle:\n{:?}",
+            mean_fps.round(),
+            materials[viewed_particle.material_id].0,
+            viewed_particle
+        )
+        .as_str(),
+        0_f32,
+        TextFormat {
+            font_id: FontId::new(18_f32, egui::FontFamily::Monospace),
+            color: Color32::WHITE,
+            ..Default::default()
+        },
+    );
+    ui.painter()
+        .clone()
+        .with_clip_rect(ctx.used_rect())
+        .with_layer_id(LayerId::new(egui::Order::Foreground, Id::new(hash(0_i32))))
+        .add(TextShape::new(
+            Pos2::new(5_f32, 45_f32),
+            ctx.fonts_mut(|font| font.layout_job(debug_text_job.clone())),
+            Color32::WHITE,
+        ));
+    *debug_text_job = LayoutJob::default();
 }

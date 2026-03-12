@@ -175,7 +175,6 @@ unsafe impl<T: Send> Sync for AtomicComparedSlice<T> {}
 
 impl<T: Clone> AtomicComparedSlice<T> {
     pub fn clone_inner(&self) -> Vec<T> {
-        
         unsafe {
             // [#2]
             (*self.data.get()).clone()

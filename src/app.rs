@@ -1,7 +1,9 @@
 use std::{mem::discriminant, u8};
 
+use crate::egui_input::BrushTool;
 use crate::particle::Particle;
 use crate::system_data::ApplicationOptions;
+use crate::system_ui::debug_text_rendering;
 use crate::world::{AtomicComparedSlice, get_safe_i};
 use crate::{
     egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
@@ -14,8 +16,8 @@ use egui::epaint::TextShape;
 use egui::text::LayoutJob;
 use egui::util::hash;
 use egui::{
-    Color32, ColorImage, FontId, Id, Image, LayerId, Pos2, RichText, Sense, Stroke, TextFormat, TextureHandle, TextureOptions, Theme,
-    Vec2, load, pos2, vec2,
+    Color32, ColorImage, FontId, Id, Image, LayerId, Pos2, RichText, Sense, Stroke, TextFormat,
+    TextureHandle, TextureOptions, Theme, Vec2, load, pos2, vec2,
 };
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
@@ -25,21 +27,21 @@ use strum::IntoEnumIterator;
 pub struct EFrameApp {
     fullscreen: bool,
     #[serde(skip)]
-    fps_values: Vec<f32>,
+    pub(crate) fps_values: Vec<f32>,
     #[serde(skip)]
-    debug_text_job: LayoutJob,
+    pub(crate) debug_text_job: LayoutJob,
     #[serde(skip)]
     texture: TextureHandle,
     #[serde(skip)]
-    game_board: Board,
+    pub(crate) game_board: Board,
     #[serde(skip)]
-    materials: Vec<(String, Material)>,
+    pub(crate) materials: Vec<(String, Material)>,
     #[serde(skip)]
     material_categories: Vec<Vec<(String, Material)>>,
     #[serde(skip)]
     program_options: ApplicationOptions,
     #[serde(skip)]
-    selected_material: usize,
+    selected_tool: BrushTool,
     #[serde(skip)]
     selected_category: MaterialType,
     #[serde(skip)]
@@ -142,7 +144,9 @@ impl Default for EFrameApp {
             }
             material_categories.push(category_vec);
         }
-        let selected_material = 0_usize;
+        let selected_tool = BrushTool::MaterialBrush {
+            selected_material: 0_usize,
+        };
         let selected_category = MaterialType::Fuel;
         let debug_text_job = LayoutJob::default();
         Self {
@@ -153,7 +157,7 @@ impl Default for EFrameApp {
             materials,
             material_categories,
             texture,
-            selected_material,
+            selected_tool,
             selected_category,
             program_options: ApplicationOptions::default(),
             framecount: 0,
@@ -335,7 +339,9 @@ impl eframe::App for EFrameApp {
                                         )
                                         .clicked()
                                 {
-                                    self.selected_material = material.1.id;
+                                    self.selected_tool = BrushTool::MaterialBrush {
+                                        selected_material: material.1.id,
+                                    };
                                 }
                             });
                     });
@@ -352,9 +358,72 @@ impl eframe::App for EFrameApp {
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
                             ui.vertical(|ui| {
-                                if ui.add(egui::Button::new(RichText::new("Erase"))).clicked() {
-                                    self.selected_material = 0_usize;
+                                ui.horizontal_centered(|ui| {
+                                    if ui
+                                        .add(
+                                            egui::Button::new(
+                                                RichText::new("Eraser")
+                                                    .heading()
+                                                    .strong()
+                                                    .monospace(),
+                                            )
+                                            .stroke(Stroke::new(1_f32, Color32::WHITE))
+                                            .min_size((ctx.used_size() * 0.0425_f32)),
+                                        )
+                                        .clicked()
+                                    {
+                                        self.selected_tool = BrushTool::MaterialBrush {
+                                            selected_material: 0_usize,
+                                        };
+                                    }
+                                });
+                                if discriminant(&self.selected_tool)
+                                    == discriminant(&BrushTool::ThermalBrush { temp_delta: 0_f32 })
+                                {
+                                    self.selected_tool = BrushTool::ThermalBrush {
+                                        temp_delta: (self.selected_tool.get_temp_delta().signum()
+                                            * (self.game_board.brush_size.max_elem() + 1_f32))
+                                            / 16_f32,
+                                    };
                                 }
+                                ui.horizontal_centered(|ui| {
+                                    if ui
+                                        .add(
+                                            egui::Button::new(
+                                                RichText::new(" Heat ")
+                                                    .heading()
+                                                    .strong()
+                                                    .monospace(),
+                                            )
+                                            .fill(Color32::DARK_RED)
+                                            .stroke(Stroke::new(1_f32, Color32::WHITE))
+                                            .min_size((ctx.used_size() * 0.0425_f32)),
+                                        )
+                                        .clicked()
+                                    {
+                                        self.selected_tool =
+                                            BrushTool::ThermalBrush { temp_delta: 1_f32 };
+                                    }
+                                });
+                                ui.horizontal_centered(|ui| {
+                                    if ui
+                                        .add(
+                                            egui::Button::new(
+                                                RichText::new(" Cool ")
+                                                    .heading()
+                                                    .strong()
+                                                    .monospace(),
+                                            )
+                                            .fill(Color32::DARK_BLUE)
+                                            .stroke(Stroke::new(1_f32, Color32::WHITE))
+                                            .min_size((ctx.used_size() * 0.0425_f32)),
+                                        )
+                                        .clicked()
+                                    {
+                                        self.selected_tool =
+                                            BrushTool::ThermalBrush { temp_delta: -1_f32 };
+                                    }
+                                });
                                 MaterialType::iter().for_each(|category| {
                                     let category_button = ui.add(
                                         egui::Button::new(
@@ -413,64 +482,21 @@ impl eframe::App for EFrameApp {
                         width / self.game_board.width as f32,
                     );
                     if self.program_options.debug_mode {
-                        let cursor_position =
-                            board.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
-                        let pos = ((cursor_position - board.interact_rect.min)
-                            / self.game_board.cellsize)
-                            .floor()
-                            .to_pos2();
-                        let default_particle = Particle::default();
-                        let viewed_particle = self
-                            .game_board
-                            .contents
-                            .get(get_safe_i(
-                                &(self.game_board.height as usize),
-                                &(self.game_board.width as usize),
-                                &(pos.y as usize, pos.x as usize),
-                            ))
-                            .unwrap_or(&default_particle);
-
-                        let fps_interval_len = 100_usize;
-                        let fps_value = ui.input(|i| 1_f32 / i.stable_dt );
-                        self.fps_values.insert(0_usize, fps_value);
-                        self.fps_values.remove(fps_interval_len - 1_usize);
-
-                        let mean_fps =
-                            self.fps_values.iter().sum::<f32>() / self.fps_values.len() as f32;
-                        self.debug_text_job.append(
-                            format!(
-                                "FPS: {}\n\nName: {}\nParticle:\n{:?}",
-                                mean_fps.round(),
-                                self.materials[viewed_particle.material_id].0,
-                                viewed_particle
-                            )
-                            .as_str(),
-                            0_f32,
-                            TextFormat {
-                                font_id: FontId::new(18_f32, egui::FontFamily::Monospace),
-                                color: Color32::WHITE,
-                                ..Default::default()
-                            },
+                        debug_text_rendering(
+                            &self.game_board,
+                            &self.materials,
+                            &mut self.debug_text_job,
+                            &mut self.fps_values,
+                            &board,
+                            ctx,
+                            ui,
                         );
-                        ui.painter()
-                            .clone()
-                            .with_clip_rect(ctx.used_rect())
-                            .with_layer_id(LayerId::new(
-                                egui::Order::Foreground,
-                                Id::new(hash(0_i32)),
-                            ))
-                            .add(TextShape::new(
-                                Pos2::new(5_f32, 45_f32),
-                                ctx.fonts_mut(|font| font.layout_job(self.debug_text_job.clone())),
-                                Color32::WHITE,
-                            ));
-                        self.debug_text_job = LayoutJob::default();
                     }
                     draw_brush_outlines(&self.game_board, &board, ui, ctx);
                     handle_mouse_input(
                         &mut self.game_board,
                         &self.materials,
-                        self.selected_material,
+                        &self.selected_tool,
                         board.clone(),
                     );
                     handle_key_inputs(
@@ -490,64 +516,21 @@ impl eframe::App for EFrameApp {
                         height / self.game_board.height as f32,
                     );
                     if self.program_options.debug_mode {
-                        let cursor_position =
-                            board.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
-                        let pos = ((cursor_position - board.interact_rect.min)
-                            / self.game_board.cellsize)
-                            .floor()
-                            .to_pos2();
-                        let default_particle = Particle::default();
-                        let viewed_particle = self
-                            .game_board
-                            .contents
-                            .get(get_safe_i(
-                                &(self.game_board.height as usize),
-                                &(self.game_board.width as usize),
-                                &(pos.y as usize, pos.x as usize),
-                            ))
-                            .unwrap_or(&default_particle);
-
-                        let fps_interval_len = 100_usize;
-                        let fps_value = ui.input(|i| 1_f32 / i.stable_dt );
-                        self.fps_values.insert(0_usize, fps_value);
-                        self.fps_values.remove(fps_interval_len - 1_usize);
-
-                        let mean_fps =
-                            self.fps_values.iter().sum::<f32>() / self.fps_values.len() as f32;
-                        self.debug_text_job.append(
-                            format!(
-                                "FPS: {}\n\nName: {}\nParticle:\n{:?}",
-                                mean_fps.round(),
-                                self.materials[viewed_particle.material_id].0,
-                                viewed_particle
-                            )
-                            .as_str(),
-                            0_f32,
-                            TextFormat {
-                                font_id: FontId::new(18_f32, egui::FontFamily::Monospace),
-                                color: Color32::WHITE,
-                                ..Default::default()
-                            },
+                        debug_text_rendering(
+                            &self.game_board,
+                            &self.materials,
+                            &mut self.debug_text_job,
+                            &mut self.fps_values,
+                            &board,
+                            ctx,
+                            ui,
                         );
-                        ui.painter()
-                            .clone()
-                            .with_clip_rect(ctx.used_rect())
-                            .with_layer_id(LayerId::new(
-                                egui::Order::Foreground,
-                                Id::new(hash(0_i32)),
-                            ))
-                            .add(TextShape::new(
-                                Pos2::new(5_f32, 45_f32),
-                                ctx.fonts_mut(|font| font.layout_job(self.debug_text_job.clone())),
-                                Color32::WHITE,
-                            ));
-                        self.debug_text_job = LayoutJob::default();
                     }
                     draw_brush_outlines(&self.game_board, &board, ui, ctx);
                     handle_mouse_input(
                         &mut self.game_board,
                         &self.materials,
-                        self.selected_material,
+                        &self.selected_tool,
                         board.clone(),
                     );
                     handle_key_inputs(

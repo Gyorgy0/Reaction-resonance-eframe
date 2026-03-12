@@ -3,14 +3,15 @@ use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
 use crate::{material::VOID, particle::Particle};
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
-use std::ops::{AddAssign, Not, RangeInclusive};
+use std::cell;
+use std::ops::{Add, AddAssign, Not, RangeInclusive};
 use strum_macros::EnumIter;
 
 // Handles mouse/touch controls
 pub fn handle_mouse_input(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
-    selected_material_id: usize,
+    selected_tool: &BrushTool,
     response: Response,
 ) {
     let cursor_position = response.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
@@ -20,7 +21,6 @@ pub fn handle_mouse_input(
     if response.dragged_by(egui::PointerButton::Primary)
         || response.clicked_by(egui::PointerButton::Primary)
     {
-        let material = selected_material_id;
         for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
             for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
                 let cellpos = get_safe_i(
@@ -34,25 +34,8 @@ pub fn handle_mouse_input(
 
                 if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
                     && game_board.contents.get(cellpos).is_some()
-                    && (game_board.contents.get(cellpos).unwrap().material_id == VOID.id
-                        || selected_material_id == VOID.id)
                 {
-                    let mut new_particle =
-                        Particle::new(&materials[material].1, vec2(0_f32, 0_f32), 293.15);
-                    new_particle.display_color = materials[selected_material_id]
-                        .1
-                        .material_color
-                        .color
-                        .gamma_multiply(lerp(
-                            RangeInclusive::new(
-                                materials[selected_material_id].1.material_color.shinyness.0,
-                                materials[selected_material_id].1.material_color.shinyness.1,
-                            ),
-                            game_board.rngs[cellpos],
-                        ));
-                    new_particle.display_color[3] =
-                        materials[selected_material_id].1.material_color.color.a();
-                    unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
+                    get_tool_action(materials, selected_tool, cellpos, game_board);
                 }
             }
         }
@@ -135,4 +118,85 @@ pub(crate) enum BrushShape {
 pub fn resize_brush(brush_size: &mut Vec2, change: Vec2) {
     brush_size.add_assign(change);
     *brush_size = brush_size.clamp(vec2(0_f32, 0_f32), vec2(256_f32, 256_f32));
+}
+
+pub(crate) enum BrushTool {
+    MaterialBrush { selected_material: usize },
+    ThermalBrush { temp_delta: f32 },
+    MixBrush,
+    EraseBrush,
+}
+impl BrushTool {
+    pub fn get_selected_material(&self) -> usize {
+        let mut returnval: usize = 0_usize;
+        if let BrushTool::MaterialBrush { selected_material } = self {
+            returnval = *selected_material;
+        };
+        returnval
+    }
+
+    pub fn get_temp_delta(&self) -> f32 {
+        let mut returnval: f32 = 0_f32;
+        if let BrushTool::ThermalBrush { temp_delta } = self {
+            returnval = *temp_delta;
+        };
+        returnval
+    }
+}
+
+pub fn get_tool_action(
+    materials: &Vec<(String, Material)>,
+    selected_tool: &BrushTool,
+    cellpos: usize,
+    game_board: &mut Board,
+) {
+    match selected_tool {
+        BrushTool::MaterialBrush {
+            selected_material: _,
+        } => {
+            let mut new_particle = Particle::new(
+                &materials[selected_tool.get_selected_material()].1,
+                vec2(0_f32, 0_f32),
+                293.15,
+            );
+            new_particle.display_color = materials[new_particle.material_id]
+                .1
+                .material_color
+                .color
+                .gamma_multiply(lerp(
+                    RangeInclusive::new(
+                        materials[new_particle.material_id]
+                            .1
+                            .material_color
+                            .shinyness
+                            .0,
+                        materials[new_particle.material_id]
+                            .1
+                            .material_color
+                            .shinyness
+                            .1,
+                    ),
+                    game_board.rngs[cellpos],
+                ));
+            new_particle.display_color[3] = materials[new_particle.material_id]
+                .1
+                .material_color
+                .color
+                .a();
+            unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
+        }
+
+        BrushTool::ThermalBrush { temp_delta: _ } => {
+            let mut new_particle = *game_board.contents.get_elem(cellpos);
+            new_particle.temperature += selected_tool.get_temp_delta();
+            unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
+        }
+
+        BrushTool::MixBrush => todo!(),
+
+        BrushTool::EraseBrush => {
+            let new_particle = Particle::default();
+            unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
+        }
+    }
 }
