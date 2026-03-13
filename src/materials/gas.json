@@ -1,6 +1,6 @@
 [
     [
-        "Methane",
+        "GAS::METHANE",
         {
             "id": 11,
             "density": 0.657,

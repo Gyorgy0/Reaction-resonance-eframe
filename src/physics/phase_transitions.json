@@ -1,0 +1,4 @@
+{
+    "SOLID::ICE": "LIQUID::WATER",
+    "LIQUID::WATER": "SOLID::ICE"
+}

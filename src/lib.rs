@@ -2,6 +2,7 @@ mod app;
 mod egui_input;
 mod http_request;
 mod life_reactions;
+mod locale;
 mod material;
 mod particle;
 mod physics;

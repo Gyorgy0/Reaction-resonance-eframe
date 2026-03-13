@@ -1,6 +1,6 @@
 [
     [
-        "Water",
+        "LIQUID::WATER",
         {
             "id": 8,
             "density": 1.0,
@@ -28,7 +28,7 @@
         }
     ],
     [
-        "Milk",
+        "LIQUID::MILK",
         {
             "id": 9,
             "density": 1.033,
@@ -56,7 +56,7 @@
         }
     ],
     [
-        "Honey",
+        "LIQUID::HONEY",
         {
             "id": 10,
             "density": 1.5,

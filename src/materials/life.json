@@ -1,0 +1,162 @@
+﻿[
+    [
+        "LIFE::GOL",
+        {
+            "id": 12,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 96,
+                    "birth": 32,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    57,
+                    255,
+                    7,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::MAZE",
+        {
+            "id": 13,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 248,
+                    "birth": 32,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    87,
+                    255,
+                    7,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::WALLED_CITIES",
+        {
+            "id": 14,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 120,
+                    "birth": 31,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    5,
+                    10,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::DIAMOEBA",
+        {
+            "id": 15,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 15,
+                    "birth": 47,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    120,
+                    12,
+                    128,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::STAR_WARS",
+        {
+            "id": 16,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 60,
+                    "birth": 67,
+                    "stages": 0
+                }
+            },
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    40,
+                    40,
+                    104,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ]
+]

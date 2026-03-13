@@ -8,6 +8,7 @@ edition = "2024"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
+ahash = { version = "0.8.12", features = ["no-rng"] }
 android_logger = "0.15.1"
 crossbeam = "0.8.4"
 eframe = { version = "0.33.3", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }

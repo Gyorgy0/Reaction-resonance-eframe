@@ -76,27 +76,30 @@ impl Default for EFrameApp {
         let mut materials: Vec<(String, Material)> = vec![(String::new(), VOID.clone())];
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
-            use std::fs;
+            use std::{collections::HashMap, default, fs};
+
+            use ahash::AHashMap;
+            use image::EncodableLayout;
+
+            use crate::locale::Locale;
 
             /*// This is for serializing particles/components with new fields and enums - testing purposes
 
-            let mut number = 0b1111_0000_u8;
-            let mut option = String::new();
+            let mut phase_transitions: String = "GAS::METHANE".to_string();
 
-            for i in 0..u8::BITS {
-                option.push_str(&(number & 0b0000_0001_u8).to_string());
-                number = number >> 1;
-            }
-            let data = serde_json::to_string(&option).unwrap();
+            let data = serde_json::to_string(&phase_transitions).unwrap();
             println!("{:?}", data);
-            fs::write("src/new.json", data).unwrap();*/
-
+            fs::write("src/new.json", data).unwrap();
+            let serialized_data: String =
+                serde_json::from_reader(fs::read("src/new.json").unwrap().as_slice()).unwrap();
+            */
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
                 let materials_per_phase: Result<Vec<u8>, std::io::Error> =
                     fs::read(path.unwrap().path().display().to_string().as_str());
                 let mut serialized_materials: Vec<(String, Material)> =
-                    serde_json::from_slice(materials_per_phase.unwrap().as_slice()).unwrap();
+                    serde_json::from_reader(materials_per_phase.unwrap().as_slice())
+                        .unwrap_or(vec![]);
                 materials.append(&mut serialized_materials);
             }
         }
