@@ -1,11 +1,13 @@
 use crate::{
-    material::Material,
+    material::{Material, tuple_to_rangeinclusive},
     particle::{AtomicParticle, Particle},
     world::{
-        AtomicComparedSlice, get_safe_i, swap_particle, write_updated_field, write_x_speed_field,
-        write_y_speed_field,
+        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_updated_field,
+        write_x_speed_field, write_y_speed_field,
     },
 };
+use ahash::AHashMap;
+use egui::lerp;
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
 
@@ -22,6 +24,43 @@ pub enum Phase {
 }
 
 impl Phase {
+    fn get_melting_point_sld(&self) -> f32 {
+        let mut returnval: f32 = 0.0;
+        if let Phase::Solid { melting_point } = self {
+            returnval = *melting_point
+        };
+        returnval
+    }
+    fn get_melting_point_pwdr(&self) -> f32 {
+        let mut returnval: f32 = 0.0;
+        if let Phase::Powder {
+            coarseness: _,
+            melting_point,
+        } = self
+        {
+            returnval = *melting_point
+        };
+        returnval
+    }
+    fn get_melting_point_liqd(&self) -> f32 {
+        let mut returnval: f32 = 0.0;
+        if let Phase::Liquid {
+            viscosity: _,
+            melting_point,
+            boiling_point: _,
+        } = self
+        {
+            returnval = *melting_point
+        };
+        returnval
+    }
+    fn get_boiling_point_gas(&self) -> f32 {
+        let mut returnval: f32 = 0.0;
+        if let Phase::Gas { boiling_point } = self {
+            returnval = *boiling_point;
+        };
+        returnval
+    }
     fn get_coarseness(&self) -> f32 {
         let mut returnval: f32 = 0.0;
         if let Phase::Powder {
@@ -52,6 +91,7 @@ pub fn solve_particle(
     slice_board: &AtomicComparedSlice<Particle>,
     check_board: &Arc<Vec<AtomicParticle>>,
     materials: &Vec<(String, Material)>,
+    melting_transitions: &AHashMap<usize, usize>,
     rngs: &Vec<f32>,
     seeds: &Vec<f32>,
     height: &usize,
@@ -69,7 +109,41 @@ pub fn solve_particle(
     {
         Phase::Void => {}
 
-        Phase::Solid { melting_point: _ } => {}
+        Phase::Solid { melting_point } => {
+            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            if *melting_point < current_particle.temperature {
+                let mut new_particle = *current_particle;
+                new_particle.material_id = *melting_transitions
+                    .get(&current_particle.material_id)
+                    .unwrap();
+                new_particle.display_color = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .gamma_multiply(lerp(
+                        tuple_to_rangeinclusive(
+                            materials[new_particle.material_id]
+                                .1
+                                .material_color
+                                .shinyness,
+                        ),
+                        rngs[get_safe_i(height, width, &(i, j))],
+                    ));
+                new_particle.display_color[3] = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .a();
+                unsafe {
+                    write_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        new_particle,
+                        check_board,
+                    )
+                };
+            }
+        }
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // POWDER PHYSICS
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -390,9 +464,43 @@ pub fn solve_particle(
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Liquid {
             viscosity: _,
-            melting_point: _,
+            melting_point,
             boiling_point: _,
         } => {
+            // Phase change from liquid to solid
+            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            if *melting_point > current_particle.temperature {
+                let mut new_particle = *current_particle;
+                new_particle.material_id = *melting_transitions
+                    .get(&current_particle.material_id)
+                    .unwrap();
+                new_particle.display_color = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .gamma_multiply(lerp(
+                        tuple_to_rangeinclusive(
+                            materials[new_particle.material_id]
+                                .1
+                                .material_color
+                                .shinyness,
+                        ),
+                        rngs[get_safe_i(height, width, &(i, j))],
+                    ));
+                new_particle.display_color[3] = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .a();
+                unsafe {
+                    write_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        new_particle,
+                        check_board,
+                    )
+                };
+            }
             // Gravity simulation
             unsafe {
                 write_y_speed_field(

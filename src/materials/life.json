@@ -244,7 +244,7 @@
                 "CAutomata": {
                     "survival": 192,
                     "birth": 48,
-                    "stages": 0
+                    "stages": 1
                 }
             },
             "initial_temperature": 293.15,
@@ -376,7 +376,7 @@
                 "CAutomata": {
                     "survival": 60,
                     "birth": 67,
-                    "stages": 4
+                    "stages": 2
                 }
             },
             "initial_temperature": 293.15,

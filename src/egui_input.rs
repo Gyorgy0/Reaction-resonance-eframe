@@ -2,6 +2,7 @@ use crate::particle::Particle;
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
+use ahash::AHashMap;
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
 use std::ops::{AddAssign, Not, RangeInclusive};
 use strum_macros::EnumIter;
@@ -75,6 +76,7 @@ pub fn handle_mouse_input(
 pub fn handle_key_inputs(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
+    melting_transitions: &AHashMap<usize, usize>,
     program_options: &mut ApplicationOptions,
     framecount: &mut u64,
     framedelta: f32,
@@ -94,6 +96,7 @@ pub fn handle_key_inputs(
         update_board(
             game_board,
             materials,
+            melting_transitions,
             program_options.simulation_stopped,
             framecount,
             framedelta,
@@ -162,6 +165,7 @@ pub fn get_tool_action(
                 .1
                 .material_type
                 .get_max_stage();
+            new_particle.temperature = materials[new_particle.material_id].1.initial_temperature;
             new_particle.display_color = materials[new_particle.material_id]
                 .1
                 .material_color

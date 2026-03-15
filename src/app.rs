@@ -1,3 +1,5 @@
+use core::f32;
+use std::fs;
 use std::{mem::discriminant, u8};
 
 use crate::egui_input::BrushTool;
@@ -11,28 +13,34 @@ use crate::{
     system_ui::draw_brush_outlines,
     world::{Board, update_board},
 };
+use ahash::AHashMap;
 use egui::text::LayoutJob;
 use egui::{
-    Color32, ColorImage, Id, Image, RichText, Sense, Stroke, TextureHandle, TextureOptions, Theme,
-    Vec2, load, vec2,
+    Color32, ColorImage, Context, Id, Image, Layout, RichText, Sense, Stroke, TextureHandle,
+    TextureOptions, Theme, Vec2, load, vec2,
 };
+use egui_dialogs::{Dialog, DialogDetails, Dialogs, dialog_window};
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // If we add new fields, give them default values when deserializing old state
-pub struct EFrameApp {
+pub struct EFrameApp<'a> {
     fullscreen: bool,
     #[serde(skip)]
-    pub(crate) fps_values: Vec<f32>,
+    fps_values: Vec<f32>,
     #[serde(skip)]
-    pub(crate) debug_text_job: LayoutJob,
+    melting_transitions: AHashMap<usize, usize>,
+    #[serde(skip)]
+    dialogs: Dialogs<'a>,
+    #[serde(skip)]
+    debug_text_job: LayoutJob,
     #[serde(skip)]
     texture: TextureHandle,
     #[serde(skip)]
-    pub(crate) game_board: Board,
+    game_board: Board,
     #[serde(skip)]
-    pub(crate) materials: Vec<(String, Material)>,
+    materials: Vec<(String, Material)>,
     #[serde(skip)]
     material_categories: Vec<Vec<(String, Material)>>,
     #[serde(skip)]
@@ -47,9 +55,10 @@ pub struct EFrameApp {
     rng: rand::rngs::SmallRng,
     #[serde(skip)]
     response_text: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
+    dialogopen: bool,
 }
 
-impl Default for EFrameApp {
+impl Default for EFrameApp<'_> {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
@@ -77,14 +86,15 @@ impl Default for EFrameApp {
 
             /*// This is for serializing particles/components with new fields and enums - testing purposes
 
-            let mut phase_transitions: String = "GAS::METHANE".to_string();
-
-            let data = serde_json::to_string(&phase_transitions).unwrap();
+            //let mut materialhash: AHashMap<String, Material> = AHashMap::from([(String::new(), VOID.clone())]);
+            let materialhash = (String::new(), VOID.clone());
+            let data = serde_json::to_string(&materialhash).unwrap();
             println!("{:?}", data);
             fs::write("src/new.json", data).unwrap();
             let serialized_data: String =
                 serde_json::from_reader(fs::read("src/new.json").unwrap().as_slice()).unwrap();
             */
+
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
                 let materials_per_phase: Result<Vec<u8>, std::io::Error> =
@@ -93,7 +103,20 @@ impl Default for EFrameApp {
                     serde_json::from_reader(materials_per_phase.unwrap().as_slice()).unwrap();
                 materials.append(&mut serialized_materials);
             }
+            materials.sort_by_key(|elem| elem.1.id);
+            let mut material_ids: Vec<(usize, String)> = vec![];
+            materials.iter().for_each(|element| {
+                material_ids.push((element.1.id, element.0.clone()));
+            });
+            fs::write(
+                "src/material_ids.json",
+                serde_json::to_string(&material_ids).unwrap(),
+            )
+            .unwrap();
         }
+        let transition_path = fs::read("src/physics/phase_transitions_melting.json");
+        let serialized_transition: AHashMap<usize, usize> =
+            serde_json::from_reader(transition_path.unwrap().as_slice()).unwrap();
         let response_text = std::sync::Arc::new(std::sync::Mutex::new(vec![]));
         #[cfg(target_arch = "wasm32")]
         {
@@ -132,8 +155,8 @@ impl Default for EFrameApp {
                 serde_json::from_str(&gas_materials).unwrap();
             materials.append(&mut serialized_materials);
         }
-        materials.sort_by_key(|material| material.1.id);
         let mut material_categories: Vec<Vec<(String, Material)>> = vec![];
+        materials.sort_by_key(|elem| elem.1.id);
         for category in MaterialType::iter() {
             let mut category_vec: Vec<(String, Material)> = vec![];
             for material in materials.iter() {
@@ -151,6 +174,7 @@ impl Default for EFrameApp {
         Self {
             fullscreen: false,
             fps_values: vec![0_f32; 256_usize],
+            melting_transitions: serialized_transition,
             debug_text_job,
             game_board,
             materials,
@@ -162,11 +186,13 @@ impl Default for EFrameApp {
             framecount: 0,
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
             response_text: response_text.clone(),
+            dialogs: Dialogs::default(),
+            dialogopen: false,
         }
     }
 }
 
-impl EFrameApp {
+impl EFrameApp<'_> {
     /// Called once before the first frame.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customize the look and feel of egui using
@@ -184,7 +210,7 @@ impl EFrameApp {
     }
 }
 
-impl eframe::App for EFrameApp {
+impl eframe::App for EFrameApp<'_> {
     /// Called by the frame work to save state before shutdown.
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
@@ -216,54 +242,26 @@ impl eframe::App for EFrameApp {
                 self.selected_category = MaterialType::Fuel;
             }
         }
+        const OPTIONS_MENU: &str = "options_menu";
+        // Logic for showing the dialogs and handling the reply is there is one
+        if let Some(res) = self.dialogs.show(ctx) {
+            if res.is_reply_of(OPTIONS_MENU) {
+                if let Ok(options) = res.reply::<((f32, bool))>() {
+                    self.game_board.gravity = options.0;
+                    self.fullscreen = options.1;
+                }
+            }
+        }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
-                if ui
-                    .button(RichText::new("Fullscreen").size(20_f32))
-                    .clicked()
-                {
-                    #[cfg(target_arch = "wasm32")]
-                    {
-                        let Some(window) = web_sys::window() else {
-                            return;
-                        };
-                        let Some(document) = window.document() else {
-                            return;
-                        };
-                        if self.fullscreen {
-                            let _ = document.exit_fullscreen();
-
-                            let Ok(screen) = window.screen() else {
-                                return;
-                            };
-                            let _ = screen.orientation().unlock();
-
-                            self.fullscreen = false;
-                        } else {
-                            let Some(element) = document.document_element() else {
-                                return;
-                            };
-                            let _ = element.request_fullscreen();
-
-                            let Ok(screen) = window.screen() else {
-                                return;
-                            };
-                            let _ = screen
-                                .orientation()
-                                .lock(web_sys::OrientationLockType::Landscape);
-                            self.fullscreen = true;
-                        }
-                    }
-                    #[cfg(not(target_arch = "wasm32"))]
-                    {
-                        if !self.fullscreen {
-                            ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(true));
-                            self.fullscreen = true;
-                        } else {
-                            ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
-                            self.fullscreen = false
-                        }
-                    }
+                if ui.button(RichText::new("Options").size(20_f32)).clicked() {
+                    DialogDetails::new(OptionsMenuDialog::new(
+                        self.game_board.gravity,
+                        self.fullscreen,
+                    ))
+                    .with_id(OPTIONS_MENU)
+                    .show(&mut self.dialogs);
+                    self.dialogopen = true;
                 }
                 ui.horizontal(|ui| {
                     ui.label(RichText::new("Brush size: ").size(20_f32));
@@ -501,6 +499,7 @@ impl eframe::App for EFrameApp {
                     handle_key_inputs(
                         &mut self.game_board,
                         &self.materials,
+                        &self.melting_transitions,
                         &mut self.program_options,
                         &mut self.framecount,
                         ctx.input(|time| time.unstable_dt),
@@ -535,6 +534,7 @@ impl eframe::App for EFrameApp {
                     handle_key_inputs(
                         &mut self.game_board,
                         &self.materials,
+                        &self.melting_transitions,
                         &mut self.program_options,
                         &mut self.framecount,
                         ctx.input(|time| time.unstable_dt),
@@ -545,11 +545,136 @@ impl eframe::App for EFrameApp {
             update_board(
                 &mut self.game_board,
                 &self.materials,
+                &self.melting_transitions,
                 self.program_options.simulation_stopped,
                 &mut self.framecount,
                 ctx.input(|time| time.unstable_dt),
             );
             egui::Context::request_repaint(ctx);
         });
+    }
+}
+pub struct OptionsMenuDialog {
+    pub picked_gravity: f32,
+    pub original_gravity: f32,
+    pub fullscreen: bool,
+}
+
+impl OptionsMenuDialog {
+    pub fn new(gravity: f32, fullscreen: bool) -> Self {
+        Self {
+            picked_gravity: gravity,
+            original_gravity: gravity,
+            fullscreen: fullscreen,
+        }
+    }
+}
+impl Dialog<(f32, bool)> for OptionsMenuDialog {
+    fn show(
+        &mut self,
+        ctx: &egui::Context,
+        dctx: &egui_dialogs::DialogContext,
+    ) -> Option<(f32, bool)> {
+        // Return None if the user hasn't selected something
+        let mut res: Option<(f32, bool)> = None;
+        dialog_window(ctx, dctx, "Options").show(ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                if ui.button("aaa").clicked() {
+                    res = Some((self.original_gravity, self.fullscreen));
+                }
+                if !self.fullscreen {
+                    if ui.button("Fullscreen").clicked() {
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            let Some(window) = web_sys::window() else {
+                                return;
+                            };
+                            let Some(document) = window.document() else {
+                                return;
+                            };
+                            if self.fullscreen {
+                                let _ = document.exit_fullscreen();
+
+                                let Ok(screen) = window.screen() else {
+                                    return;
+                                };
+                                let _ = screen.orientation().unlock();
+
+                                self.fullscreen = false;
+                            } else {
+                                let Some(element) = document.document_element() else {
+                                    return;
+                                };
+                                let _ = element.request_fullscreen();
+
+                                let Ok(screen) = window.screen() else {
+                                    return;
+                                };
+                                let _ = screen
+                                    .orientation()
+                                    .lock(web_sys::OrientationLockType::Landscape);
+                                self.fullscreen = true;
+                            }
+                        }
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            if !self.fullscreen {
+                                ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(true));
+                                self.fullscreen = true;
+                            } else {
+                                ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
+                                self.fullscreen = false
+                            }
+                        }
+                    }
+                } else if self.fullscreen {
+                    if ui.button("Windowed").clicked() {
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            let Some(window) = web_sys::window() else {
+                                return;
+                            };
+                            let Some(document) = window.document() else {
+                                return;
+                            };
+                            if self.fullscreen {
+                                let _ = document.exit_fullscreen();
+
+                                let Ok(screen) = window.screen() else {
+                                    return;
+                                };
+                                let _ = screen.orientation().unlock();
+
+                                self.fullscreen = false;
+                            } else {
+                                let Some(element) = document.document_element() else {
+                                    return;
+                                };
+                                let _ = element.request_fullscreen();
+
+                                let Ok(screen) = window.screen() else {
+                                    return;
+                                };
+                                let _ = screen
+                                    .orientation()
+                                    .lock(web_sys::OrientationLockType::Landscape);
+                                self.fullscreen = true;
+                            }
+                        }
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
+                            self.fullscreen = false
+                        }
+                    }
+                }
+            });
+            ui.with_layout(Layout::right_to_left(egui::Align::Min), |ui| {
+                if ui.button("Back").clicked() {
+                    res = Some((self.original_gravity, self.fullscreen));
+                }
+            });
+        });
+        res
     }
 }

@@ -902,6 +902,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "egui_dialogs"
+version = "0.3.7"
+source = "git+https://github.com/Gyorgy0/egui_dialogs.git#2c4145c7dc7bd24fb20d852e078c229dab471e34"
+dependencies = [
+ "egui 0.33.3",
+ "sys-locale",
+]
+
+[[package]]
 name = "egui_extras"
 version = "0.33.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2840,6 +2849,7 @@ dependencies = [
  "eframe",
  "egui 0.33.3",
  "egui-colorgradient",
+ "egui_dialogs",
  "egui_extras",
  "ehttp",
  "env_logger",
@@ -3360,6 +3370,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "sys-locale"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eab9a99a024a169fe8a903cf9d4a3b3601109bcc13bd9e3c6fff259138626c4"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

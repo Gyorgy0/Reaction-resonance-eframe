@@ -2,6 +2,7 @@ use std::cell::UnsafeCell;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
+use ahash::AHashMap;
 use egui::vec2;
 use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
@@ -76,6 +77,7 @@ impl Board {
 pub fn update_board(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
+    melting_transitions: &AHashMap<usize, usize>,
     is_stopped: bool,
     framecount: &mut u64,
     framedelta: f32,
@@ -125,6 +127,7 @@ pub fn update_board(
                     &game_board.contents,
                     &check_board,
                     materials,
+                    &melting_transitions,
                     &game_board.rngs,
                     &game_board.seeds,
                     &height,
