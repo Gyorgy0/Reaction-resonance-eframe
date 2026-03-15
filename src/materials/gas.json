@@ -10,6 +10,7 @@
                 }
             },
             "material_type": "Fuel",
+            "initial_temperature": 293.15,
             "durability": -1,
             "material_color": {
                 "color": [

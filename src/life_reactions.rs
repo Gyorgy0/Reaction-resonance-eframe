@@ -67,18 +67,6 @@ pub(crate) fn solve_cells(
             );
         }
     });
-    if discriminant(&materials[new_particle.material_id].1.material_type)
-        == discriminant(
-            &(MaterialType::CAutomata {
-                survival: 0_u8,
-                birth: 0_u8,
-                stages: 0_u8,
-            }),
-        )
-    {
-        new_particle = Particle::default();
-        new_particle.life_stage = prev_board[get_safe_i(height, width, &(i, j))].life_stage;
-    }
     // We evaluate each of the valid cellular-automatons found within the neighborhood
     (0_usize..cell_positions_len).for_each(|automaton| {
         if automatons[automaton].is_some() {
@@ -92,34 +80,18 @@ pub(crate) fn solve_cells(
                 .1
                 .material_type
                 .get_survival();
-            /*println!(
-                "{:?}, current_life: {:?}",
-                materials[automatons[automaton].unwrap()]
-                    .1
-                    .material_type
-                    .get_max_stage(),
-                prev_board[get_safe_i(height, width, &(i, j))].life_stage
-            );*/
             // We count the number of alive neighbours (these neighbours are of the same type and they are "healthy")
             (0_usize..cell_positions_len).for_each(|pos: usize| {
-                if discriminant(
-                    &materials[prev_board
-                        .get(get_safe_i(height, width, &cell_positions[pos]))
-                        .unwrap_or(&Particle::default())
-                        .material_id]
+                if prev_board
+                    .get(get_safe_i(height, width, &cell_positions[pos]))
+                    .unwrap_or(&Particle::default())
+                    .material_id
+                    == automatons[automaton].unwrap()
+                    && materials[automatons[automaton].unwrap()]
                         .1
-                        .material_type,
-                ) == discriminant(
-                    &(MaterialType::CAutomata {
-                        survival: 0_u8,
-                        birth: 0_u8,
-                        stages: 0_u8,
-                    }),
-                ) && materials[automatons[automaton].unwrap()]
-                    .1
-                    .material_type
-                    .get_max_stage()
-                    == prev_board[get_safe_i(height, width, &cell_positions[pos])].life_stage
+                        .material_type
+                        .get_max_stage()
+                        == prev_board[get_safe_i(height, width, &cell_positions[pos])].life_stage
                 {
                     alive_neighbours += 1_u8;
                 }
@@ -129,6 +101,13 @@ pub(crate) fn solve_cells(
                 // Survival rule check
                 if ((survival.reverse_bits() & 0b0000_0001_u8) * ((pos + 1_usize) as u8))
                     == alive_neighbours
+                    && prev_board[get_safe_i(height, width, &(i, j))].material_id
+                        == automatons[automaton].unwrap()
+                    && prev_board[get_safe_i(height, width, &(i, j))].life_stage
+                        == materials[automatons[automaton].unwrap()]
+                            .1
+                            .material_type
+                            .get_max_stage()
                 {
                     new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                     new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
@@ -166,11 +145,18 @@ pub(crate) fn solve_cells(
                 survival <<= 1;
                 birth <<= 1;
             }
-            if prev_board[get_safe_i(height, width, &(i, j))].life_stage > 0_u8 {
+            // Survival by health check
+            if new_particle.material_id == 0_usize
+                && prev_board[get_safe_i(height, width, &(i, j))].material_id
+                    == automatons[automaton].unwrap()
+                && prev_board[get_safe_i(height, width, &(i, j))].life_stage > 0_u8
+            {
                 new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                 new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
+                if new_particle.life_stage == 0_u8 {
+                    new_particle = Particle::default();
+                }
             }
-            // Survival by health check
         }
     });
     unsafe {

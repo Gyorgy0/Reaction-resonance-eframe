@@ -1,0 +1,4 @@
+{
+    "LIQUID::WATER": "GAS::STEAM",
+    "GAS::STEAM": "LIQUID::WATER"
+}

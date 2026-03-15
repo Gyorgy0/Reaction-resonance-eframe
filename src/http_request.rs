@@ -56,4 +56,15 @@ pub fn get_req(response_text: Arc<Mutex<Vec<String>>>) {
             .unwrap()
             .push(response.text().unwrap().to_owned());
     });
+    let request = ehttp::Request::get(
+        "https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/life.json",
+    );
+    let response_text_clone = Arc::clone(&response_text);
+    ehttp::fetch(request, move |result: ehttp::Result<ehttp::Response>| {
+        let response = result.unwrap();
+        response_text_clone
+            .lock()
+            .unwrap()
+            .push(response.text().unwrap().to_owned());
+    });
 }

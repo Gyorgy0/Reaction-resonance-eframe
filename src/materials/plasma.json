@@ -7,6 +7,7 @@
             "phase": "Plasma",
             "material_type": "Fuel",
             "durability": 50,
+            "initial_temperature": 1673.15,
             "material_color": {
                 "color": [
                     255,

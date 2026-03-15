@@ -12,6 +12,7 @@ pub(crate) struct Material {
     pub density: f32,                       // Mass of a cm^3 volume of the material
     pub phase: Phase,                       // Phase of the material for, the implemented phases check the "Phase" enum
     pub material_type: MaterialType,        // Type of the material for, the implemented types check the "Type" enum
+    pub initial_temperature: f32,           // The initial temperature of the material
     pub durability: i32,                    // Durability of a material - how much force it needs to disintegrate the material -> higher = more force
     pub material_color: MaterialColor,      // Color of the material
 }
@@ -25,6 +26,7 @@ pub static VOID: Material = Material {
     density: 0_f32,
     phase: Phase::Void,
     material_type: MaterialType::Solution,
+    initial_temperature: 293.15,
     durability: -1,
     material_color: MaterialColor {
         color: Color32::from_rgba_premultiplied(0, 0, 0, 100),

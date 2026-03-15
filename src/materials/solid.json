@@ -10,6 +10,7 @@
                 }
             },
             "material_type": "Fuel",
+            "initial_temperature": 293.15,
             "durability": 40,
             "material_color": {
                 "color": [
@@ -21,6 +22,33 @@
                 "shinyness": [
                     0.8,
                     1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::ICE",
+        {
+            "id": 17,
+            "density": 2.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": 273.15
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 273.0,
+            "durability": 40,
+            "material_color": {
+                "color": [
+                    201,
+                    233,
+                    234,
+                    255
+                ],
+                "shinyness": [
+                    0.9,
+                    1.2
                 ]
             }
         }
@@ -40,6 +68,7 @@
                     "machine": "Cloner"
                 }
             },
+            "initial_temperature": 293.15,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -70,6 +99,7 @@
                     "machine": "Sink"
                 }
             },
+            "initial_temperature": 293.15,
             "durability": -1,
             "material_color": {
                 "color": [

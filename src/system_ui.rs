@@ -4,11 +4,10 @@ use egui::epaint::TextShape;
 use egui::text::LayoutJob;
 use egui::util::hash;
 use egui::{
-    Color32, ColorImage, Context, FontId, Id, Image, ImageSource, LayerId, NumExt, Pos2, Rect,
-    Response, Stroke, TextFormat, TextureOptions, Ui, Vec2, include_image, pos2, vec2,
+    Color32, ColorImage, Context, FontId, Id, ImageSource, LayerId, NumExt, Pos2, Rect, Response,
+    Stroke, TextFormat, TextureOptions, Ui, Vec2, include_image, pos2, vec2,
 };
 
-use crate::EFrameApp;
 use crate::egui_input::BrushShape;
 use crate::material::Material;
 use crate::particle::Particle;

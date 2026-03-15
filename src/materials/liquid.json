@@ -12,6 +12,7 @@
                 }
             },
             "material_type": "Solution",
+            "initial_temperature": 293.15,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -40,6 +41,7 @@
                 }
             },
             "material_type": "Solution",
+            "initial_temperature": 293.15,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -68,6 +70,7 @@
                 }
             },
             "material_type": "Solution",
+            "initial_temperature": 293.15,
             "durability": 50,
             "material_color": {
                 "color": [

@@ -1,10 +1,9 @@
 use std::{mem::discriminant, u8};
 
 use crate::egui_input::BrushTool;
-use crate::particle::Particle;
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::debug_text_rendering;
-use crate::world::{AtomicComparedSlice, get_safe_i};
+use crate::world::AtomicComparedSlice;
 use crate::{
     egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
     material::{Material, VOID},
@@ -12,12 +11,10 @@ use crate::{
     system_ui::draw_brush_outlines,
     world::{Board, update_board},
 };
-use egui::epaint::TextShape;
 use egui::text::LayoutJob;
-use egui::util::hash;
 use egui::{
-    Color32, ColorImage, FontId, Id, Image, LayerId, Pos2, RichText, Sense, Stroke, TextFormat,
-    TextureHandle, TextureOptions, Theme, Vec2, load, pos2, vec2,
+    Color32, ColorImage, Id, Image, RichText, Sense, Stroke, TextureHandle, TextureOptions, Theme,
+    Vec2, load, vec2,
 };
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
@@ -76,12 +73,7 @@ impl Default for EFrameApp {
         let mut materials: Vec<(String, Material)> = vec![(String::new(), VOID.clone())];
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
-            use std::{collections::HashMap, default, fs};
-
-            use ahash::AHashMap;
-            use image::EncodableLayout;
-
-            use crate::locale::Locale;
+            use std::fs;
 
             /*// This is for serializing particles/components with new fields and enums - testing purposes
 
@@ -96,10 +88,9 @@ impl Default for EFrameApp {
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
                 let materials_per_phase: Result<Vec<u8>, std::io::Error> =
-                    fs::read(path.unwrap().path().display().to_string().as_str());
+                    fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
                 let mut serialized_materials: Vec<(String, Material)> =
-                    serde_json::from_reader(materials_per_phase.unwrap().as_slice())
-                        .unwrap_or(vec![]);
+                    serde_json::from_reader(materials_per_phase.unwrap().as_slice()).unwrap();
                 materials.append(&mut serialized_materials);
             }
         }
@@ -129,6 +120,11 @@ impl Default for EFrameApp {
             let liquid_materials = include_str!("materials/liquid.json");
             let mut serialized_materials: Vec<(String, Material)> =
                 serde_json::from_str(&liquid_materials).unwrap();
+            materials.append(&mut serialized_materials);
+
+            let life_materials = include_str!("materials/life.json");
+            let mut serialized_materials: Vec<(String, Material)> =
+                serde_json::from_str(&life_materials).unwrap();
             materials.append(&mut serialized_materials);
 
             let gas_materials = include_str!("materials/gas.json");
@@ -371,7 +367,7 @@ impl eframe::App for EFrameApp {
                                                     .monospace(),
                                             )
                                             .stroke(Stroke::new(1_f32, Color32::WHITE))
-                                            .min_size((ctx.used_size() * 0.0425_f32)),
+                                            .min_size(ctx.used_size() * 0.0425_f32),
                                         )
                                         .clicked()
                                     {
@@ -400,7 +396,7 @@ impl eframe::App for EFrameApp {
                                             )
                                             .fill(Color32::DARK_RED)
                                             .stroke(Stroke::new(1_f32, Color32::WHITE))
-                                            .min_size((ctx.used_size() * 0.0425_f32)),
+                                            .min_size(ctx.used_size() * 0.0425_f32),
                                         )
                                         .clicked()
                                     {
@@ -419,7 +415,7 @@ impl eframe::App for EFrameApp {
                                             )
                                             .fill(Color32::DARK_BLUE)
                                             .stroke(Stroke::new(1_f32, Color32::WHITE))
-                                            .min_size((ctx.used_size() * 0.0425_f32)),
+                                            .min_size(ctx.used_size() * 0.0425_f32),
                                         )
                                         .clicked()
                                     {

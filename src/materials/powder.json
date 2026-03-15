@@ -11,6 +11,7 @@
                 }
             },
             "material_type": "Ceramic",
+            "initial_temperature": 293.15,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -38,6 +39,7 @@
                 }
             },
             "material_type": "Decor",
+            "initial_temperature": 293.15,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -65,6 +67,7 @@
                 }
             },
             "material_type": "Fuel",
+            "initial_temperature": 293.15,
             "durability": 50,
             "material_color": {
                 "color": [

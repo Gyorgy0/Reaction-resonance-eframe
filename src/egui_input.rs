@@ -1,10 +1,9 @@
+use crate::particle::Particle;
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
-use crate::{material::VOID, particle::Particle};
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
-use std::cell;
-use std::ops::{Add, AddAssign, Not, RangeInclusive};
+use std::ops::{AddAssign, Not, RangeInclusive};
 use strum_macros::EnumIter;
 
 // Handles mouse/touch controls
@@ -159,6 +158,10 @@ pub fn get_tool_action(
                 vec2(0_f32, 0_f32),
                 293.15,
             );
+            new_particle.life_stage = materials[selected_tool.get_selected_material()]
+                .1
+                .material_type
+                .get_max_stage();
             new_particle.display_color = materials[new_particle.material_id]
                 .1
                 .material_color
@@ -189,6 +192,7 @@ pub fn get_tool_action(
         BrushTool::ThermalBrush { temp_delta: _ } => {
             let mut new_particle = *game_board.contents.get_elem(cellpos);
             new_particle.temperature += selected_tool.get_temp_delta();
+            new_particle.temperature = new_particle.temperature.clamp(0_f32, f32::INFINITY);
             unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
         }
 
