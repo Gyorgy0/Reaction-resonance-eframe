@@ -2,7 +2,6 @@ use std::cell::UnsafeCell;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
-use ahash::AHashMap;
 use egui::vec2;
 use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
@@ -13,6 +12,7 @@ use crate::life_reactions::solve_cells;
 use crate::material::Material;
 use crate::particle::AtomicParticle;
 use crate::particle::Particle;
+use crate::physics::PhysicalReactions;
 use crate::physics::solve_particle;
 use crate::reactions::solve_reactions;
 use egui::Color32;
@@ -77,7 +77,7 @@ impl Board {
 pub fn update_board(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
-    melting_transitions: &AHashMap<usize, usize>,
+    physical_transitions: &PhysicalReactions,
     is_stopped: bool,
     framecount: &mut u64,
     framedelta: f32,
@@ -127,7 +127,7 @@ pub fn update_board(
                     &game_board.contents,
                     &check_board,
                     materials,
-                    &melting_transitions,
+                    physical_transitions,
                     &game_board.rngs,
                     &game_board.seeds,
                     &height,

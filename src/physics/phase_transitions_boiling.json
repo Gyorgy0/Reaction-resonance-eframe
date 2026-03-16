@@ -1,4 +1,4 @@
 {
-    "LIQUID::WATER": "GAS::STEAM",
-    "GAS::STEAM": "LIQUID::WATER"
+    "8": 43,
+    "43": 8
 }

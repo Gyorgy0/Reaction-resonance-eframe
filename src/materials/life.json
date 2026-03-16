@@ -1,6 +1,6 @@
 [
     [
-        "LIFE::GOL",
+        "LIFE::GAME_OF_LIFE",
         {
             "id": 12,
             "density": 0.0,
@@ -23,6 +23,138 @@
                     57,
                     255,
                     7,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::MAZE",
+        {
+            "id": 13,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 248,
+                    "birth": 32,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    87,
+                    255,
+                    7,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::WALLED_CITIES",
+        {
+            "id": 14,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 120,
+                    "birth": 31,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    5,
+                    10,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::DIAMOEBA",
+        {
+            "id": 15,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 15,
+                    "birth": 47,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    120,
+                    12,
+                    128,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::GNARL",
+        {
+            "id": 16,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 128,
+                    "birth": 128,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    228,
+                    182,
+                    58,
                     255
                 ],
                 "shinyness": [
@@ -231,7 +363,7 @@
         }
     ],
     [
-        "LIFE::FROGS",
+        "LIFE::COAGULATIONS",
         {
             "id": 24,
             "density": 0.0,
@@ -242,18 +374,18 @@
             },
             "material_type": {
                 "CAutomata": {
-                    "survival": 192,
-                    "birth": 48,
-                    "stages": 1
+                    "survival": 111,
+                    "birth": 35,
+                    "stages": 0
                 }
             },
             "initial_temperature": 293.15,
             "durability": -1,
             "material_color": {
                 "color": [
-                    0,
-                    100,
-                    0,
+                    153,
+                    204,
+                    49,
                     255
                 ],
                 "shinyness": [
@@ -264,9 +396,9 @@
         }
     ],
     [
-        "LIFE::MAZE",
+        "LIFE::PSEUDO_LIFE",
         {
-            "id": 13,
+            "id": 25,
             "density": 0.0,
             "phase": {
                 "Solid": {
@@ -275,7 +407,172 @@
             },
             "material_type": {
                 "CAutomata": {
-                    "survival": 248,
+                    "survival": 97,
+                    "birth": 42,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    223,
+                    79,
+                    15,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::34",
+        {
+            "id": 26,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 48,
+                    "birth": 48,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    80,
+                    0,
+                    80,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::LONG_LIFE",
+        {
+            "id": 27,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 8,
+                    "birth": 56,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    79,
+                    79,
+                    79,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::SEEDS",
+        {
+            "id": 28,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 0,
+                    "birth": 64,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    250,
+                    235,
+                    124,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::REPLICATOR",
+        {
+            "id": 29,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 170,
+                    "birth": 170,
+                    "stages": 0
+                }
+            },
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    36,
+                    148,
+                    135,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIFE::CORAL",
+        {
+            "id": 30,
+            "density": 0.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0
+                }
+            },
+            "material_type": {
+                "CAutomata": {
+                    "survival": 31,
                     "birth": 32,
                     "stages": 0
                 }
@@ -284,88 +581,22 @@
             "durability": -1,
             "material_color": {
                 "color": [
-                    87,
-                    255,
-                    7,
-                    255
-                ],
-                "shinyness": [
-                    1.0,
-                    1.0
-                ]
-            }
-        }
-    ],
-    [
-        "LIFE::WALLED_CITIES",
-        {
-            "id": 14,
-            "density": 0.0,
-            "phase": {
-                "Solid": {
-                    "melting_point": -1.0
-                }
-            },
-            "material_type": {
-                "CAutomata": {
-                    "survival": 120,
-                    "birth": 31,
-                    "stages": 0
-                }
-            },
-            "initial_temperature": 293.15,
-            "durability": -1,
-            "material_color": {
-                "color": [
-                    5,
-                    10,
-                    255,
-                    255
-                ],
-                "shinyness": [
-                    1.0,
-                    1.0
-                ]
-            }
-        }
-    ],
-    [
-        "LIFE::DIAMOEBA",
-        {
-            "id": 15,
-            "density": 0.0,
-            "phase": {
-                "Solid": {
-                    "melting_point": -1.0
-                }
-            },
-            "material_type": {
-                "CAutomata": {
-                    "survival": 15,
-                    "birth": 47,
-                    "stages": 0
-                }
-            },
-            "initial_temperature": 293.15,
-            "durability": -1,
-            "material_color": {
-                "color": [
-                    120,
-                    12,
+                    240,
                     128,
+                    127,
                     255
                 ],
                 "shinyness": [
-                    1.0,
-                    1.0
+                    0.90,
+                    1.1
                 ]
             }
         }
     ],
     [
-        "LIFE::STAR_WARS",
+        "LIFE::SERVIETTES",
         {
-            "id": 16,
+            "id": 31,
             "density": 0.0,
             "phase": {
                 "Solid": {
@@ -374,18 +605,16 @@
             },
             "material_type": {
                 "CAutomata": {
-                    "survival": 60,
-                    "birth": 67,
-                    "stages": 2
+                    "survival": 0,
+                    "birth": 112,
+                    "stages": 0
                 }
             },
             "initial_temperature": 293.15,
             "durability": -1,
             "material_color": {
                 "color": [
-                    40,
-                    40,
-                    104,
+                    143, 144, 0,
                     255
                 ],
                 "shinyness": [

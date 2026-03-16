@@ -118,8 +118,8 @@ pub(crate) fn solve_cells(
                 );
             }*/
             // We evaluate the cellular-automaton rulesets
-            survival <<= (alive_neighbours.saturating_sub(1_u8));
-            birth <<= (alive_neighbours.saturating_sub(1_u8));
+            survival <<= alive_neighbours.saturating_sub(1_u8);
+            birth <<= alive_neighbours.saturating_sub(1_u8);
             // Survival rule check
             if ((survival.reverse_bits() & 0b0000_0001_u8) * alive_neighbours) == alive_neighbours
                 && prev_board[get_safe_i(height, width, &(i, j))].material_id

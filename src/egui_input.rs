@@ -1,8 +1,8 @@
 use crate::particle::Particle;
+use crate::physics::PhysicalReactions;
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
-use ahash::AHashMap;
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
 use std::ops::{AddAssign, Not, RangeInclusive};
 use strum_macros::EnumIter;
@@ -76,7 +76,7 @@ pub fn handle_mouse_input(
 pub fn handle_key_inputs(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
-    melting_transitions: &AHashMap<usize, usize>,
+    physical_transitions: &PhysicalReactions,
     program_options: &mut ApplicationOptions,
     framecount: &mut u64,
     framedelta: f32,
@@ -96,7 +96,7 @@ pub fn handle_key_inputs(
         update_board(
             game_board,
             materials,
-            melting_transitions,
+            physical_transitions,
             program_options.simulation_stopped,
             framecount,
             framedelta,

@@ -3,7 +3,7 @@
         "GAS::METHANE",
         {
             "id": 11,
-            "density": 0.657,
+            "density": 0.000657,
             "phase": {
                 "Gas": {
                     "boiling_point": 111.66
@@ -22,6 +22,60 @@
                 "shinyness": [
                     0.9,
                     1.1
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::HYDROGEN",
+        {
+            "id": 42,
+            "density": 0.00008988,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 20.271
+                }
+            },
+            "material_type": "Fuel",
+            "initial_temperature": 293.15,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    195,
+                    195,
+                    195,
+                    255
+                ],
+                "shinyness": [
+                    0.9,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::STEAM",
+        {
+            "id": 43,
+            "density": 0.000598,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 373.13
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 393.13,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
                 ]
             }
         }

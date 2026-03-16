@@ -11,6 +11,29 @@ use egui::lerp;
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
 
+pub struct PhysicalReactions {
+    pub(crate) melting: AHashMap<usize, usize>,
+    pub(crate) boiling: AHashMap<usize, usize>,
+    pub(crate) sublimation: AHashMap<usize, usize>,
+    pub(crate) ionization: AHashMap<usize, usize>,
+}
+
+impl PhysicalReactions {
+    pub fn new(
+        melting: AHashMap<usize, usize>,
+        boiling: AHashMap<usize, usize>,
+        sublimation: AHashMap<usize, usize>,
+        ionization: AHashMap<usize, usize>,
+    ) -> Self {
+        Self {
+            melting,
+            boiling,
+            sublimation,
+            ionization,
+        }
+    }
+}
+
 #[rustfmt::skip]
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
 #[repr(u8)]
@@ -91,7 +114,7 @@ pub fn solve_particle(
     slice_board: &AtomicComparedSlice<Particle>,
     check_board: &Arc<Vec<AtomicParticle>>,
     materials: &Vec<(String, Material)>,
-    melting_transitions: &AHashMap<usize, usize>,
+    physical_transitions: &PhysicalReactions,
     rngs: &Vec<f32>,
     seeds: &Vec<f32>,
     height: &usize,
@@ -113,9 +136,10 @@ pub fn solve_particle(
             let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             if *melting_point < current_particle.temperature {
                 let mut new_particle = *current_particle;
-                new_particle.material_id = *melting_transitions
+                new_particle.material_id = *physical_transitions
+                    .melting
                     .get(&current_particle.material_id)
-                    .unwrap();
+                    .unwrap_or(&current_particle.material_id);
                 new_particle.display_color = materials[new_particle.material_id]
                     .1
                     .material_color
@@ -465,15 +489,48 @@ pub fn solve_particle(
         Phase::Liquid {
             viscosity: _,
             melting_point,
-            boiling_point: _,
+            boiling_point,
         } => {
-            // Phase change from liquid to solid
+            // Phase change from liquid to solid and liquid to gas
             let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             if *melting_point > current_particle.temperature {
                 let mut new_particle = *current_particle;
-                new_particle.material_id = *melting_transitions
+                new_particle.material_id = *physical_transitions
+                    .melting
                     .get(&current_particle.material_id)
-                    .unwrap();
+                    .unwrap_or(&current_particle.material_id);
+                new_particle.display_color = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .gamma_multiply(lerp(
+                        tuple_to_rangeinclusive(
+                            materials[new_particle.material_id]
+                                .1
+                                .material_color
+                                .shinyness,
+                        ),
+                        rngs[get_safe_i(height, width, &(i, j))],
+                    ));
+                new_particle.display_color[3] = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .a();
+                unsafe {
+                    write_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        new_particle,
+                        check_board,
+                    )
+                };
+            } else if *boiling_point < current_particle.temperature {
+                let mut new_particle = *current_particle;
+                new_particle.material_id = *physical_transitions
+                    .boiling
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
                 new_particle.display_color = materials[new_particle.material_id]
                     .1
                     .material_color
@@ -850,7 +907,42 @@ pub fn solve_particle(
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // GAS PHYSICS
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        Phase::Gas { boiling_point: _ } => {
+        Phase::Gas { boiling_point } => {
+            // Phase transition fromg as to liquid
+            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            if *boiling_point > current_particle.temperature {
+                let mut new_particle = *current_particle;
+                new_particle.material_id = *physical_transitions
+                    .boiling
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
+                new_particle.display_color = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .gamma_multiply(lerp(
+                        tuple_to_rangeinclusive(
+                            materials[new_particle.material_id]
+                                .1
+                                .material_color
+                                .shinyness,
+                        ),
+                        rngs[get_safe_i(height, width, &(i, j))],
+                    ));
+                new_particle.display_color[3] = materials[new_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .a();
+                unsafe {
+                    write_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        new_particle,
+                        check_board,
+                    )
+                };
+            }
             // Rng determines which side should the particle fall
             let mut orientation_y: i32 = 0_i32;
             // This calculates the position on the Y axis
