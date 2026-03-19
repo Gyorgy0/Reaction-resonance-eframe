@@ -3,23 +3,26 @@ use std::fs;
 use std::{mem::discriminant, u8};
 
 use crate::egui_input::BrushTool;
-use crate::physics::PhysicalReactions;
+use crate::physics::{BLACK_BODY_RADIATION_COLORS, PhysicalReactions};
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::debug_text_rendering;
 use crate::world::AtomicComparedSlice;
 use crate::{
     egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
-    material::{Material, VOID},
+    material::{AIR, Material},
     reactions::MaterialType,
     system_ui::draw_brush_outlines,
     world::{Board, update_board},
 };
 use ahash::AHashMap;
+use egui::epaint::Hsva;
 use egui::text::LayoutJob;
+use egui::util::hash;
 use egui::{
-    Color32, ColorImage, Id, Image, Layout, RichText, Sense, Stroke, TextureHandle, TextureOptions,
-    Theme, Vec2, load, vec2,
+    Color32, ColorImage, Id, Image, LayerId, Layout, Rect, RichText, Sense, Stroke, TextureHandle,
+    TextureId, TextureOptions, Theme, Vec2, load, pos2, vec2,
 };
+use egui_colorgradient::ColorInterpolator;
 use egui_dialogs::{Dialog, DialogDetails, Dialogs, dialog_window};
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
@@ -33,11 +36,15 @@ pub struct EFrameApp<'a> {
     #[serde(skip)]
     physical_transitions: PhysicalReactions,
     #[serde(skip)]
+    black_body_gradient: ColorInterpolator,
+    #[serde(skip)]
     dialogs: Dialogs<'a>,
     #[serde(skip)]
     debug_text_job: LayoutJob,
     #[serde(skip)]
-    texture: TextureHandle,
+    material_texture: TextureHandle,
+    #[serde(skip)]
+    heatmap_texture: TextureHandle,
     #[serde(skip)]
     game_board: Board,
     #[serde(skip)]
@@ -75,12 +82,17 @@ impl Default for EFrameApp<'_> {
         };
         game_board.create_board();
         let ctx = egui::Context::default();
-        let texture = ctx.load_texture(
+        let material_texture = ctx.load_texture(
             "Board".to_string(),
             ColorImage::example(),
             TextureOptions::NEAREST,
         );
-        let mut materials: Vec<(String, Material)> = vec![(String::new(), VOID.clone())];
+        let heatmap_texture = ctx.load_texture(
+            "Board_heatmap".to_string(),
+            ColorImage::example(),
+            TextureOptions::LINEAR,
+        );
+        let mut materials: Vec<(String, Material)> = vec![(String::new(), AIR.clone())];
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             use std::fs;
@@ -182,9 +194,18 @@ impl Default for EFrameApp<'_> {
         };
         let selected_category = MaterialType::Fuel;
         let debug_text_job = LayoutJob::default();
+        let stops: Vec<(f32, Hsva)> = BLACK_BODY_RADIATION_COLORS
+            .iter_mut()
+            .map(|stop| (stop.0, stop.1.into()))
+            .collect();
         Self {
             fullscreen: false,
             fps_values: vec![0_f32; 256_usize],
+            black_body_gradient: egui_colorgradient::Gradient::new(
+                egui_colorgradient::InterpolationMethod::Constant,
+                stops,
+            )
+            .interpolator(),
             physical_transitions: PhysicalReactions::new(
                 serialized_transition_1,
                 serialized_transition_2,
@@ -195,7 +216,8 @@ impl Default for EFrameApp<'_> {
             game_board,
             materials,
             material_categories,
-            texture,
+            material_texture,
+            heatmap_texture,
             selected_tool,
             selected_category,
             program_options: ApplicationOptions::default(),
@@ -470,11 +492,14 @@ impl eframe::App for EFrameApp<'_> {
                 ],
                 pixels,
             );
-            self.texture = ctx.load_texture("Board", frame_image.clone(), TextureOptions::NEAREST);
-            self.texture
+            self.material_texture =
+                ctx.load_texture("Board", frame_image.clone(), TextureOptions::NEAREST);
+            self.material_texture
                 .set(frame_image.clone(), TextureOptions::NEAREST);
-            let sized_texture =
-                load::SizedTexture::new(self.texture.id(), self.texture.size_vec2());
+            let sized_texture = load::SizedTexture::new(
+                self.material_texture.id(),
+                self.material_texture.size_vec2(),
+            );
             let binding = Image::from_texture(sized_texture);
             let board_display = Image::new(Image::source(&binding, ui.ctx()))
                 .fit_to_exact_size(Vec2::new(
@@ -493,6 +518,34 @@ impl eframe::App for EFrameApp<'_> {
                         width / self.game_board.width as f32,
                         width / self.game_board.width as f32,
                     );
+                    let heatmap_pixels = self
+                        .game_board
+                        .draw_board_temperature(&self.black_body_gradient);
+                    let frame_image: ColorImage = ColorImage::new(
+                        [
+                            self.game_board.width as usize,
+                            self.game_board.height as usize,
+                        ],
+                        heatmap_pixels,
+                    );
+                    self.heatmap_texture = ctx.load_texture(
+                        "Board_heatmap",
+                        frame_image.clone(),
+                        TextureOptions::LINEAR,
+                    );
+                    self.heatmap_texture
+                        .set(frame_image.clone(), TextureOptions::LINEAR);
+                    ui.painter()
+                        .clone()
+                        .with_clip_rect(board.interact_rect)
+                        .with_layer_id(LayerId::new(egui::Order::Middle, Id::new(hash(3_i32))))
+                        .image(
+                            self.heatmap_texture.id(),
+                            board.interact_rect,
+                            Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+                            Color32::WHITE,
+                        );
+
                     if self.program_options.debug_mode {
                         debug_text_rendering(
                             &self.game_board,
@@ -528,6 +581,33 @@ impl eframe::App for EFrameApp<'_> {
                         height / self.game_board.height as f32,
                         height / self.game_board.height as f32,
                     );
+                    let heatmap_pixels = self
+                        .game_board
+                        .draw_board_temperature(&self.black_body_gradient);
+                    let frame_image: ColorImage = ColorImage::new(
+                        [
+                            self.game_board.width as usize,
+                            self.game_board.height as usize,
+                        ],
+                        heatmap_pixels,
+                    );
+                    self.heatmap_texture = ctx.load_texture(
+                        "Board_heatmap",
+                        frame_image.clone(),
+                        TextureOptions::LINEAR,
+                    );
+                    self.heatmap_texture
+                        .set(frame_image.clone(), TextureOptions::LINEAR);
+                    ui.painter()
+                        .clone()
+                        .with_clip_rect(board.interact_rect)
+                        .with_layer_id(LayerId::new(egui::Order::Middle, Id::new(hash(3_i32))))
+                        .image(
+                            self.heatmap_texture.id(),
+                            board.interact_rect,
+                            Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+                            Color32::WHITE,
+                        );
                     if self.program_options.debug_mode {
                         debug_text_rendering(
                             &self.game_board,

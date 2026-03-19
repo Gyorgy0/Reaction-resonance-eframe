@@ -13,7 +13,7 @@ android_logger = "0.15.1"
 crossbeam = "0.8.4"
 eframe = { version = "0.33.3", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
 egui = { version = "0.33.3", features = ["serde"] }
-egui-colorgradient = "0.2.3"
+egui-colorgradient = { version = "0.2.3", path = "../egui-colorgradient/egui-colorgradient" }
 egui_dialogs = { git = "https://github.com/Gyorgy0/egui_dialogs.git", version = "0.3.7" }
 egui_extras = { version = "0.33.3", features = ["all_loaders", "svg"] }
 ehttp = "0.6.0"

@@ -3,7 +3,7 @@ use std::sync::atomic::AtomicBool;
 use egui::{Color32, Vec2};
 use serde::{Deserialize, Serialize};
 
-use crate::material::{Material, VOID};
+use crate::material::{AIR, Material};
 
 #[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
@@ -35,7 +35,7 @@ impl Particle {
 
 impl Default for Particle {
     fn default() -> Self {
-        Self::new(&VOID, Vec2::new(0_f32, 0_f32), 293.15_f32)
+        Self::new(&AIR, Vec2::new(0_f32, 0_f32), 293.15_f32)
     }
 }
 #[rustfmt::skip]

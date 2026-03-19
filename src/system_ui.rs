@@ -1,11 +1,14 @@
 use std::fmt::{self};
 
-use egui::epaint::TextShape;
+use egui::epaint::{Hsva, TextShape};
 use egui::text::LayoutJob;
 use egui::util::hash;
 use egui::{
     Color32, ColorImage, Context, FontId, Id, ImageSource, LayerId, NumExt, Pos2, Rect, Response,
-    Stroke, TextFormat, TextureOptions, Ui, Vec2, include_image, pos2, vec2,
+    Rgba, Stroke, TextFormat, TextureOptions, Ui, Vec2, include_image, pos2, vec2,
+};
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
 };
 
 use crate::egui_input::BrushShape;
@@ -18,7 +21,7 @@ use crate::world::{Board, get_safe_i};
 impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Phase::Void => write!(f, ""),
+            Phase::Air => write!(f, ""),
             Phase::Solid { melting_point: _ } => write!(f, "Solid"),
             Phase::Powder {
                 coarseness: _,
@@ -116,6 +119,22 @@ impl Board {
             .iter()
             .enumerate()
             .map(|px| self.contents.get_elem(px.0).display_color)
+            .collect()
+    }
+    pub fn draw_board_temperature(
+        &mut self,
+        gradient: &egui_colorgradient::ColorInterpolator,
+    ) -> Vec<Color32> {
+        let pixels: Vec<Color32> = vec![Color32::TRANSPARENT; self.contents.len()];
+        pixels
+            .par_iter()
+            .enumerate()
+            .map(|px| {
+                gradient
+                    .sample_at(self.contents.get_elem(px.0).temperature)
+                    .unwrap_or(Rgba::TRANSPARENT)
+                    .into()
+            })
             .collect()
     }
 }

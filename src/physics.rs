@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use ahash::AHashMap;
-use egui::lerp;
+use egui::{Color32, lerp};
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
 
@@ -17,6 +17,81 @@ pub struct PhysicalReactions {
     pub(crate) sublimation: AHashMap<usize, usize>,
     pub(crate) ionization: AHashMap<usize, usize>,
 }
+
+// Black body radiation gradient:
+// ({temperature}, {color of the radiation})
+// Color gradient tries to model how the electromagnetic radiation shifts,
+// depending on the material's temperature
+pub const BLACK_BODY_RADIATION_COLORS: [(f32, Color32); 17] = [
+    (
+        0_f32,
+        Color32::from_rgba_unmultiplied_const(127_u8, 0_u8, 0_u8, 0_u8),
+    ),
+    (
+        700_f32,
+        Color32::from_rgba_unmultiplied_const(127_u8, 0_u8, 0_u8, 31_u8),
+    ),
+    (
+        900_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 9_u8, 0_u8, 127_u8),
+    ),
+    (
+        1000_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 9_u8, 0_u8, 155_u8),
+    ),
+    (
+        2000_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 68_u8, 1_u8, 185_u8),
+    ),
+    (
+        3000_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 125_u8, 36_u8, 215_u8),
+    ),
+    (
+        4000_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 170_u8, 92_u8, 220_u8),
+    ),
+    (
+        5000_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 205_u8, 155_u8, 225_u8),
+    ),
+    (
+        6000_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 231_u8, 217_u8, 230_u8),
+    ),
+    (
+        6500_f32,
+        Color32::from_rgba_unmultiplied_const(255_u8, 255_u8, 255_u8, 240_u8),
+    ),
+    (
+        7000_f32,
+        Color32::from_rgba_unmultiplied_const(239_u8, 234_u8, 255_u8, 255_u8),
+    ),
+    (
+        8000_f32,
+        Color32::from_rgba_unmultiplied_const(202_u8, 220_u8, 255_u8, 240_u8),
+    ),
+    (
+        9000_f32,
+        Color32::from_rgba_unmultiplied_const(178_u8, 193_u8, 255_u8, 230_u8),
+    ),
+    (
+        10000_f32,
+        Color32::from_rgba_unmultiplied_const(160_u8, 180_u8, 255_u8, 200_u8),
+    ),
+    (
+        15000_f32,
+        Color32::from_rgba_unmultiplied_const(122_u8, 149_u8, 255_u8, 200_u8),
+    ),
+    (
+        30000_f32,
+        Color32::from_rgba_unmultiplied_const(96_u8, 140_u8, 255_u8, 190_u8),
+    ),
+    (
+        40000_f32,
+        Color32::from_rgba_unmultiplied_const(84_u8, 135_u8, 255_u8, 190_u8),
+    ),
+];
 
 impl PhysicalReactions {
     pub fn new(
@@ -38,7 +113,7 @@ impl PhysicalReactions {
 #[derive(PartialEq, Debug, Copy, Clone, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum Phase {
-    Void,
+    Air,
     Solid { melting_point: f32 },
     Powder { coarseness: f32, melting_point: f32 },                         // Coarseness is the average diameter of a powder particle (between 0 and 1) (in cm), -> the smaller the diameter, the powder becomes more "clumpier"
     Liquid { viscosity: f32, melting_point: f32, boiling_point: f32 },      // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1_f32, the bigger the viscosity, the thicker the fluid is
@@ -130,7 +205,7 @@ pub fn solve_particle(
         .1
         .phase
     {
-        Phase::Void => {}
+        Phase::Air => {}
 
         Phase::Solid { melting_point } => {
             let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
@@ -578,25 +653,10 @@ pub fn solve_particle(
                 .y
                 .abs() as i32
             {
-                // Falling and checking if there is a particle with a larger density
-                if materials[slice_board
+                // Falling and checking if there is a particle that is solid
+                if slice_board
                     .get_elem(get_safe_i(height, width, &(i, j)))
-                    .material_id]
-                    .1
-                    .density
-                    > materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i + (gravity.signum() as i32 * _k) as usize, j),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .density
-                    && slice_board
-                        .get_elem(get_safe_i(height, width, &(i, j)))
-                        .updated
+                    .updated
                     && discriminant(
                         &materials[slice_board
                             .get(get_safe_i(
@@ -819,21 +879,6 @@ pub fn solve_particle(
                         &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
                     ))
                     .is_some()
-                    && materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i, j.wrapping_add((orientation.signum() * _k) as usize)),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .density
-                        <= materials[slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .material_id]
-                            .1
-                            .density
                     && (discriminant(
                         &materials[slice_board
                             .get(get_safe_i(
@@ -976,17 +1021,22 @@ pub fn solve_particle(
                         check_board,
                     );
                 }
-                orientation_y = (slice_board
-                    .get_elem(get_safe_i(height, width, &(i, j)))
-                    .speed
-                    .y
-                    .signum()
-                    * (slice_board
-                        .get_elem(get_safe_i(height, width, &(i, j)))
-                        .speed
-                        .y
-                        .abs()
-                        + 1_f32)) as i32;
+                // Calculates buoyancy using gravity and material density
+                let calculated_particle =
+                    slice_board.get(get_safe_i(height, width, &(i, j))).unwrap();
+                let next_particle = slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i.saturating_add(gravity.signum() as usize), j),
+                    ))
+                    .unwrap_or(calculated_particle);
+                orientation_y = ((calculated_particle.speed.y.signum()
+                    * (calculated_particle.speed.y.abs() + 1_f32))
+                    - ((materials[next_particle.material_id].1.density
+                        / materials[calculated_particle.material_id].1.density)
+                        * gravity
+                        * framedelta)) as i32;
             }
             let mut ychange = 0_i32;
             for k in 0_i32..orientation_y.abs() {
@@ -1021,21 +1071,6 @@ pub fn solve_particle(
                         &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                     ))
                     .is_some()
-                    && (materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .density
-                        <= materials[slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .material_id]
-                            .1
-                            .density)
                     && (std::mem::discriminant(
                         &materials[slice_board
                             .get(get_safe_i(
@@ -1158,21 +1193,6 @@ pub fn solve_particle(
                         &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                     ))
                     .is_some()
-                    && materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .density
-                        <= materials[slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .material_id]
-                            .1
-                            .density
                     && (std::mem::discriminant(
                         &materials[slice_board
                             .get(get_safe_i(
@@ -1350,21 +1370,6 @@ pub fn solve_particle(
                         &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
                     ))
                     .is_some()
-                    && (materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i.wrapping_add((orientation_y.signum() * k) as usize), j),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .density
-                        <= materials[slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .material_id]
-                            .1
-                            .density)
                     && (std::mem::discriminant(
                         &materials[slice_board
                             .get(get_safe_i(
@@ -1486,21 +1491,6 @@ pub fn solve_particle(
                         &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
                     ))
                     .is_some()
-                    && materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i, j.wrapping_add((orientation_x.signum() * _k) as usize)),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .density
-                        <= materials[slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .material_id]
-                            .1
-                            .density
                     && (std::mem::discriminant(
                         &materials[slice_board
                             .get(get_safe_i(

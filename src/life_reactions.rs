@@ -107,16 +107,6 @@ pub(crate) fn solve_cells(
                     alive_neighbours += 1_u8;
                 }
             });
-            /*if i == 2 && j == 2 {
-                println!(
-                    "{:?}, {:?}",
-                    alive_neighbours,
-                    materials[automatons[automaton].unwrap()]
-                        .1
-                        .material_type
-                        .get_max_stage()
-                );
-            }*/
             // We evaluate the cellular-automaton rulesets
             survival <<= alive_neighbours.saturating_sub(1_u8);
             birth <<= alive_neighbours.saturating_sub(1_u8);

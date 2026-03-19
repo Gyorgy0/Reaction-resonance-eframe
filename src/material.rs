@@ -21,15 +21,15 @@ pub fn tuple_to_rangeinclusive(range: (f32, f32)) -> RangeInclusive<f32> {
     RangeInclusive::new(range.0, range.1)
 }
 
-pub static VOID: Material = Material {
+pub static AIR: Material = Material {
     id: 0,
-    density: 0_f32,
-    phase: Phase::Void,
+    density: 0.0012041_f32,
+    phase: Phase::Air,
     material_type: MaterialType::Solution,
-    initial_temperature: 293.15,
-    durability: -1,
+    initial_temperature: 293.15_f32,
+    durability: -1_i32,
     material_color: MaterialColor {
-        color: Color32::from_rgba_premultiplied(0, 0, 0, 100),
+        color: Color32::from_rgba_premultiplied(0_u8, 0_u8, 0_u8, 100_u8),
         shinyness: (1_f32, 1_f32),
     },
 };

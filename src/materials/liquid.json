@@ -85,5 +85,150 @@
                 ]
             }
         }
+    ],
+    [
+        "LIQUID::MOLTEN_LITHIUM",
+        {
+            "id": 44,
+            "density": 0.512,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 2.0,
+                    "boiling_point": 1617,
+                    "melting_point": 453.65
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 473.65,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    146,
+                    143,
+                    126,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_SODIUM",
+        {
+            "id": 45,
+            "density": 0.927,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 2.0,
+                    "boiling_point": 1156.090,
+                    "melting_point": 370.944
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 390.944,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    63,
+                    63,
+                    61,
+                    255
+                ],
+                "shinyness": [
+                    1.1,
+                    1.4
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_POTASSIUM",
+        {
+            "id": 46,
+            "density": 0.82948,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 2.0,
+                    "boiling_point": 1030.793,
+                    "melting_point": 336.7
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 356.7,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    142,
+                    145,
+                    152,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_RUBIDIUM",
+        {
+            "id": 47,
+            "density": 1.46,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 2.0,
+                    "boiling_point": 961,
+                    "melting_point": 312.45
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 332.45,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    163,
+                    161,
+                    159,
+                    255
+                ],
+                "shinyness": [
+                    0.9,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_CAESIUM",
+        {
+            "id": 48,
+            "density": 1.843,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 2.0,
+                    "boiling_point": 944,
+                    "melting_point": 301.7
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 321.7,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    107,
+                    102,
+                    44,
+                    255
+                ],
+                "shinyness": [
+                    1.05,
+                    1.35
+                ]
+            }
+        }
     ]
 ]
