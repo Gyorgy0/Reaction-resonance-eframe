@@ -20,7 +20,7 @@ use egui::text::LayoutJob;
 use egui::util::hash;
 use egui::{
     Color32, ColorImage, Id, Image, LayerId, Layout, Rect, RichText, Sense, Stroke, TextureHandle,
-    TextureId, TextureOptions, Theme, Vec2, load, pos2, vec2,
+    TextureOptions, Theme, Vec2, load, pos2, vec2,
 };
 use egui_colorgradient::ColorInterpolator;
 use egui_dialogs::{Dialog, DialogDetails, Dialogs, dialog_window};
@@ -70,8 +70,8 @@ impl Default for EFrameApp<'_> {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 768_u16,
-            height: 384_u16,
+            width: 512_u16,
+            height: 256_u16,
             contents: AtomicComparedSlice::new(vec![]),
             gravity: 9.81_f32,
             brush_size: vec2(6_f32, 6_f32),

@@ -6,12 +6,14 @@
             "density": 1.5,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.1,
-                    "melting_point": 1850.15
+                    "melting_point": 1850.15,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Ceramic",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.83,
+            "heat_conductivity": 0.0025,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -34,12 +36,14 @@
             "density": 1.5,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.1,
-                    "melting_point": -1.0
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Decor",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.83,
+            "heat_conductivity": 0.0025,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -62,12 +66,14 @@
             "density": 0.45,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.0003,
-                    "melting_point": -1.0
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Fuel",
             "initial_temperature": 293.15,
+            "heat_capacity": 1.7,
+            "heat_conductivity": 0.0017,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -77,8 +83,8 @@
                     255
                 ],
                 "shinyness": [
-                    0.9,
-                    1.1
+                    0.8,
+                    1.2
                 ]
             }
         }
@@ -90,12 +96,14 @@
             "density": 0.5334,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.0003,
-                    "melting_point": 453.65
+                    "melting_point": 453.65,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 3.5821,
+            "heat_conductivity": 0.848,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -105,8 +113,8 @@
                     255
                 ],
                 "shinyness": [
-                    0.95,
-                    1.05
+                    0.85,
+                    1.15
                 ]
             }
         }
@@ -118,12 +126,14 @@
             "density": 0.9688,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.0003,
-                    "melting_point": 370.944
+                    "melting_point": 370.944,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 1.228,
+            "heat_conductivity": 1.42,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -133,7 +143,7 @@
                     255
                 ],
                 "shinyness": [
-                    1.1,
+                    0.9,
                     1.4
                 ]
             }
@@ -146,12 +156,14 @@
             "density": 0.8590,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.0003,
-                    "melting_point": 336.7
+                    "melting_point": 336.7,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.757,
+            "heat_conductivity": 1.025,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -161,8 +173,8 @@
                     255
                 ],
                 "shinyness": [
-                    0.95,
-                    1.05
+                    0.85,
+                    1.15
                 ]
             }
         }
@@ -174,12 +186,14 @@
             "density": 1.534,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.0003,
-                    "melting_point": 312.45
+                    "melting_point": 312.45,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.363,
+            "heat_conductivity": 0.582,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -189,8 +203,8 @@
                     255
                 ],
                 "shinyness": [
-                    0.9,
-                    1.1
+                    0.85,
+                    1.35
                 ]
             }
         }
@@ -202,12 +216,14 @@
             "density": 1.886,
             "phase": {
                 "Powder": {
-                    "coarseness": 0.0003,
-                    "melting_point": 301.7
+                    "melting_point": 301.7,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.242,
+            "heat_conductivity": 0.359,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -217,7 +233,37 @@
                     255
                 ],
                 "shinyness": [
-                    1.05,
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "POWDER::POWDERED_DRY_ICE",
+        {
+            "id": 51,
+            "density": 1.562,
+            "phase": {
+                "Powder": {
+                    "melting_point": -1.0,
+                    "sublimation_point": 194.6855
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 174.6855,
+            "heat_capacity": 0.843,
+            "heat_conductivity": 0.0001662,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
                     1.35
                 ]
             }

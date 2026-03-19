@@ -4,7 +4,6 @@ use crate::reactions::MaterialType;
 use crate::world::{AtomicComparedSlice, get_safe_i, write_life_particle};
 use crate::{material::Material, particle::Particle};
 use egui::lerp;
-use rayon::iter::ParallelIterator;
 use std::mem::discriminant;
 use std::sync::Arc;
 
@@ -49,16 +48,14 @@ pub(crate) fn solve_cells(
                 .material_id]
                 .1
                 .material_type,
-        ) == discriminant(&MaterialType::CAutomata {
-            birth: 0_u8,
-            survival: 0_u8,
-            stages: 0_u8,
-        }) && !(automatons.contains(&Option::Some(
-            prev_board
-                .get(get_safe_i(height, width, &cell_positions[pos]))
-                .unwrap_or(&Particle::default())
-                .material_id,
-        ))) {
+        ) == discriminant(&MaterialType::cautomata_default())
+            && !(automatons.contains(&Option::Some(
+                prev_board
+                    .get(get_safe_i(height, width, &cell_positions[pos]))
+                    .unwrap_or(&Particle::default())
+                    .material_id,
+            )))
+        {
             automatons[pos] = Option::Some(
                 prev_board
                     .get(get_safe_i(height, width, &cell_positions[pos]))
@@ -68,13 +65,7 @@ pub(crate) fn solve_cells(
         }
     });
     if discriminant(&materials[new_particle.material_id].1.material_type)
-        == discriminant(
-            &(MaterialType::CAutomata {
-                survival: 0_u8,
-                birth: 0_u8,
-                stages: 0_u8,
-            }),
-        )
+        == discriminant(&MaterialType::cautomata_default())
     {
         new_particle = Particle::default();
     }
@@ -123,14 +114,14 @@ pub(crate) fn solve_cells(
                 new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                 new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
             }
-            // Survive by health
+            /*// Survive by health
             else if prev_board[get_safe_i(height, width, &(i, j))].life_stage > 0_u8
                 && prev_board[get_safe_i(height, width, &(i, j))].material_id
                     == automatons[automaton].unwrap()
             {
                 new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                 new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
-            }
+            }*/
             // Birth rule check
             if ((birth.reverse_bits() & 0b0000_0001_u8) * alive_neighbours) == alive_neighbours
                 && prev_board[get_safe_i(height, width, &(i, j))].material_id

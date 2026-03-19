@@ -9,13 +9,13 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use strum_macros::EnumIter;
 
-#[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter)]
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize, EnumIter)]
 #[rustfmt::skip]
 #[repr(u8)]
 pub(crate) enum MaterialType {
     /// Corrosive material - everything with a pH value lower than 7.0
     ///                      everything with a pH value higher than 7.0
-    Corrosive,
+    Corrosive {ph_value: f32, blacklist: bool, material_list: Vec<usize>},
     /// Mixture of metals - on reaction with corrosive materials the corrosion resistant metals leave a powder-type material behind
     Alloy,
     /// Cellular automaton material defined by 3 rules (survival, birth and life stages)
@@ -51,8 +51,6 @@ pub(crate) enum MaterialType {
     Explosive,
     // Flammable material under normal circumstances
     Fuel,
-    // Amorphous material formed from a molten material and it's cooled without proper crystalization
-    Glass,
     // Machines e.g. cloners, sinks, pumps, conveyor belts, etc...
     Machine {machine: MachineTypes},
     // Conductive materials, they react based on their reactivity series
@@ -80,6 +78,25 @@ pub(crate) enum MachineTypes {
 impl MaterialType {
     pub fn discriminant(&self) -> u8 {
         unsafe { *(self as *const Self as *const u8) }
+    }
+    pub fn cautomata_default() -> Self {
+        MaterialType::CAutomata {
+            survival: u8::default(),
+            birth: u8::default(),
+            stages: u8::default(),
+        }
+    }
+    pub fn machine_default() -> Self {
+        MaterialType::Machine {
+            machine: MachineTypes::default(),
+        }
+    }
+    pub fn corrosive_default() -> Self {
+        MaterialType::Corrosive {
+            ph_value: f32::default(),
+            blacklist: bool::default(),
+            material_list: vec![],
+        }
     }
 }
 
@@ -175,7 +192,7 @@ pub(crate) fn solve_reactions(
                     .material_id]
                     .1
                     .phase,
-            ) == std::mem::discriminant(&(Phase::Plasma))
+            ) == std::mem::discriminant(&Phase::plasma_default())
                 && std::mem::discriminant(
                     &materials[prev_board
                         .get(get_safe_i(height, width, &(i, j)))
@@ -183,7 +200,7 @@ pub(crate) fn solve_reactions(
                         .material_id]
                         .1
                         .phase,
-                ) != std::mem::discriminant(&(Phase::Plasma))
+                ) != std::mem::discriminant(&Phase::plasma_default())
                 && prev_board
                     .get(get_safe_i(height, width, &neumann_positions[rnd as usize]))
                     .is_some()

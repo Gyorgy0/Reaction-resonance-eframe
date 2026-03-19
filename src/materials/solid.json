@@ -6,11 +6,14 @@
             "density": 2.0,
             "phase": {
                 "Solid": {
-                    "melting_point": -1.0
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Fuel",
             "initial_temperature": 293.15,
+            "heat_capacity": 1.7,
+            "heat_conductivity": 0.0017,
             "durability": 40,
             "material_color": {
                 "color": [
@@ -33,11 +36,14 @@
             "density": 0.92,
             "phase": {
                 "Solid": {
-                    "melting_point": 273.15
+                    "melting_point": 273.15,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Solution",
             "initial_temperature": 273.0,
+            "heat_capacity": 2.050,
+            "heat_conductivity": 0.00222, 
             "durability": 40,
             "material_color": {
                 "color": [
@@ -60,7 +66,8 @@
             "density": 0.0,
             "phase": {
                 "Solid": {
-                    "melting_point": -1.0
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": {
@@ -69,6 +76,8 @@
                 }
             },
             "initial_temperature": 293.15,
+            "heat_capacity": 1.0,
+            "heat_conductivity": 1.0, 
             "durability": -1,
             "material_color": {
                 "color": [
@@ -91,7 +100,8 @@
             "density": 0.0,
             "phase": {
                 "Solid": {
-                    "melting_point": -1.0
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": {
@@ -100,6 +110,8 @@
                 }
             },
             "initial_temperature": 293.15,
+            "heat_capacity": 1.0,
+            "heat_conductivity": 1.0, 
             "durability": -1,
             "material_color": {
                 "color": [
@@ -122,11 +134,14 @@
             "density": 0.5334,
             "phase": {
                 "Solid": {
-                    "melting_point": 453.65
+                    "melting_point": 453.65,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 3.5821,
+            "heat_conductivity": 0.848,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -149,11 +164,14 @@
             "density": 0.9688,
             "phase": {
                 "Solid": {
-                    "melting_point": 370.944
+                    "melting_point": 370.944,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 1.228,
+            "heat_conductivity": 1.42,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -176,11 +194,14 @@
             "density": 0.8590,
             "phase": {
                 "Solid": {
-                    "melting_point": 336.7
+                    "melting_point": 336.7,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.757,
+            "heat_conductivity": 1.025,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -203,11 +224,14 @@
             "density": 1.534,
             "phase": {
                 "Solid": {
-                    "melting_point": 312.45
+                    "melting_point": 312.45,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.363,
+            "heat_conductivity": 0.582,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -230,17 +254,50 @@
             "density": 1.886,
             "phase": {
                 "Solid": {
-                    "melting_point": 301.7
+                    "melting_point": 301.7,
+                    "sublimation_point": -1.0
                 }
             },
             "material_type": "Metal",
             "initial_temperature": 293.15,
+            "heat_capacity": 0.242,
+            "heat_conductivity": 0.359,
             "durability": 50,
             "material_color": {
                 "color": [
                     107,
                     102,
                     44,
+                    255
+                ],
+                "shinyness": [
+                    1.05,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::DRY_ICE",
+        {
+            "id": 49,
+            "density": 1.562,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": 194.6855
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 174.6855,
+            "heat_capacity": 0.843,
+            "heat_conductivity": 0.0001662,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
                     255
                 ],
                 "shinyness": [

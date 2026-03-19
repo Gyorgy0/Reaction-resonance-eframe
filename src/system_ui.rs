@@ -1,15 +1,13 @@
 use std::fmt::{self};
 
-use egui::epaint::{Hsva, TextShape};
+use egui::epaint::TextShape;
 use egui::text::LayoutJob;
 use egui::util::hash;
 use egui::{
     Color32, ColorImage, Context, FontId, Id, ImageSource, LayerId, NumExt, Pos2, Rect, Response,
     Rgba, Stroke, TextFormat, TextureOptions, Ui, Vec2, include_image, pos2, vec2,
 };
-use rayon::iter::{
-    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 
 use crate::egui_input::BrushShape;
 use crate::material::Material;
@@ -22,17 +20,23 @@ impl fmt::Display for Phase {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Phase::Air => write!(f, ""),
-            Phase::Solid { melting_point: _ } => write!(f, "Solid"),
-            Phase::Powder {
-                coarseness: _,
+            Phase::Solid {
                 melting_point: _,
+                sublimation_point: _,
+            } => write!(f, "Solid"),
+            Phase::Powder {
+                melting_point: _,
+                sublimation_point: _,
             } => write!(f, "Powder"),
             Phase::Liquid {
                 viscosity: _,
                 melting_point: _,
                 boiling_point: _,
             } => write!(f, "Liquid"),
-            Phase::Gas { boiling_point: _ } => write!(f, "Gas"),
+            Phase::Gas {
+                boiling_point: _,
+                sublimation_point: _,
+            } => write!(f, "Gas"),
             Phase::Plasma => write!(f, "Plasma"),
         }
     }
@@ -41,7 +45,13 @@ impl fmt::Display for Phase {
 impl fmt::Display for MaterialType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            MaterialType::Corrosive => write!(f, "Corrosive"),
+            MaterialType::Corrosive {
+                ph_value: _,
+                blacklist: _,
+                material_list: _,
+            } => {
+                write!(f, "Corrosive")
+            }
             MaterialType::Alloy => write!(f, "Alloy"),
             MaterialType::Ceramic => write!(f, "Ceramic"),
             MaterialType::CAutomata {
@@ -53,7 +63,6 @@ impl fmt::Display for MaterialType {
             MaterialType::Metal => write!(f, "Metal"),
             MaterialType::Explosive => write!(f, "Explosive"),
             MaterialType::Fuel => write!(f, "Fuel"),
-            MaterialType::Glass => write!(f, "Glass"),
             MaterialType::Oxidizer => write!(f, "Oxidizer"),
             MaterialType::Decor => write!(f, "Decor"),
             MaterialType::Solution => write!(f, "Solution"),
@@ -72,7 +81,11 @@ impl fmt::Display for MachineTypes {
 impl MaterialType {
     pub fn get_icon(&self) -> ImageSource<'_> {
         match self {
-            MaterialType::Corrosive => include_image!("assets/corrosives_icon.svg"),
+            MaterialType::Corrosive {
+                ph_value: _,
+                blacklist: _,
+                material_list: _,
+            } => include_image!("assets/corrosives_icon.svg"),
             MaterialType::Alloy => include_image!("assets/alloys_icon.svg"),
             MaterialType::CAutomata {
                 survival: _,
@@ -82,7 +95,6 @@ impl MaterialType {
             MaterialType::Ceramic => include_image!("assets/category_background.svg"),
             MaterialType::Explosive => include_image!("assets/explosives_icon.svg"),
             MaterialType::Fuel => include_image!("assets/fuels_icon.svg"),
-            MaterialType::Glass => include_image!("assets/glass_icon.svg"),
             MaterialType::Machine { machine: _ } => include_image!("assets/machines_icon.svg"),
             MaterialType::Metal => include_image!("assets/metals_icon.svg"),
             MaterialType::Oxidizer => include_image!("assets/oxidizers_icon.svg"),
@@ -92,7 +104,11 @@ impl MaterialType {
     }
     pub fn get_name(&self) -> &str {
         match self {
-            MaterialType::Corrosive => "Corrosive materials",
+            MaterialType::Corrosive {
+                ph_value: _,
+                blacklist: _,
+                material_list: _,
+            } => "Corrosive materials",
             MaterialType::Alloy => "Alloys",
             MaterialType::CAutomata {
                 survival: _,
@@ -102,7 +118,6 @@ impl MaterialType {
             MaterialType::Ceramic => "Ceramics",
             MaterialType::Explosive => "Explosive materials",
             MaterialType::Fuel => "Fuels",
-            MaterialType::Glass => "Glass materials",
             MaterialType::Machine { machine: _ } => "Machines",
             MaterialType::Metal => "Metals",
             MaterialType::Oxidizer => "Oxidizers",
@@ -116,7 +131,7 @@ impl Board {
     pub fn draw_board(&mut self) -> Vec<Color32> {
         let pixels: Vec<Color32> = vec![Color32::BLACK; self.contents.len()];
         pixels
-            .iter()
+            .par_iter()
             .enumerate()
             .map(|px| self.contents.get_elem(px.0).display_color)
             .collect()

@@ -49,10 +49,7 @@ impl Default for Locale {
                     String::from("POWDER:COLORFUL_SAND"),
                     String::from("Colorful sand"),
                 ),
-                (
-                    String::from("POWDER:LYCOPODIUM"),
-                    String::from("Lycopodium"),
-                ),
+                (String::from("POWDER:SAWDUST"), String::from("Sawdust")),
                 (String::from("SOLID:WOOD"), String::from("Wood")),
                 (String::from("SOLID:CLONER"), String::from("Cloner")),
                 (String::from("SOLID:SINK"), String::from("Sink")),
@@ -72,7 +69,12 @@ impl Default for Locale {
                     String::from("Ceramics"),
                 ),
                 (
-                    MaterialType::Corrosive.discriminant(),
+                    (MaterialType::Corrosive {
+                        ph_value: f32::default(),
+                        blacklist: bool::default(),
+                        material_list: vec![],
+                    })
+                    .discriminant(),
                     String::from("Corrosive materials"),
                 ),
                 (
@@ -84,10 +86,6 @@ impl Default for Locale {
                     String::from("Explosives"),
                 ),
                 (MaterialType::Fuel.discriminant(), String::from("Fuels")),
-                (
-                    MaterialType::Glass.discriminant(),
-                    String::from("Glass materials"),
-                ),
                 (MaterialType::Metal.discriminant(), String::from("Metals")),
                 (
                     MaterialType::Oxidizer.discriminant(),

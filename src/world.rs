@@ -327,6 +327,35 @@ pub unsafe fn write_updated_field(
     }
 }
 
+/// Write a value to a specific index's "temperature" field's
+pub unsafe fn write_temp_field(
+    slice: &AtomicComparedSlice<Particle>,
+    index: usize,
+    value: f32,
+    check_board: &Arc<Vec<AtomicParticle>>,
+) {
+    unsafe {
+        // Get a raw pointer to the underlying Vec
+        let data_ptr = slice.data.get();
+        let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
+
+        if !check_board[index]
+            .speed_y
+            .load(std::sync::atomic::Ordering::Relaxed)
+        {
+            check_board[index]
+                .temperature
+                .store(true, std::sync::atomic::Ordering::Relaxed);
+            // Get a mutable pointer to the element at `index`
+            let elem_ptr = vec.as_mut_ptr().add(index);
+            let mut prev_particle: Particle = slice.data.get().as_ref().unwrap()[index];
+            prev_particle.speed = vec2(prev_particle.speed.x, value);
+            // Write the value into the element (replaces the old value)
+            *elem_ptr = prev_particle;
+        }
+    }
+}
+
 /// Write a value to a specific index's "speed" field's x component
 pub unsafe fn write_x_speed_field(
     slice: &AtomicComparedSlice<Particle>,
