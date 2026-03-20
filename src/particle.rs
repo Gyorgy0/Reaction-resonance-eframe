@@ -13,7 +13,6 @@ pub struct Particle {
     pub temperature: f32,               // Temperature of the particle
     pub cloned_material: usize,         // Cloned material for the Cloner material type
     pub life_stage: u8,                 // Life stage of the simulated cell (cellular automatons)
-    pub energy: f32,                    // Energy for the Plasma phase
     pub updated: bool,                  // Is it updated?
     pub display_color: Color32,         // Displayed color
 }
@@ -26,7 +25,6 @@ impl Particle {
             temperature,
             cloned_material: 0_usize,
             life_stage: 0_u8,
-            energy: 0_f32,
             updated: false,
             display_color: material.material_color.color,
         }
@@ -40,43 +38,31 @@ impl Default for Particle {
 }
 #[rustfmt::skip]
 pub struct AtomicParticle {
-    pub written: AtomicBool,            // Checks whether the AtomicParticle has been overwritten by a physics reaction
+    pub physics_written: AtomicBool,    // Checks whether the AtomicParticle has been overwritten by a physics reaction
     pub life_written: AtomicBool,       // Checks whether the AtomicParticle has been overwritten by a life reaction
     pub reaction_written: AtomicBool,   // Checks whether the AtomicParticle has been overwritten by a chemical reaction
     pub temperature: AtomicBool,        // Checks whether the AtomicParticle's temperature has been overwritten
-    //pub material_id: AtomicBool,      // Checks whether the AtomicParticle's material_id has been overwritten
     pub speed_x: AtomicBool,            // Checks whether the AtomicParticle's speed's x componenet has been overwritten
     pub speed_y: AtomicBool,            // Checks whether the AtomicParticle's speed's y componenet has been overwritten
-    //pub cloned_material: AtomicBool,  // Checks whether the AtomicParticle's cloned_material has been overwritten
-    //pub life_stage: AtomicBool,       // Checks whether the AtomicParticle's life_stage has been overwritten
-    //pub energy: AtomicBool,           // Checks whether the AtomicParticle's energy has been overwritten
-    pub updated: AtomicBool,            // Checks whether the AtomicParticle's updated field has been overwritten
-    //pub display_color: AtomicBool,    // Checks whether the AtomicParticle's display_color has been overwritten
 }
 
 impl AtomicParticle {
     pub fn new(
-        written: bool,
+        physics_written_x: bool,
         life_written: bool,
         reaction_written: bool,
         speed_x: bool,
         speed_y: bool,
         temperature: bool,
-        updated: bool,
+        _updated: bool,
     ) -> Self {
         Self {
-            written: AtomicBool::new(written),
+            physics_written: AtomicBool::new(physics_written_x),
             life_written: AtomicBool::new(life_written),
             reaction_written: AtomicBool::new(reaction_written),
-            //material_id: AtomicBool::new(material_id),
             speed_x: AtomicBool::new(speed_x),
             speed_y: AtomicBool::new(speed_y),
             temperature: AtomicBool::new(temperature),
-            //cloned_material: AtomicBool::new(cloned_material),
-            //life_stage: AtomicBool::new(life_stage),
-            //energy: AtomicBool::new(energy),
-            updated: AtomicBool::new(updated),
-            //display_color: AtomicBool::new(display_color),
         }
     }
 }

@@ -207,7 +207,6 @@ pub(crate) fn solve_reactions(
             {
                 new_particle = prev_board[get_safe_i(height, width, &(i, j))];
                 new_particle.material_id = 7_usize;
-                new_particle.energy = 20_f32;
                 new_particle.display_color = materials[new_particle.material_id]
                     .1
                     .material_color

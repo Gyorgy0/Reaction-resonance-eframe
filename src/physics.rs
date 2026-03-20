@@ -2,11 +2,11 @@ use crate::{
     material::{Material, tuple_to_rangeinclusive},
     particle::{AtomicParticle, Particle},
     world::{
-        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_updated_field,
-        write_x_speed_field, write_y_speed_field,
+        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_x_speed_field,
+        write_y_speed_field,
     },
 };
-use ahash::AHashMap;
+use egui::ahash::AHashMap;
 use egui::{Color32, lerp};
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
@@ -394,18 +394,42 @@ pub fn solve_particle(
                 };
             }
             // Gravity simulation
+            let mut speed_y = current_particle.speed.y;
+            let next_particle = slice_board
+                .get(get_safe_i(
+                    height,
+                    width,
+                    &(i.wrapping_add(gravity.signum() as usize), j),
+                ))
+                .unwrap_or(current_particle);
+            // Terminal velocity (sqrt((2*m*g)/p*A*Cd)
+            // m - mass of the falling particle the particles are represented as a 1 cm^3 cube
+            // g - gravitational acceleration
+            // p - density of the medium the object is falling through (powder, liquid, gas, plasma)
+            // Cd - drag coefficient (in the case of the simulated particles they are squares and the coefficient for cubes is 1.05)
+            // A - projected area of object (in the case of the simulation it is 1 cm^2)
+            let terminal_velocity =
+                ((2_f32 * materials[current_particle.material_id].1.density * gravity)
+                    / (materials[next_particle.material_id].1.density * 1_f32 * 1.05_f32))
+                    .sqrt();
+            if speed_y < terminal_velocity {
+                speed_y += gravity * framedelta;
+            }
+            if discriminant(&materials[next_particle.material_id].1.phase)
+                == discriminant(&Phase::solid_default())
+            {
+                speed_y = 0_f32;
+            }
             unsafe {
                 write_y_speed_field(
                     slice_board,
                     get_safe_i(height, width, &(i, j)),
-                    slice_board
-                        .get_elem(get_safe_i(height, width, &(i, j)))
-                        .speed
-                        .y
-                        + (gravity * framedelta),
+                    speed_y,
                     check_board,
                 )
             };
+
+            // Change on the Y axis
             let mut ychange = 0;
             for _k in 0..slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
@@ -430,7 +454,6 @@ pub fn solve_particle(
                     > materials[future_particle.material_id].1.density
                     && std::mem::discriminant(&materials[future_particle.material_id].1.phase)
                         != std::mem::discriminant(&Phase::solid_default())
-                    && current_particle.updated
                 {
                     ychange = _k;
                 }
@@ -491,36 +514,29 @@ pub fn solve_particle(
                         ),
                         check_board,
                     );
-                    write_updated_field(
-                        slice_board,
-                        get_safe_i(
-                            height,
-                            width,
-                            &(i + ((gravity.signum() as i32 * ychange) as usize), j),
-                        ),
-                        false,
-                        check_board,
-                    );
                 }
             }
 
             // This decides where the particle falls (left or right)
             let rnd = rngs[get_safe_i(height, width, &(i, j))];
             if slice_board
-                .get_elem(get_safe_i(height, width, &(i, j)))
-                .updated
-                && slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i + (gravity.signum() as i32) as usize, j.saturating_add(1)),
-                    ))
-                    .is_some()
+                .get(get_safe_i(
+                    height,
+                    width,
+                    &(
+                        i + (gravity.signum() as i32) as usize,
+                        (j as i64).wrapping_add(rnd.signum() as i64) as usize,
+                    ),
+                ))
+                .is_some()
                 && materials[slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i + (gravity.signum() as i32) as usize, j.saturating_add(1)),
+                        &(
+                            i + (gravity.signum() as i32) as usize,
+                            (j as i64).wrapping_add(rnd.signum() as i64) as usize,
+                        ),
                     ))
                     .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                     .material_id]
@@ -536,14 +552,16 @@ pub fn solve_particle(
                         .get(get_safe_i(
                             height,
                             width,
-                            &(i + (gravity.signum() as i32) as usize, j.saturating_add(1)),
+                            &(
+                                i + (gravity.signum() as i32) as usize,
+                                (j as i64).wrapping_add(rnd.signum() as i64) as usize,
+                            ),
                         ))
                         .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
                         .material_id]
                         .1
                         .phase,
                 ) != std::mem::discriminant(&Phase::solid_default())
-                && rnd.signum() == -1_f32
             {
                 unsafe {
                     swap_particle(
@@ -552,105 +570,28 @@ pub fn solve_particle(
                         get_safe_i(
                             height,
                             width,
-                            &(i + (gravity.signum() as i32) as usize, j.saturating_add(1)),
+                            &(
+                                i + (gravity.signum() as i32) as usize,
+                                (j as i64).wrapping_add(rnd.signum() as i64) as usize,
+                            ),
                         ),
-                        check_board,
-                    );
-                    write_updated_field(
-                        slice_board,
-                        get_safe_i(
-                            height,
-                            width,
-                            &(i + (gravity.signum() as i32) as usize, j.saturating_add(1)),
-                        ),
-                        false,
                         check_board,
                     );
                 }
-            }
-            if slice_board
-                .get_elem(get_safe_i(height, width, &(i, j)))
-                .updated
-                && slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i + (gravity.signum() as i32) as usize, j.saturating_sub(1)),
-                    ))
-                    .is_some()
-                && materials[slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i + (gravity.signum() as i32) as usize, j.saturating_sub(1)),
-                    ))
-                    .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                    .material_id]
-                    .1
-                    .density
-                    < materials[slice_board
-                        .get_elem(get_safe_i(height, width, &(i, j)))
-                        .material_id]
-                        .1
-                        .density
-                && discriminant(
-                    &materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i + (gravity.signum() as i32) as usize, j.saturating_sub(1)),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .phase,
-                ) != std::mem::discriminant(&Phase::solid_default())
-                && rnd.signum() == 1_f32
-            {
-                unsafe {
-                    swap_particle(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        get_safe_i(
-                            height,
-                            width,
-                            &(i + (gravity.signum() as i32) as usize, j.saturating_sub(1)),
-                        ),
-                        check_board,
-                    );
-                    write_updated_field(
-                        slice_board,
-                        get_safe_i(
-                            height,
-                            width,
-                            &(i + (gravity.signum() as i32) as usize, j.saturating_sub(1)),
-                        ),
-                        false,
-                        check_board,
-                    )
-                };
-            }
-            // This marks that the particle's position has been calculated
-            unsafe {
-                write_updated_field(
-                    slice_board,
-                    get_safe_i(height, width, &(i, j)),
-                    true,
-                    check_board,
-                );
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // LIQUID PHYSICS
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Liquid {
-            viscosity: _,
+            viscosity,
             melting_point,
             boiling_point,
         } => {
             // Phase change from liquid to solid and liquid to gas
-            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            let mut current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             let mut new_particle = *current_particle;
+            // Melting (solid -> liquid)
             if *melting_point > current_particle.temperature
                 && physical_transitions
                     .melting
@@ -686,6 +627,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+            // Boiling/evaporation (liquid -> gas)
             } else if *boiling_point < current_particle.temperature
                 && physical_transitions
                     .boiling
@@ -722,6 +664,201 @@ pub fn solve_particle(
                     )
                 };
             }
+
+            // Gravity simulation
+            let mut speed_y = current_particle.speed.y;
+            let next_particle = slice_board
+                .get(get_safe_i(
+                    height,
+                    width,
+                    &(i.wrapping_add(gravity.signum() as usize), j),
+                ))
+                .unwrap_or(current_particle);
+            // Terminal velocity (sqrt((2*m*g)/p*A*Cd)
+            // m - mass of the falling particle the particles are represented as a 1 cm^3 cube
+            // g - gravitational acceleration
+            // p - density of the medium the object is falling through (powder, liquid, gas, plasma)
+            // Cd - drag coefficient (in the case of the simulated particles they are squares and the coefficient for cubes is 1.05)
+            // A - projected area of object (in the case of the simulation it is 1 cm^2)
+            let terminal_velocity =
+                ((2_f32 * materials[current_particle.material_id].1.density * gravity)
+                    / (materials[next_particle.material_id].1.density * 1_f32 * 1.05_f32))
+                    .sqrt();
+            if speed_y < terminal_velocity {
+                speed_y += gravity * framedelta;
+            }
+            if discriminant(&materials[next_particle.material_id].1.phase)
+                == discriminant(&Phase::solid_default())
+            {
+                speed_y = 0_f32;
+            }
+            unsafe {
+                write_y_speed_field(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    speed_y,
+                    check_board,
+                )
+            };
+
+            // Change on the Y axis
+            let mut ychange = 0;
+            for k in 0..slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .y
+                .abs() as i32
+            {
+                // Current particle - the currently evaluated particle
+                // Future particle - the current particle's future position - if the particle
+                // is out of bounds then it returns the current particle
+                let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+                let future_particle = slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i + (gravity.signum() as i32 * k) as usize, j),
+                    ))
+                    .unwrap_or(current_particle);
+
+                // Falling and checking if there is a particle with a larger density
+                if materials[current_particle.material_id].1.density
+                    > materials[future_particle.material_id].1.density
+                    && std::mem::discriminant(&materials[future_particle.material_id].1.phase)
+                        != std::mem::discriminant(&Phase::solid_default())
+                {
+                    ychange = k;
+                }
+                // Checks if the particle falls inside bounds
+                // Checks, whether there is another denser particle in the path of the falling particle
+                else if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i + (gravity.signum() as i32 * k) as usize, j),
+                    ))
+                    .is_none()
+                    || std::mem::discriminant(&materials[future_particle.material_id].1.phase)
+                        == std::mem::discriminant(&Phase::solid_default())
+                    || std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(
+                                    (i as f32
+                                        + (gravity.signum() as i32 * k) as f32
+                                        + gravity.signum())
+                                        as usize,
+                                    j,
+                                ),
+                            ))
+                            .unwrap_or(current_particle)
+                            .material_id]
+                            .1
+                            .phase,
+                    ) == std::mem::discriminant(&Phase::powder_default())
+                {
+                    unsafe {
+                        write_y_speed_field(
+                            slice_board,
+                            get_safe_i(height, width, &(i, j)),
+                            slice_board
+                                .get_elem(get_safe_i(height, width, &(i, j)))
+                                .speed
+                                .y
+                                - (gravity * framedelta),
+                            check_board,
+                        )
+                    };
+                    break;
+                }
+            }
+            if ychange != 0 {
+                unsafe {
+                    swap_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        get_safe_i(
+                            height,
+                            width,
+                            &(i + ((gravity.signum() as i32 * ychange) as usize), j),
+                        ),
+                        check_board,
+                    );
+                }
+            }
+
+            current_particle =
+                slice_board.get_elem(get_safe_i(height, width, &(i + ychange as usize, j)));
+            // Viscosity simulation
+            let mut speed_x = 0_f32;
+            let mut rnd = rngs[get_safe_i(height, width, &(i, j))];
+            if rnd.abs() > (1_f32 - (1_f32 / viscosity)) {
+                if slice_board
+                    .get_elem(get_safe_i(
+                        height,
+                        width,
+                        &(i, (j as f32 + rnd.signum()) as usize),
+                    ))
+                    .material_id
+                    == current_particle.material_id
+                {
+                    rnd *= -1_f32;
+                }
+                speed_x = rnd.signum() * (rnd.abs() + (1_f32 / viscosity).sqrt());
+            }
+            // Change on the X axis
+            let mut xchange = 0;
+            for k in 1_i32..=speed_x.abs() as i32 {
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(i, (j as i32 + (rnd.signum() as i32 * k)) as usize),
+                    ))
+                    .is_some()
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i, (j as i32 + (rnd.signum() as i32 * k)) as usize),
+                        ))
+                        .unwrap_or(current_particle)
+                        .material_id]
+                        .1
+                        .density
+                        > materials[current_particle.material_id].1.density
+                        || discriminant(
+                            &materials[slice_board
+                                .get(get_safe_i(
+                                    height,
+                                    width,
+                                    &(i, (j as i32 + (rnd.signum() as i32 * k)) as usize),
+                                ))
+                                .unwrap_or(current_particle)
+                                .material_id]
+                                .1
+                                .phase,
+                        ) != discriminant(&Phase::solid_default()))
+                {
+                    xchange = k;
+                } else {
+                    break;
+                }
+            }
+            unsafe {
+                swap_particle(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    get_safe_i(
+                        height,
+                        width,
+                        &(i, j + (rnd.signum() as i32 * xchange) as usize),
+                    ),
+                    check_board,
+                )
+            };
         }
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // GAS PHYSICS
@@ -805,9 +942,8 @@ pub fn solve_particle(
                     )
                 };
             }
-            // Rng determines which side should the particle fall
-            let mut orientation_y: i32 = 0_i32;
             // This calculates the position on the Y axis
+            let mut orientation_y: i32 = 0_i32;
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
                 .speed
@@ -839,97 +975,63 @@ pub fn solve_particle(
                     );
                 }
                 // Calculates buoyancy using gravity and material density
-                // We limit the velocity so on phase change there is no "teleporting" particles
-                let calculated_particle =
-                    slice_board.get(get_safe_i(height, width, &(i, j))).unwrap();
+                // We limit the velocity so on phase change there are no "teleporting" particles
                 let next_particle = slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.saturating_add(gravity.signum() as usize), j),
+                        &(i.wrapping_add(gravity.signum() as usize), j),
                     ))
-                    .unwrap_or(calculated_particle);
-                orientation_y = (((calculated_particle.speed.y.signum()
-                    * (calculated_particle.speed.y.abs() + 1_f32))
+                    .unwrap_or(current_particle);
+                orientation_y = (((current_particle.speed.y.signum()
+                    * (current_particle.speed.y.abs() + 1_f32))
                     - ((materials[next_particle.material_id].1.density
-                        / materials[calculated_particle.material_id].1.density)
+                        / materials[current_particle.material_id].1.density)
                         * gravity
                         * framedelta)) as i32)
                     .clamp(-gravity.abs() as i32, gravity.abs() as i32);
             }
             let mut ychange = 0_i32;
             for k in 0_i32..orientation_y.abs() {
-                // This condition checks, whether the particle can fall to the determined side
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.saturating_add((orientation_y.signum() * k) as usize), j),
+                        &((i as i32 + (orientation_y.signum() * k)) as usize, j),
                     ))
                     .is_some()
-                    && std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) == std::mem::discriminant(&Phase::solid_default())
-                {
-                    continue;
-                } else if slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                    ))
-                    .is_some()
-                    && (std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) != std::mem::discriminant(&Phase::powder_default())
-                        || std::mem::discriminant(
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &((i as i32 + (orientation_y.signum() * k)) as usize, j),
+                        ))
+                        .unwrap_or(current_particle)
+                        .material_id]
+                        .1
+                        .density
+                        < materials[current_particle.material_id].1.density
+                        || discriminant(
                             &materials[slice_board
                                 .get(get_safe_i(
                                     height,
                                     width,
-                                    &(i.saturating_add((orientation_y.signum() * k) as usize), j),
+                                    &((i as i32 + (orientation_y.signum() * k)) as usize, j),
                                 ))
-                                .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                                .unwrap_or(current_particle)
                                 .material_id]
                                 .1
                                 .phase,
-                        ) != std::mem::discriminant(&Phase::liquid_default()))
+                        ) != discriminant(&Phase::solid_default()))
                 {
                     ychange = k;
-                    unsafe {
-                        write_updated_field(
-                            slice_board,
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                            ),
-                            true,
-                            check_board,
-                        )
-                    };
+                } else {
+                    break;
                 }
             }
-            let mut orientation_x = 0;
+
             // This calculates the position on the X axis
+            let mut orientation_x: i32 = 0_i32;
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
                 .speed
@@ -946,6 +1048,7 @@ pub fn solve_particle(
                     );
                 }
             } else {
+                // Rand range: (-1_f32..1_f32)
                 let rnd = rngs[get_safe_i(height, width, &(i, j))]
                     * seeds[get_safe_i(height, width, &(i, j))];
                 unsafe {
@@ -956,94 +1059,51 @@ pub fn solve_particle(
                             .get_elem(get_safe_i(height, width, &(i, j)))
                             .speed
                             .x
-                            + (seeds[get_safe_i(height, width, &(i, j))].signum() * (rnd / 2_f32)),
+                            + (rnd.signum() * (rnd.abs())),
                         check_board,
                     );
-                };
-                orientation_x = (rnd.signum()
-                    * (slice_board
-                        .get_elem(get_safe_i(height, width, &(i, j)))
-                        .speed
-                        .x
-                        .abs()
-                        + 1_f32)) as i32;
+                }
+                orientation_x = (current_particle.speed.x.signum()
+                    * (current_particle.speed.x.abs() + 1_f32))
+                    as i32;
             }
 
             let mut xchange = 0_i32;
-            for _k in 0..orientation_x.abs() {
-                // This condition checks, whether the particle can fall to the determined side
+            for k in 0_i32..orientation_x.abs() {
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
+                        &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
                     ))
                     .is_some()
-                    && std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) == std::mem::discriminant(&Phase::solid_default())
-                {
-                    continue;
-                } else if slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                    ))
-                    .is_some()
-                    && (std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) != std::mem::discriminant(&Phase::powder_default())
-                        || std::mem::discriminant(
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                        ))
+                        .unwrap_or(current_particle)
+                        .material_id]
+                        .1
+                        .density
+                        < materials[current_particle.material_id].1.density
+                        || discriminant(
                             &materials[slice_board
                                 .get(get_safe_i(
                                     height,
                                     width,
-                                    &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
+                                    &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
                                 ))
-                                .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                                .unwrap_or(current_particle)
                                 .material_id]
                                 .1
                                 .phase,
-                        ) != std::mem::discriminant(
-                            &(Phase::Liquid {
-                                viscosity: 0_f32,
-                                melting_point: 0_f32,
-                                boiling_point: 0_f32,
-                            }),
-                        ))
+                        ) != discriminant(&Phase::solid_default()))
                 {
-                    xchange = _k;
-                    unsafe {
-                        write_updated_field(
-                            slice_board,
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                            ),
-                            true,
-                            check_board,
-                        );
-                    }
+                    xchange = k;
+                } else {
+                    break;
                 }
             }
             unsafe {
@@ -1054,49 +1114,21 @@ pub fn solve_particle(
                         height,
                         width,
                         &(
-                            i.saturating_add((orientation_y.signum() * ychange) as usize),
-                            j.saturating_add((orientation_x.signum() * xchange) as usize),
+                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                            j.wrapping_add((orientation_x.signum() * xchange) as usize),
                         ),
                     ),
                     check_board,
                 )
-            }
-            // This marks that the particle's position has been calculated
-            unsafe {
-                write_updated_field(
-                    slice_board,
-                    get_safe_i(height, width, &(i, j)),
-                    true,
-                    check_board,
-                );
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // PLASMA PHYSICS
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Plasma => {
-            let _cellenergy = slice_board
-                .get_elem(get_safe_i(height, width, &(i, j)))
-                .energy;
-            /*if cellenergy > 1_f32 {
-                slice_board
-                    .get_elem(get_safe_i(height, width, &(i, j)))
-                    .material_id = 7_usize;
-                slice_board
-                    .get_elem(get_safe_i(height, width, &(i, j)))
-                    .energy -= 1_f32;
-            } else {
-                slice_board
-                    .get_elem(get_safe_i(height, width, &(i, j)))
-                    .material_id = 0_usize;
-                slice_board
-                    .get_elem(get_safe_i(height, width, &(i, j)))
-                    .display_color = VOID.material_color.color;
-            }*/
-
-            // Rng determines which side should the particle fall
-            let mut orientation_y: i32 = 0_i32;
+            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             // This calculates the position on the Y axis
+            let mut orientation_y: i32 = 0_i32;
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
                 .speed
@@ -1128,97 +1160,63 @@ pub fn solve_particle(
                     );
                 }
                 // Calculates buoyancy using gravity and material density
-                // We limit the velocity so on phase change there is no "teleporting" particles
-                let calculated_particle =
-                    slice_board.get(get_safe_i(height, width, &(i, j))).unwrap();
+                // We limit the velocity so on phase change there are no "teleporting" particles
                 let next_particle = slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.saturating_add(gravity.signum() as usize), j),
+                        &(i.wrapping_add(gravity.signum() as usize), j),
                     ))
-                    .unwrap_or(calculated_particle);
-                orientation_y = (((calculated_particle.speed.y.signum()
-                    * (calculated_particle.speed.y.abs() + 1_f32))
+                    .unwrap_or(current_particle);
+                orientation_y = (((current_particle.speed.y.signum()
+                    * (current_particle.speed.y.abs() + 1_f32))
                     - ((materials[next_particle.material_id].1.density
-                        / materials[calculated_particle.material_id].1.density)
+                        / materials[current_particle.material_id].1.density)
                         * gravity
                         * framedelta)) as i32)
                     .clamp(-gravity.abs() as i32, gravity.abs() as i32);
             }
             let mut ychange = 0_i32;
             for k in 0_i32..orientation_y.abs() {
-                // This condition checks, whether the particle can fall to the determined side
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.saturating_add((orientation_y.signum() * k) as usize), j),
+                        &((i as i32 + (orientation_y.signum() * k)) as usize, j),
                     ))
                     .is_some()
-                    && std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) == std::mem::discriminant(&Phase::solid_default())
-                {
-                    continue;
-                } else if slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                    ))
-                    .is_some()
-                    && (std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) != std::mem::discriminant(&Phase::powder_default())
-                        || std::mem::discriminant(
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &((i as i32 + (orientation_y.signum() * k)) as usize, j),
+                        ))
+                        .unwrap_or(current_particle)
+                        .material_id]
+                        .1
+                        .density
+                        < materials[current_particle.material_id].1.density
+                        || discriminant(
                             &materials[slice_board
                                 .get(get_safe_i(
                                     height,
                                     width,
-                                    &(i.saturating_add((orientation_y.signum() * k) as usize), j),
+                                    &((i as i32 + (orientation_y.signum() * k)) as usize, j),
                                 ))
-                                .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                                .unwrap_or(current_particle)
                                 .material_id]
                                 .1
                                 .phase,
-                        ) != std::mem::discriminant(&Phase::liquid_default()))
+                        ) != discriminant(&Phase::solid_default()))
                 {
                     ychange = k;
-                    unsafe {
-                        write_updated_field(
-                            slice_board,
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i.saturating_add((orientation_y.signum() * k) as usize), j),
-                            ),
-                            true,
-                            check_board,
-                        )
-                    };
+                } else {
+                    break;
                 }
             }
-            let mut orientation_x = 0;
+
             // This calculates the position on the X axis
+            let mut orientation_x: i32 = 0_i32;
             if slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
                 .speed
@@ -1235,6 +1233,7 @@ pub fn solve_particle(
                     );
                 }
             } else {
+                // Rand range: (-1_f32..1_f32)
                 let rnd = rngs[get_safe_i(height, width, &(i, j))]
                     * seeds[get_safe_i(height, width, &(i, j))];
                 unsafe {
@@ -1245,94 +1244,51 @@ pub fn solve_particle(
                             .get_elem(get_safe_i(height, width, &(i, j)))
                             .speed
                             .x
-                            + (seeds[get_safe_i(height, width, &(i, j))].signum() * (rnd / 2_f32)),
+                            + (rnd.signum() * (rnd.abs())),
                         check_board,
                     );
-                };
-                orientation_x = (rnd.signum()
-                    * (slice_board
-                        .get_elem(get_safe_i(height, width, &(i, j)))
-                        .speed
-                        .x
-                        .abs()
-                        + 1_f32)) as i32;
+                }
+                orientation_x = (current_particle.speed.x.signum()
+                    * (current_particle.speed.x.abs() + 1_f32))
+                    as i32;
             }
 
             let mut xchange = 0_i32;
-            for _k in 0..orientation_x.abs() {
-                // This condition checks, whether the particle can fall to the determined side
+            for k in 0_i32..orientation_x.abs() {
                 if slice_board
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
+                        &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
                     ))
                     .is_some()
-                    && std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) == std::mem::discriminant(&Phase::solid_default())
-                {
-                    continue;
-                } else if slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                    ))
-                    .is_some()
-                    && (std::mem::discriminant(
-                        &materials[slice_board
-                            .get(get_safe_i(
-                                height,
-                                width,
-                                &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                            ))
-                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                            .material_id]
-                            .1
-                            .phase,
-                    ) != std::mem::discriminant(&Phase::powder_default())
-                        || std::mem::discriminant(
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                        ))
+                        .unwrap_or(current_particle)
+                        .material_id]
+                        .1
+                        .density
+                        < materials[current_particle.material_id].1.density
+                        || discriminant(
                             &materials[slice_board
                                 .get(get_safe_i(
                                     height,
                                     width,
-                                    &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
+                                    &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
                                 ))
-                                .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                                .unwrap_or(current_particle)
                                 .material_id]
                                 .1
                                 .phase,
-                        ) != std::mem::discriminant(
-                            &(Phase::Liquid {
-                                viscosity: 0_f32,
-                                melting_point: 0_f32,
-                                boiling_point: 0_f32,
-                            }),
-                        ))
+                        ) != discriminant(&Phase::solid_default()))
                 {
-                    xchange = _k;
-                    unsafe {
-                        write_updated_field(
-                            slice_board,
-                            get_safe_i(
-                                height,
-                                width,
-                                &(i, j.saturating_add((orientation_x.signum() * _k) as usize)),
-                            ),
-                            true,
-                            check_board,
-                        );
-                    }
+                    xchange = k;
+                } else {
+                    break;
                 }
             }
             unsafe {
@@ -1343,21 +1299,12 @@ pub fn solve_particle(
                         height,
                         width,
                         &(
-                            i.saturating_add((orientation_y.signum() * ychange) as usize),
-                            j.saturating_add((orientation_x.signum() * xchange) as usize),
+                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                            j.wrapping_add((orientation_x.signum() * xchange) as usize),
                         ),
                     ),
                     check_board,
                 )
-            }
-            // This marks that the particle's position has been calculated
-            unsafe {
-                write_updated_field(
-                    slice_board,
-                    get_safe_i(height, width, &(i, j)),
-                    true,
-                    check_board,
-                );
             }
         }
     }

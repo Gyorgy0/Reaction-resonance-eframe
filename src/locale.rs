@@ -1,4 +1,4 @@
-use ahash::AHashMap;
+use egui::ahash::AHashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::reactions::{MachineTypes, MaterialType};

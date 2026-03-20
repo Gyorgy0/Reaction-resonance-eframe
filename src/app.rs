@@ -14,7 +14,7 @@ use crate::{
     system_ui::draw_brush_outlines,
     world::{Board, update_board},
 };
-use ahash::AHashMap;
+use egui::ahash::AHashMap;
 use egui::epaint::Hsva;
 use egui::text::LayoutJob;
 use egui::util::hash;
@@ -276,8 +276,10 @@ impl eframe::App for EFrameApp<'_> {
                     material_categories.push(category_vec);
                 }
                 self.material_categories = material_categories;
-                self.selected_material = 0_usize;
-                self.selected_category = MaterialType::Fuel;
+                let selected_tool = BrushTool::MaterialBrush {
+                    selected_material: 0_usize,
+                };
+                let selected_category = MaterialType::Fuel;
             }
         }
         const OPTIONS_MENU: &str = "options_menu";

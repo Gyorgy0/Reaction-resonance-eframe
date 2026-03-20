@@ -104,8 +104,16 @@ pub fn update_board(
         (0_usize..(row_count * col_count) as usize)
             .into_par_iter()
             .for_each(|count: usize| {
-                let i = count / width;
-                let j = count % width;
+                let i;
+                let j;
+                if (*framecount).is_multiple_of(2_u64) {
+                    i = count / width;
+                    j = count % width;
+                } else {
+                    i = ((height - 1_usize) as i64 - (count / width) as i64).unsigned_abs()
+                        as usize;
+                    j = ((width - 1_usize) as i64 - (count % width) as i64).unsigned_abs() as usize;
+                }
                 solve_cells(
                     &game_board.contents,
                     &check_board,
@@ -121,8 +129,16 @@ pub fn update_board(
         (0_usize..(row_count * col_count) as usize)
             .into_par_iter()
             .for_each(|count: usize| {
-                let i = count / width;
-                let j = count % width;
+                let i;
+                let j;
+                if (*framecount).is_multiple_of(2_u64) {
+                    i = count / width;
+                    j = count % width;
+                } else {
+                    i = ((height - 1_usize) as i64 - (count / width) as i64).unsigned_abs()
+                        as usize;
+                    j = ((width - 1_usize) as i64 - (count % width) as i64).unsigned_abs() as usize;
+                }
                 solve_particle(
                     &game_board.contents,
                     &check_board,
@@ -208,7 +224,6 @@ impl<T> AtomicComparedSlice<T> {
     }
 }
 
-/// Write a value to a specific index's "updated" field
 pub unsafe fn swap_particle(
     slice: &AtomicComparedSlice<Particle>,
     index_1: usize,
@@ -220,8 +235,12 @@ pub unsafe fn swap_particle(
         let data_ptr = slice.data.get();
         let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
-        if !check_board[index_1].written.swap(true, Ordering::Relaxed)
-            && !check_board[index_2].written.swap(true, Ordering::Relaxed)
+        if !check_board[index_1]
+            .physics_written
+            .swap(true, Ordering::AcqRel)
+            && !check_board[index_2]
+                .physics_written
+                .swap(true, Ordering::AcqRel)
         {
             // Get a mutable pointer to the element at `index`
             let elem_1_ptr = vec.as_mut_ptr().add(index_1);
@@ -300,29 +319,6 @@ pub unsafe fn write_particle(
 
             // Write the value into the element (replaces the old value)
             *elem_ptr = value;
-        }
-    }
-}
-
-/// Write a value to a specific index's "updated" field
-pub unsafe fn write_updated_field(
-    slice: &AtomicComparedSlice<Particle>,
-    index: usize,
-    value: bool,
-    check_board: &Arc<Vec<AtomicParticle>>,
-) {
-    unsafe {
-        // Get a raw pointer to the underlying Vec
-        let data_ptr = slice.data.get();
-        let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
-
-        if !check_board[index].updated.swap(true, Ordering::Relaxed) {
-            // Get a mutable pointer to the element at `index`
-            let elem_ptr = vec.as_mut_ptr().add(index);
-            let mut prev_particle: Particle = slice.data.get().as_ref().unwrap()[index];
-            prev_particle.updated = value;
-            // Write the value into the element (replaces the old value)
-            *elem_ptr = prev_particle;
         }
     }
 }
