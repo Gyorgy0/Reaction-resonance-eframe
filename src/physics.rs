@@ -2,8 +2,8 @@ use crate::{
     material::{Material, tuple_to_rangeinclusive},
     particle::{AtomicParticle, Particle},
     world::{
-        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_x_speed_field,
-        write_y_speed_field,
+        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_temp_field,
+        write_x_speed_field, write_y_speed_field,
     },
 };
 use egui::ahash::AHashMap;
@@ -122,63 +122,6 @@ pub enum Phase {
 }
 
 impl Phase {
-    pub fn get_melting_point_sld(&self) -> f32 {
-        let mut returnval: f32 = 0.0;
-        if let Phase::Solid {
-            melting_point,
-            sublimation_point: _,
-        } = self
-        {
-            returnval = *melting_point
-        };
-        returnval
-    }
-    pub fn get_melting_point_pwdr(&self) -> f32 {
-        let mut returnval: f32 = 0.0;
-        if let Phase::Powder {
-            melting_point,
-            sublimation_point: _,
-        } = self
-        {
-            returnval = *melting_point
-        };
-        returnval
-    }
-    pub fn get_melting_point_liqd(&self) -> f32 {
-        let mut returnval: f32 = 0.0;
-        if let Phase::Liquid {
-            viscosity: _,
-            melting_point,
-            boiling_point: _,
-        } = self
-        {
-            returnval = *melting_point
-        };
-        returnval
-    }
-    pub fn get_boiling_point_gas(&self) -> f32 {
-        let mut returnval: f32 = 0.0;
-        if let Phase::Gas {
-            boiling_point,
-            sublimation_point: _,
-        } = self
-        {
-            returnval = *boiling_point;
-        };
-        returnval
-    }
-    pub fn get_viscosity(&self) -> f32 {
-        let mut returnval: f32 = 0.0;
-        if let Phase::Liquid {
-            viscosity,
-            melting_point: _,
-            boiling_point: _,
-        } = self
-        {
-            returnval = 1_f32 / *viscosity
-        };
-        returnval
-    }
     pub fn solid_default() -> Self {
         Self::Solid {
             melting_point: f32::default(),
@@ -224,6 +167,44 @@ pub fn solve_particle(
     gravity: f32,
     framedelta: f32,
 ) {
+    let neumann_positions = [
+        (i.wrapping_add(1), j),
+        (i.saturating_sub(1), j),
+        (i, j.wrapping_add(1)),
+        (i, j.saturating_sub(1)),
+    ];
+    let mut current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+
+    for pos in neumann_positions {
+        if slice_board
+            .get(get_safe_i(height, width, &pos))
+            .unwrap_or(&current_particle)
+            .temperature
+            < current_particle.temperature
+        {
+            let mut neighbouring_particle = slice_board.get_elem(get_safe_i(height, width, &pos));
+            current_particle.temperature -= [neighbouring_particle.material_id];
+            unsafe {
+                write_temp_field(
+                    slice_board,
+                    get_safe_i(height, width, &pos),
+                    neighbouring_particle.temperature
+                        + (transferring_energy
+                            / materials[neighbouring_particle.material_id].1.heat_capacity),
+                    check_board,
+                )
+            };
+        }
+    }
+    unsafe {
+        write_temp_field(
+            slice_board,
+            get_safe_i(height, width, &(i, j)),
+            current_energy_level / materials[current_particle.material_id].1.heat_capacity,
+            check_board,
+        )
+    };
+
     match &materials[slice_board
         .get_elem(get_safe_i(height, width, &(i, j)))
         .material_id]
@@ -236,7 +217,7 @@ pub fn solve_particle(
             melting_point,
             sublimation_point,
         } => {
-            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             let mut new_particle = *current_particle;
             if *melting_point < current_particle.temperature
                 && physical_transitions
@@ -319,7 +300,7 @@ pub fn solve_particle(
             melting_point,
             sublimation_point,
         } => {
-            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             let mut new_particle = *current_particle;
             if *melting_point < current_particle.temperature
                 && physical_transitions
@@ -589,7 +570,7 @@ pub fn solve_particle(
             boiling_point,
         } => {
             // Phase change from liquid to solid and liquid to gas
-            let mut current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             let mut new_particle = *current_particle;
             // Melting (solid -> liquid)
             if *melting_point > current_particle.temperature
@@ -868,7 +849,7 @@ pub fn solve_particle(
             sublimation_point,
         } => {
             // Phase transition fromg as to liquid
-            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             let mut new_particle = *current_particle;
             if *boiling_point > current_particle.temperature
                 && physical_transitions
@@ -1126,7 +1107,7 @@ pub fn solve_particle(
         // PLASMA PHYSICS
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Plasma => {
-            let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             // This calculates the position on the Y axis
             let mut orientation_y: i32 = 0_i32;
             if slice_board

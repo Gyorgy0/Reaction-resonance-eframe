@@ -336,7 +336,7 @@ pub unsafe fn write_temp_field(
         let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
         if !check_board[index]
-            .speed_y
+            .temperature
             .load(std::sync::atomic::Ordering::Relaxed)
         {
             check_board[index]
@@ -345,7 +345,7 @@ pub unsafe fn write_temp_field(
             // Get a mutable pointer to the element at `index`
             let elem_ptr = vec.as_mut_ptr().add(index);
             let mut prev_particle: Particle = slice.data.get().as_ref().unwrap()[index];
-            prev_particle.speed = vec2(prev_particle.speed.x, value);
+            prev_particle.temperature = value;
             // Write the value into the element (replaces the old value)
             *elem_ptr = prev_particle;
         }
