@@ -3,7 +3,7 @@ use crate::{
     particle::{AtomicParticle, Particle},
     world::{
         AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_temp_field,
-        write_x_speed_field, write_y_speed_field,
+        write_temp_field_unchecked, write_x_speed_field, write_y_speed_field,
     },
 };
 use egui::ahash::AHashMap;
@@ -173,31 +173,44 @@ pub fn solve_particle(
         (i, j.wrapping_add(1)),
         (i, j.saturating_sub(1)),
     ];
+    // Caclulating heat conduction
     let mut current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+    let mut current_energy_level =
+        current_particle.temperature * materials[current_particle.material_id].1.heat_capacity;
 
     for pos in neumann_positions {
-        if slice_board
-            .get(get_safe_i(height, width, &pos))
-            .unwrap_or(&current_particle)
-            .temperature
-            < current_particle.temperature
+        if slice_board.get(get_safe_i(height, width, &pos)).is_some()
+            && slice_board
+                .get(get_safe_i(height, width, &pos))
+                .unwrap_or(&current_particle)
+                .temperature
+                < current_particle.temperature
         {
-            let mut neighbouring_particle = slice_board.get_elem(get_safe_i(height, width, &pos));
-            current_particle.temperature -= [neighbouring_particle.material_id];
+            let mut neighbouring_particle: &mut Particle = &mut slice_board
+                .get(get_safe_i(height, width, &pos))
+                .unwrap_or(current_particle)
+                .clone();
+            let temp_difference = current_particle.temperature - neighbouring_particle.temperature;
+            let transferred_heat = materials[neighbouring_particle.material_id]
+                .1
+                .heat_conductivity
+                * framedelta
+                * temp_difference;
+            current_energy_level -= transferred_heat;
+            neighbouring_particle.temperature +=
+                transferred_heat * materials[neighbouring_particle.material_id].1.heat_capacity;
             unsafe {
                 write_temp_field(
                     slice_board,
                     get_safe_i(height, width, &pos),
-                    neighbouring_particle.temperature
-                        + (transferring_energy
-                            / materials[neighbouring_particle.material_id].1.heat_capacity),
+                    neighbouring_particle.temperature,
                     check_board,
                 )
             };
         }
     }
     unsafe {
-        write_temp_field(
+        write_temp_field_unchecked(
             slice_board,
             get_safe_i(height, width, &(i, j)),
             current_energy_level / materials[current_particle.material_id].1.heat_capacity,
