@@ -82,7 +82,7 @@ impl Default for Locale {
                 (MaterialType::Alloy.discriminant(), String::from("Alloys")),
                 (
                     MaterialType::Ceramic.discriminant(),
-                    String::from("Ceramics"),
+                    String::from("Ceramic and glass materials"),
                 ),
                 (
                     (MaterialType::Corrosive {
@@ -99,7 +99,7 @@ impl Default for Locale {
                 ),
                 (
                     MaterialType::Explosive.discriminant(),
-                    String::from("Explosives"),
+                    String::from("Explosive materials"),
                 ),
                 (MaterialType::Fuel.discriminant(), String::from("Fuels")),
                 (MaterialType::Metal.discriminant(), String::from("Metals")),

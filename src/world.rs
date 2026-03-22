@@ -13,6 +13,7 @@ use crate::material::Material;
 use crate::particle::AtomicParticle;
 use crate::particle::Particle;
 use crate::physics::PhysicalReactions;
+use crate::physics::solve_heat;
 use crate::physics::solve_particle;
 use crate::reactions::solve_reactions;
 use egui::Color32;
@@ -167,6 +168,37 @@ pub fn update_board(
                     j,
                     *framecount,
                 );
+            });
+        (0_usize..(row_count * col_count) as usize)
+            .into_par_iter()
+            .for_each(|count: usize| {
+                let i;
+                let j;
+                if (*framecount).is_multiple_of(2_u64) {
+                    i = count / width;
+                    j = count % width;
+                } else {
+                    i = ((height - 1_usize) as i64 - (count / width) as i64).unsigned_abs()
+                        as usize;
+                    j = ((width - 1_usize) as i64 - (count % width) as i64).unsigned_abs() as usize;
+                }
+                if (get_safe_i(&height, &width, &(i, j))
+                    + i
+                    + framecount.is_multiple_of(2_u64) as usize)
+                    % 3_usize
+                    == 0_usize
+                {
+                    solve_heat(
+                        &game_board.contents,
+                        //&check_board,
+                        materials,
+                        &height,
+                        &width,
+                        i,
+                        j,
+                        &framedelta,
+                    );
+                }
             });
     }
 }
@@ -325,26 +357,36 @@ pub unsafe fn write_particle(
 }
 
 /// Write a value to a specific index's "temperature" field's
-pub unsafe fn write_temp_field(
+pub unsafe fn temp_exchange(
     slice: &AtomicComparedSlice<Particle>,
-    index: usize,
+    from_index: usize,
+    to_index: usize,
     value: f32,
-    sync_value: u8,
-    check_board: &Arc<Vec<AtomicParticle>>,
+    //check_board: &Arc<Vec<AtomicParticle>>,
 ) {
     unsafe {
         // Get a raw pointer to the underlying Vec
         let data_ptr = slice.data.get();
         let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
-        if true {
-            // Get a mutable pointer to the element at `index`
-            let elem_ptr = vec.as_mut_ptr().add(index);
-            let mut prev_particle: Particle = slice.data.get().as_ref().unwrap()[index];
-            prev_particle.temperature = value;
-            // Write the value into the element (replaces the old value)
-            *elem_ptr = prev_particle;
-        }
+        /*if !check_board[from_index]
+            .temperature
+            .swap(true, Ordering::Release)
+            || !check_board[to_index]
+                .temperature
+                .swap(true, Ordering::Release)
+        {*/
+        // Get a mutable pointer to the element at `index`
+        let from_elem_ptr = vec.as_mut_ptr().add(from_index);
+        let mut from_prev_particle: Particle = slice.data.get().as_ref().unwrap()[from_index];
+        let to_elem_ptr = vec.as_mut_ptr().add(to_index);
+        let mut to_prev_particle: Particle = slice.data.get().as_ref().unwrap()[to_index];
+        from_prev_particle.temperature -= value;
+        to_prev_particle.temperature += value;
+        // Write the value into the element (replaces the old value)
+        *from_elem_ptr = from_prev_particle;
+        *to_elem_ptr = to_prev_particle;
+        //}
     }
 }
 

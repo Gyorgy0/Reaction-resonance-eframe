@@ -41,7 +41,7 @@ pub struct AtomicParticle {
     pub physics_written: AtomicBool,    // Checks whether the AtomicParticle has been overwritten by a physics reaction
     pub life_written: AtomicBool,       // Checks whether the AtomicParticle has been overwritten by a life reaction
     pub reaction_written: AtomicBool,   // Checks whether the AtomicParticle has been overwritten by a chemical reaction
-    pub temperature: AtomicU8,          // Checks whether the AtomicParticle's temperature has been overwritten
+    pub temperature: AtomicBool,        // Checks whether the AtomicParticle's temperature has been overwritten
     pub speed_x: AtomicBool,            // Checks whether the AtomicParticle's speed's x componenet has been overwritten
     pub speed_y: AtomicBool,            // Checks whether the AtomicParticle's speed's y componenet has been overwritten
 }
@@ -53,7 +53,7 @@ impl AtomicParticle {
         reaction_written: bool,
         speed_x: bool,
         speed_y: bool,
-        temperature: u8,
+        temperature: bool,
         _updated: bool,
     ) -> Self {
         Self {
@@ -62,13 +62,13 @@ impl AtomicParticle {
             reaction_written: AtomicBool::new(reaction_written),
             speed_x: AtomicBool::new(speed_x),
             speed_y: AtomicBool::new(speed_y),
-            temperature: AtomicU8::new(temperature),
+            temperature: AtomicBool::new(temperature),
         }
     }
 }
 
 impl Default for AtomicParticle {
     fn default() -> Self {
-        Self::new(false, false, false, false, false, u8::default(), false)
+        Self::new(false, false, false, false, false, false, false)
     }
 }

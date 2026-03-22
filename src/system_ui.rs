@@ -92,37 +92,14 @@ impl MaterialType {
                 birth: _,
                 stages: _,
             } => include_image!("assets/cautomatas_icon.svg"),
-            MaterialType::Ceramic => include_image!("assets/category_background.svg"),
+            MaterialType::Ceramic => include_image!("assets/ceramics_icon.svg"),
             MaterialType::Explosive => include_image!("assets/explosives_icon.svg"),
             MaterialType::Fuel => include_image!("assets/fuels_icon.svg"),
             MaterialType::Machine { machine: _ } => include_image!("assets/machines_icon.svg"),
             MaterialType::Metal => include_image!("assets/metals_icon.svg"),
             MaterialType::Oxidizer => include_image!("assets/oxidizers_icon.svg"),
-            MaterialType::Decor => include_image!("assets/category_background.svg"),
+            MaterialType::Decor => include_image!("assets/decors_icon.svg"),
             MaterialType::Solution => include_image!("assets/solutions_icon.svg"),
-        }
-    }
-    pub fn get_name(&self) -> &str {
-        match self {
-            MaterialType::Corrosive {
-                ph_value: _,
-                blacklist: _,
-                material_list: _,
-            } => "Corrosive materials",
-            MaterialType::Alloy => "Alloys",
-            MaterialType::CAutomata {
-                survival: _,
-                birth: _,
-                stages: _,
-            } => "Cellular automatons",
-            MaterialType::Ceramic => "Ceramics",
-            MaterialType::Explosive => "Explosive materials",
-            MaterialType::Fuel => "Fuels",
-            MaterialType::Machine { machine: _ } => "Machines",
-            MaterialType::Metal => "Metals",
-            MaterialType::Oxidizer => "Oxidizers",
-            MaterialType::Decor => "Decorative materials",
-            MaterialType::Solution => "Solutions",
         }
     }
 }

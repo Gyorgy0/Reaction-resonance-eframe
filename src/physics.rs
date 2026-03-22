@@ -2,8 +2,8 @@ use crate::{
     material::{Material, tuple_to_rangeinclusive},
     particle::{AtomicParticle, Particle},
     world::{
-        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_x_speed_field,
-        write_y_speed_field,
+        AtomicComparedSlice, get_safe_i, swap_particle, temp_exchange, write_particle,
+        write_x_speed_field, write_y_speed_field,
     },
 };
 use egui::{Color32, lerp};
@@ -149,6 +149,77 @@ impl Phase {
     }
     pub fn plasma_default() -> Self {
         Self::Plasma
+    }
+}
+
+#[inline(always)]
+pub fn solve_heat(
+    slice_board: &AtomicComparedSlice<Particle>,
+    //check_board: &Arc<Vec<AtomicParticle>>,
+    materials: &Vec<(String, Material)>,
+    height: &usize,
+    width: &usize,
+    i: usize,
+    j: usize,
+    framedelta: &f32,
+) {
+    let neumann_positions = [
+        (i.wrapping_add(1), j),
+        (i.saturating_sub(1), j),
+        (i, j.wrapping_add(1)),
+        (i, j.saturating_sub(1)),
+    ];
+    // Calculating heat conduction
+    let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+
+    for pos in neumann_positions {
+        if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
+            let mut neighbouring_particle_temperature: f32 = slice_board
+                .get_elem(get_safe_i(height, width, &pos))
+                .temperature;
+            let neighbouring_particle_id: usize = slice_board
+                .get_elem(get_safe_i(height, width, &pos))
+                .material_id;
+            let temp_difference = current_particle.temperature - neighbouring_particle_temperature;
+            let transferred_heat = materials[neighbouring_particle_id].1.heat_conductivity
+                * temp_difference.abs()
+                * framedelta;
+            if slice_board
+                .get(get_safe_i(height, width, &pos))
+                .unwrap_or(&current_particle)
+                .temperature
+                < current_particle.temperature
+            {
+                unsafe {
+                    temp_exchange(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        get_safe_i(height, width, &pos),
+                        transferred_heat
+                            / (materials[neighbouring_particle_id].1.heat_capacity
+                                * materials[neighbouring_particle_id].1.density),
+                        //check_board,
+                    )
+                };
+            } else if slice_board
+                .get(get_safe_i(height, width, &pos))
+                .unwrap_or(&current_particle)
+                .temperature
+                >= current_particle.temperature
+            {
+                unsafe {
+                    temp_exchange(
+                        slice_board,
+                        get_safe_i(height, width, &pos),
+                        get_safe_i(height, width, &(i, j)),
+                        transferred_heat
+                            / (materials[neighbouring_particle_id].1.heat_capacity
+                                * materials[neighbouring_particle_id].1.density),
+                        //check_board,
+                    )
+                };
+            }
+        }
     }
 }
 
