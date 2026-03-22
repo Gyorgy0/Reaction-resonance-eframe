@@ -70,8 +70,8 @@ impl Default for EFrameApp<'_> {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 512_u16,
-            height: 256_u16,
+            width: 256_u16,
+            height: 128_u16,
             contents: AtomicComparedSlice::new(vec![]),
             gravity: 9.81_f32,
             brush_size: vec2(6_f32, 6_f32),
@@ -143,7 +143,7 @@ impl Default for EFrameApp<'_> {
         let response_text = std::sync::Arc::new(std::sync::Mutex::new(vec![]));
         #[cfg(target_arch = "wasm32")]
         {
-            use crate::http_request::get_req;
+            use crate::http_request::get_materials;
             get_req(response_text.clone());
         }
         #[cfg(target_os = "android")]

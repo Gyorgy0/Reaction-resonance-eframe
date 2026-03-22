@@ -5,8 +5,13 @@ use crate::reactions::{MachineTypes, MaterialType};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Locale {
+    options_title: String,
+    screen_option_label: String,
     fullscreen_button: String,
     fullscreen_tooltip: String,
+    windowed_button: String,
+    windowed_tooltip: String,
+    gravity_option_label: String,
     brush_size_label: String,
     x_axis_label: String,
     y_axis_label: String,
@@ -18,6 +23,9 @@ pub struct Locale {
     heat_tooltip: String,
     cool_button: String,
     cool_tooltip: String,
+    rectangle_brush_tooltip: String,
+    rhombus_brush_tooltip: String,
+    ellipse_brush_tooltip: String,
     element_names: AHashMap<String, String>,
     category_names: AHashMap<u8, String>,
 }
@@ -25,8 +33,13 @@ pub struct Locale {
 impl Default for Locale {
     fn default() -> Self {
         Self {
+            options_title: String::from("Options"),
+            screen_option_label: String::from("Screen:"),
             fullscreen_button: String::from("Fullscreen"),
             fullscreen_tooltip: String::from("Maximizes the applications screen."),
+            windowed_button: String::from("Windowed"),
+            windowed_tooltip: String::from("Sets the application's screen as a resizeable window."),
+            gravity_option_label: String::from("Gravity:"),
             brush_size_label: String::from("Brush size:"),
             x_axis_label: String::from("X axis:"),
             y_axis_label: String::from("Y axis:"),
@@ -38,6 +51,9 @@ impl Default for Locale {
             heat_tooltip: String::from("Selects the heating tool."),
             cool_button: String::from("Cool"),
             cool_tooltip: String::from("Selects the cooling tool."),
+            rectangle_brush_tooltip: String::from("Rectangle"),
+            rhombus_brush_tooltip: String::from("Rhombus"),
+            ellipse_brush_tooltip: String::from("Ellipse"),
             element_names: AHashMap::from([
                 (String::from("GAS:METHANE"), String::from("Methane")),
                 (String::from("LIQUID:WATER"), String::from("Water")),

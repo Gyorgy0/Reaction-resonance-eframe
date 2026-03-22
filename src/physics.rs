@@ -2,12 +2,12 @@ use crate::{
     material::{Material, tuple_to_rangeinclusive},
     particle::{AtomicParticle, Particle},
     world::{
-        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_temp_field,
-        write_temp_field_unchecked, write_x_speed_field, write_y_speed_field,
+        AtomicComparedSlice, get_safe_i, swap_particle, write_particle, write_x_speed_field,
+        write_y_speed_field,
     },
 };
-use egui::ahash::AHashMap;
 use egui::{Color32, lerp};
+use egui::{ahash::AHashMap, vec2};
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
 
@@ -167,56 +167,7 @@ pub fn solve_particle(
     gravity: f32,
     framedelta: f32,
 ) {
-    let neumann_positions = [
-        (i.wrapping_add(1), j),
-        (i.saturating_sub(1), j),
-        (i, j.wrapping_add(1)),
-        (i, j.saturating_sub(1)),
-    ];
-    // Caclulating heat conduction
-    let mut current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
-    let mut current_energy_level =
-        current_particle.temperature * materials[current_particle.material_id].1.heat_capacity;
-
-    for pos in neumann_positions {
-        if slice_board.get(get_safe_i(height, width, &pos)).is_some()
-            && slice_board
-                .get(get_safe_i(height, width, &pos))
-                .unwrap_or(&current_particle)
-                .temperature
-                < current_particle.temperature
-        {
-            let mut neighbouring_particle: &mut Particle = &mut slice_board
-                .get(get_safe_i(height, width, &pos))
-                .unwrap_or(current_particle)
-                .clone();
-            let temp_difference = current_particle.temperature - neighbouring_particle.temperature;
-            let transferred_heat = materials[neighbouring_particle.material_id]
-                .1
-                .heat_conductivity
-                * framedelta
-                * temp_difference;
-            current_energy_level -= transferred_heat;
-            neighbouring_particle.temperature +=
-                transferred_heat * materials[neighbouring_particle.material_id].1.heat_capacity;
-            unsafe {
-                write_temp_field(
-                    slice_board,
-                    get_safe_i(height, width, &pos),
-                    neighbouring_particle.temperature,
-                    check_board,
-                )
-            };
-        }
-    }
-    unsafe {
-        write_temp_field_unchecked(
-            slice_board,
-            get_safe_i(height, width, &(i, j)),
-            current_energy_level / materials[current_particle.material_id].1.heat_capacity,
-            check_board,
-        )
-    };
+    let mut current_particle;
 
     match &materials[slice_board
         .get_elem(get_safe_i(height, width, &(i, j)))
@@ -268,6 +219,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             } else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
@@ -304,6 +256,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,6 +303,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             } else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
@@ -386,6 +340,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             }
             // Gravity simulation
             let mut speed_y = current_particle.speed.y;
@@ -613,6 +568,7 @@ pub fn solve_particle(
                     .material_color
                     .color
                     .a();
+                new_particle.speed = vec2(0_f32, 0_f32);
                 unsafe {
                     write_particle(
                         slice_board,
@@ -621,6 +577,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             // Boiling/evaporation (liquid -> gas)
             } else if *boiling_point < current_particle.temperature
                 && physical_transitions
@@ -649,6 +606,7 @@ pub fn solve_particle(
                     .material_color
                     .color
                     .a();
+                new_particle.speed = vec2(0_f32, 0_f32);
                 unsafe {
                     write_particle(
                         slice_board,
@@ -657,6 +615,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             }
 
             // Gravity simulation
@@ -680,11 +639,6 @@ pub fn solve_particle(
                     .sqrt();
             if speed_y < terminal_velocity {
                 speed_y += gravity * framedelta;
-            }
-            if discriminant(&materials[next_particle.material_id].1.phase)
-                == discriminant(&Phase::solid_default())
-            {
-                speed_y = 0_f32;
             }
             unsafe {
                 write_y_speed_field(
@@ -788,7 +742,7 @@ pub fn solve_particle(
             // Viscosity simulation
             let mut speed_x = 0_f32;
             let mut rnd = rngs[get_safe_i(height, width, &(i, j))];
-            if rnd.abs() > (1_f32 - (1_f32 / viscosity)) {
+            if rnd.abs() > (1_f32 - (1_f32 / viscosity)).powi(16) {
                 if slice_board
                     .get_elem(get_safe_i(
                         height,
@@ -804,7 +758,7 @@ pub fn solve_particle(
             }
             // Change on the X axis
             let mut xchange = 0;
-            for k in 1_i32..=speed_x.abs() as i32 {
+            for k in 0_i32..=speed_x.abs() as i32 {
                 if slice_board
                     .get(get_safe_i(
                         height,
@@ -899,6 +853,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             } else if *sublimation_point > current_particle.temperature
                 && physical_transitions
                     .sublimation
@@ -935,6 +890,7 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
+                return;
             }
             // This calculates the position on the Y axis
             let mut orientation_y: i32 = 0_i32;
@@ -1068,14 +1024,20 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                        &(
+                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                            (j as i32 + (orientation_x.signum() * k)) as usize,
+                        ),
                     ))
                     .is_some()
                     && (materials[slice_board
                         .get(get_safe_i(
                             height,
                             width,
-                            &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                            &(
+                                i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                                (j as i32 + (orientation_x.signum() * k)) as usize,
+                            ),
                         ))
                         .unwrap_or(current_particle)
                         .material_id]
@@ -1087,7 +1049,10 @@ pub fn solve_particle(
                                 .get(get_safe_i(
                                     height,
                                     width,
-                                    &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                                    &(
+                                        i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                                        (j as i32 + (orientation_x.signum() * k)) as usize,
+                                    ),
                                 ))
                                 .unwrap_or(current_particle)
                                 .material_id]

@@ -1,7 +1,7 @@
 use crate::material::tuple_to_rangeinclusive;
 use crate::particle::AtomicParticle;
 use crate::reactions::MaterialType;
-use crate::world::{AtomicComparedSlice, get_safe_i, write_life_particle};
+use crate::world::{AtomicComparedSlice, get_safe_i, write_life_particle, write_temp_field};
 use crate::{material::Material, particle::Particle};
 use egui::lerp;
 use std::mem::discriminant;
@@ -18,6 +18,7 @@ pub(crate) fn solve_cells(
     width: &usize,
     i: usize,
     j: usize,
+    framedelta: &f32,
 ) {
     // Cellular Automaton solving (Moore neighborhood coordinates)
     // i - y value (current row)
@@ -29,6 +30,12 @@ pub(crate) fn solve_cells(
         (i.saturating_sub(1), j.wrapping_add(1)),
         (i.saturating_sub(1), j),
         (i.saturating_sub(1), j.saturating_sub(1)),
+        (i, j.wrapping_add(1)),
+        (i, j.saturating_sub(1)),
+    ];
+    let neumann_positions = [
+        (i.wrapping_add(1), j),
+        (i.saturating_sub(1), j),
         (i, j.wrapping_add(1)),
         (i, j.saturating_sub(1)),
     ];
@@ -161,5 +168,57 @@ pub(crate) fn solve_cells(
             new_particle,
             check_board,
         )
+    }
+    // Calculating heat conduction
+    let current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+    let mut current_energy_level = current_particle.temperature
+        * materials[current_particle.material_id].1.heat_capacity
+        * materials[current_particle.material_id].1.density;
+    let mut count = 0_u8;
+
+    for pos in neumann_positions {
+        if slice_board.get(get_safe_i(height, width, &pos)).is_some()
+            && slice_board
+                .get(get_safe_i(height, width, &pos))
+                .unwrap_or(&current_particle)
+                .temperature
+                < current_particle.temperature
+        {
+            let mut neighbouring_particle_temperature: f32 = slice_board
+                .get_elem(get_safe_i(height, width, &pos))
+                .temperature;
+            let neighbouring_particle_id: usize = slice_board
+                .get_elem(get_safe_i(height, width, &pos))
+                .material_id;
+            let temp_difference = current_particle.temperature - neighbouring_particle_temperature;
+            let transferred_heat = materials[neighbouring_particle_id].1.heat_conductivity
+                * temp_difference
+                * framedelta;
+            current_energy_level -= transferred_heat;
+            neighbouring_particle_temperature += transferred_heat
+                * materials[neighbouring_particle_id].1.heat_capacity
+                * materials[neighbouring_particle_id].1.density;
+            unsafe {
+                write_temp_field(
+                    slice_board,
+                    get_safe_i(height, width, &pos),
+                    neighbouring_particle_temperature,
+                    count,
+                    check_board,
+                )
+            };
+            unsafe {
+                write_temp_field(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    current_energy_level
+                        / (materials[current_particle.material_id].1.heat_capacity
+                            * materials[current_particle.material_id].1.density),
+                    count,
+                    check_board,
+                )
+            };
+            //count += 1_u8;
+        }
     }
 }
