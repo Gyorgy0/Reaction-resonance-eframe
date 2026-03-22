@@ -81,7 +81,7 @@ pub fn get_melting_transitions(response_text: Arc<Mutex<Vec<String>>>) {
             .unwrap()
             .push(response.text().unwrap().to_owned());
     });
-    let request = ehttp::Request::get(
+    let _request = ehttp::Request::get(
         "https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/powder.json",
     );
 }
@@ -97,7 +97,7 @@ pub fn get_boiling_transitions(response_text: Arc<Mutex<Vec<String>>>) {
             .unwrap()
             .push(response.text().unwrap().to_owned());
     });
-    let request = ehttp::Request::get(
+    let _request = ehttp::Request::get(
         "https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/powder.json",
     );
 }
@@ -113,7 +113,7 @@ pub fn get_sublimation_transitions(response_text: Arc<Mutex<Vec<String>>>) {
             .unwrap()
             .push(response.text().unwrap().to_owned());
     });
-    let request = ehttp::Request::get(
+    let _request = ehttp::Request::get(
         "https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/powder.json",
     );
 }
@@ -129,7 +129,7 @@ pub fn get_ionization_transitions(response_text: Arc<Mutex<Vec<String>>>) {
             .unwrap()
             .push(response.text().unwrap().to_owned());
     });
-    let request = ehttp::Request::get(
+    let _request = ehttp::Request::get(
         "https://raw.githubusercontent.com/Gyorgy0/Reaction-resonance-release/master/materials/powder.json",
     );
 }

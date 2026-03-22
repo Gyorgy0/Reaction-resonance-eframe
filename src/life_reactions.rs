@@ -1,11 +1,10 @@
 use crate::material::tuple_to_rangeinclusive;
 use crate::particle::AtomicParticle;
 use crate::reactions::MaterialType;
-use crate::world::{AtomicComparedSlice, get_safe_i, temp_exchange, write_life_particle};
+use crate::world::{AtomicComparedSlice, get_safe_i, write_life_particle};
 use crate::{material::Material, particle::Particle};
 use egui::lerp;
 use std::mem::discriminant;
-use std::ops::Add;
 use std::sync::Arc;
 
 #[inline(never)]
@@ -19,7 +18,7 @@ pub(crate) fn solve_cells(
     width: &usize,
     i: usize,
     j: usize,
-    framedelta: &f32,
+    _framedelta: &f32,
 ) {
     // Cellular Automaton solving (Moore neighborhood coordinates)
     // i - y value (current row)
@@ -34,7 +33,7 @@ pub(crate) fn solve_cells(
         (i, j.wrapping_add(1)),
         (i, j.saturating_sub(1)),
     ];
-    let neumann_positions = [
+    let _neumann_positions = [
         (i.wrapping_add(1), j),
         (i.saturating_sub(1), j),
         (i, j.wrapping_add(1)),

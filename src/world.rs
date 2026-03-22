@@ -182,15 +182,14 @@ pub fn update_board(
                         as usize;
                     j = ((width - 1_usize) as i64 - (count % width) as i64).unsigned_abs() as usize;
                 }
+                // This ensures that 2 temperature exchanges are not overlapping (so we don't need to synchronize them)
                 if (get_safe_i(&height, &width, &(i, j))
                     + i
                     + framecount.is_multiple_of(2_u64) as usize)
-                    % 3_usize
-                    == 0_usize
+                    .is_multiple_of(3_usize)
                 {
                     solve_heat(
                         &game_board.contents,
-                        //&check_board,
                         materials,
                         &height,
                         &width,

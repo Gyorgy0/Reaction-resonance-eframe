@@ -174,7 +174,7 @@ pub fn solve_heat(
 
     for pos in neumann_positions {
         if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
-            let mut neighbouring_particle_temperature: f32 = slice_board
+            let neighbouring_particle_temperature: f32 = slice_board
                 .get_elem(get_safe_i(height, width, &pos))
                 .temperature;
             let neighbouring_particle_id: usize = slice_board
@@ -186,7 +186,7 @@ pub fn solve_heat(
                 * framedelta;
             if slice_board
                 .get(get_safe_i(height, width, &pos))
-                .unwrap_or(&current_particle)
+                .unwrap_or(current_particle)
                 .temperature
                 < current_particle.temperature
             {
@@ -203,7 +203,7 @@ pub fn solve_heat(
                 };
             } else if slice_board
                 .get(get_safe_i(height, width, &pos))
-                .unwrap_or(&current_particle)
+                .unwrap_or(current_particle)
                 .temperature
                 >= current_particle.temperature
             {
@@ -290,7 +290,6 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
-                return;
             } else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
@@ -327,7 +326,6 @@ pub fn solve_particle(
                         check_board,
                     )
                 };
-                return;
             }
         }
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

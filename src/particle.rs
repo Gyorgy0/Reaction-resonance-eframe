@@ -1,4 +1,4 @@
-use std::sync::atomic::{AtomicBool, AtomicU8};
+use std::sync::atomic::AtomicBool;
 
 use egui::{Color32, Vec2};
 use serde::{Deserialize, Serialize};
