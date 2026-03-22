@@ -3,7 +3,7 @@
         "LIFE::GAME_OF_LIFE",
         {
             "id": 12,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -18,8 +18,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -39,7 +39,7 @@
         "LIFE::MAZE",
         {
             "id": 13,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -54,8 +54,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -75,7 +75,7 @@
         "LIFE::WALLED_CITIES",
         {
             "id": 14,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -90,8 +90,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -111,7 +111,7 @@
         "LIFE::DIAMOEBA",
         {
             "id": 15,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -126,8 +126,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -147,7 +147,7 @@
         "LIFE::GNARL",
         {
             "id": 16,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -162,8 +162,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -183,7 +183,7 @@
         "LIFE::HIGH_LIFE",
         {
             "id": 18,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -198,8 +198,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -219,7 +219,7 @@
         "LIFE::ASSIMILATION",
         {
             "id": 19,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -234,8 +234,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -255,7 +255,7 @@
         "LIFE::2X2",
         {
             "id": 20,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -270,8 +270,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -291,7 +291,7 @@
         "LIFE::DAY_AND_NIGHT",
         {
             "id": 21,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -306,8 +306,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -327,7 +327,7 @@
         "LIFE::AMOEBA",
         {
             "id": 22,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -342,8 +342,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -363,7 +363,7 @@
         "LIFE::MOVE",
         {
             "id": 23,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -378,8 +378,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -399,7 +399,7 @@
         "LIFE::COAGULATIONS",
         {
             "id": 24,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -414,8 +414,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -435,7 +435,7 @@
         "LIFE::PSEUDO_LIFE",
         {
             "id": 25,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -450,8 +450,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -471,7 +471,7 @@
         "LIFE::34",
         {
             "id": 26,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -486,8 +486,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -507,7 +507,7 @@
         "LIFE::LONG_LIFE",
         {
             "id": 27,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -522,8 +522,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -543,7 +543,7 @@
         "LIFE::SEEDS",
         {
             "id": 28,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -558,8 +558,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -579,7 +579,7 @@
         "LIFE::REPLICATOR",
         {
             "id": 29,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -594,8 +594,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -615,7 +615,7 @@
         "LIFE::CORAL",
         {
             "id": 30,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -630,8 +630,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -651,7 +651,7 @@
         "LIFE::SERVIETTES",
         {
             "id": 31,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -666,8 +666,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [

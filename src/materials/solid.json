@@ -63,7 +63,7 @@
         "SOLID::ClONER",
         {
             "id": 2,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -76,8 +76,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0, 
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -97,7 +97,7 @@
         "SOLID::SINK",
         {
             "id": 3,
-            "density": 0.0,
+            "density": 1.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -110,8 +110,8 @@
                 }
             },
             "initial_temperature": 293.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0, 
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -169,7 +169,7 @@
                 }
             },
             "material_type": "Metal",
-            "initial_temperature": 293.15,
+            "initial_temperature": 2903.15,
             "heat_capacity": 1.228,
             "heat_conductivity": 1.42,
             "durability": -1,

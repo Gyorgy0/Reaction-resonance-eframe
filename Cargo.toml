@@ -55,8 +55,8 @@ codegen-units = 1
 
 [profile.release]
 opt-level = 's'
-debug = true
-strip = false
+#debug = true
+strip = true
 #lto = "fat"
 panic = "abort"
 codegen-units = 1

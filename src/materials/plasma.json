@@ -7,8 +7,8 @@
             "phase": "Plasma",
             "material_type": "Solution",
             "initial_temperature": 1673.15,
-            "heat_capacity": 1.0,
-            "heat_conductivity": 1.0,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
             "durability": 50,
             "material_color": {
                 "color": [
