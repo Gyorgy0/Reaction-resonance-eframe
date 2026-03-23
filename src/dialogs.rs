@@ -1,7 +1,6 @@
 use std::{f32, ops::RangeInclusive};
 
-use crossbeam::epoch::Pointable;
-use egui::{Align2, Layout, Separator, Vec2};
+use egui::{Layout, Separator};
 use egui_dialogs::{Dialog, dialog_window};
 
 pub struct OptionsMenuDialog {

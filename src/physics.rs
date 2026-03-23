@@ -6,17 +6,10 @@ use crate::{
         write_x_speed_field, write_y_speed_field,
     },
 };
+use egui::ahash::AHashMap;
 use egui::{Color32, lerp};
-use egui::{ahash::AHashMap, vec2};
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
-
-pub struct PhysicalReactions {
-    pub(crate) melting: AHashMap<usize, usize>,
-    pub(crate) boiling: AHashMap<usize, usize>,
-    pub(crate) sublimation: AHashMap<usize, usize>,
-    pub(crate) ionization: AHashMap<usize, usize>,
-}
 
 // Black body radiation gradient:
 // ({temperature}, {color of the radiation})
@@ -93,10 +86,17 @@ pub const BLACK_BODY_RADIATION_COLORS: [(f32, Color32); 17] = [
     ),
 ];
 
+pub struct PhysicalReactions {
+    pub(crate) melting: AHashMap<usize, usize>,
+    pub(crate) boiling: AHashMap<usize, Vec<(usize, f32)>>,
+    pub(crate) sublimation: AHashMap<usize, usize>,
+    pub(crate) ionization: AHashMap<usize, usize>,
+}
+
 impl PhysicalReactions {
     pub fn new(
         melting: AHashMap<usize, usize>,
-        boiling: AHashMap<usize, usize>,
+        boiling: AHashMap<usize, Vec<(usize, f32)>>,
         sublimation: AHashMap<usize, usize>,
         ionization: AHashMap<usize, usize>,
     ) -> Self {
@@ -115,9 +115,10 @@ impl PhysicalReactions {
 pub enum Phase {
     Air,
     Solid { melting_point: f32, sublimation_point: f32 },
-    Powder { melting_point: f32, sublimation_point: f32 },                         // Coarseness is the average diameter of a powder particle (between 0 and 1) (in cm), -> the smaller the diameter, the powder becomes more "clumpier"
-    Liquid { viscosity: f32, melting_point: f32, boiling_point: f32 },      // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1_f32, the bigger the viscosity, the thicker the fluid is
-    Gas {boiling_point: f32, sublimation_point: f32},                                               // Not fully implemented
+    Powder { melting_point: f32, sublimation_point: f32 },
+    // Viscosity gives the rate, which the liquid spreads, for e.g. water has a viscosity of 1 cP (centiPoise), the bigger the viscosity, the thicker the fluid is (e.g honey - 10_000)
+    Liquid { viscosity: f32, melting_point: f32, boiling_point: f32 },
+    Gas {boiling_point: f32, sublimation_point: f32},
     Plasma,
 }
 
@@ -246,35 +247,32 @@ pub fn solve_particle(
         Phase::Air => {}
 
         Phase::Solid {
-            melting_point,
-            sublimation_point,
+            melting_point: _,
+            sublimation_point: _,
         } => {
             current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
-            let mut new_particle = *current_particle;
-            if *melting_point < current_particle.temperature
-                && physical_transitions
-                    .melting
-                    .contains_key(&current_particle.material_id)
-                && *sublimation_point < 0_f32
-            {
-                new_particle.material_id = *physical_transitions
-                    .melting
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
+            let new_particle = phase_change(
+                current_particle,
+                physical_transitions,
+                materials,
+                rngs[get_safe_i(height, width, &(i, j))],
+            );
+            if new_particle.is_some() {
+                let mut changed_particle = new_particle.unwrap();
+                changed_particle.display_color = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
                     .gamma_multiply(lerp(
                         tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
+                            materials[changed_particle.material_id]
                                 .1
                                 .material_color
                                 .shinyness,
                         ),
                         rngs[get_safe_i(height, width, &(i, j))],
                     ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
+                changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
@@ -283,43 +281,7 @@ pub fn solve_particle(
                     write_particle(
                         slice_board,
                         get_safe_i(height, width, &(i, j)),
-                        new_particle,
-                        check_board,
-                    )
-                };
-            } else if *sublimation_point < current_particle.temperature
-                && physical_transitions
-                    .sublimation
-                    .contains_key(&current_particle.material_id)
-                && *melting_point < 0_f32
-            {
-                new_particle.material_id = *physical_transitions
-                    .sublimation
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-                unsafe {
-                    write_particle(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        new_particle,
+                        changed_particle,
                         check_board,
                     )
                 };
@@ -329,34 +291,32 @@ pub fn solve_particle(
         // POWDER PHYSICS
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Powder {
-            melting_point,
-            sublimation_point,
+            melting_point: _,
+            sublimation_point: _,
         } => {
             current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
-            let mut new_particle = *current_particle;
-            if *melting_point < current_particle.temperature
-                && physical_transitions
-                    .melting
-                    .contains_key(&current_particle.material_id)
-            {
-                new_particle.material_id = *physical_transitions
-                    .melting
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
+            let new_particle = phase_change(
+                current_particle,
+                physical_transitions,
+                materials,
+                rngs[get_safe_i(height, width, &(i, j))],
+            );
+            if new_particle.is_some() {
+                let mut changed_particle = new_particle.unwrap();
+                changed_particle.display_color = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
                     .gamma_multiply(lerp(
                         tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
+                            materials[changed_particle.material_id]
                                 .1
                                 .material_color
                                 .shinyness,
                         ),
                         rngs[get_safe_i(height, width, &(i, j))],
                     ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
+                changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
@@ -365,44 +325,7 @@ pub fn solve_particle(
                     write_particle(
                         slice_board,
                         get_safe_i(height, width, &(i, j)),
-                        new_particle,
-                        check_board,
-                    )
-                };
-                return;
-            } else if *sublimation_point < current_particle.temperature
-                && physical_transitions
-                    .sublimation
-                    .contains_key(&current_particle.material_id)
-                && *melting_point < 0_f32
-            {
-                new_particle.material_id = *physical_transitions
-                    .sublimation
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-                unsafe {
-                    write_particle(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        new_particle,
+                        changed_particle,
                         check_board,
                     )
                 };
@@ -605,84 +528,42 @@ pub fn solve_particle(
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Liquid {
             viscosity,
-            melting_point,
-            boiling_point,
+            melting_point: _,
+            boiling_point: _,
         } => {
             // Phase change from liquid to solid and liquid to gas
             current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
-            let mut new_particle = *current_particle;
-            // Melting (solid -> liquid)
-            if *melting_point > current_particle.temperature
-                && physical_transitions
-                    .melting
-                    .contains_key(&current_particle.material_id)
-            {
-                new_particle.material_id = *physical_transitions
-                    .melting
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
+            let new_particle = phase_change(
+                current_particle,
+                physical_transitions,
+                materials,
+                rngs[get_safe_i(height, width, &(i, j))],
+            );
+            if new_particle.is_some() {
+                let mut changed_particle = new_particle.unwrap();
+                changed_particle.display_color = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
                     .gamma_multiply(lerp(
                         tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
+                            materials[changed_particle.material_id]
                                 .1
                                 .material_color
                                 .shinyness,
                         ),
                         rngs[get_safe_i(height, width, &(i, j))],
                     ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
+                changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
                     .a();
-                new_particle.speed = vec2(0_f32, 0_f32);
                 unsafe {
                     write_particle(
                         slice_board,
                         get_safe_i(height, width, &(i, j)),
-                        new_particle,
-                        check_board,
-                    )
-                };
-                return;
-            // Boiling/evaporation (liquid -> gas)
-            } else if *boiling_point < current_particle.temperature
-                && physical_transitions
-                    .boiling
-                    .contains_key(&current_particle.material_id)
-            {
-                new_particle.material_id = *physical_transitions
-                    .boiling
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-                new_particle.speed = vec2(0_f32, 0_f32);
-                unsafe {
-                    write_particle(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        new_particle,
+                        changed_particle,
                         check_board,
                     )
                 };
@@ -886,35 +767,33 @@ pub fn solve_particle(
         // GAS PHYSICS
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Gas {
-            boiling_point,
-            sublimation_point,
+            boiling_point: _,
+            sublimation_point: _,
         } => {
             // Phase transition fromg as to liquid
             current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
-            let mut new_particle = *current_particle;
-            if *boiling_point > current_particle.temperature
-                && physical_transitions
-                    .boiling
-                    .contains_key(&current_particle.material_id)
-            {
-                new_particle.material_id = *physical_transitions
-                    .boiling
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
+            let new_particle = phase_change(
+                current_particle,
+                physical_transitions,
+                materials,
+                rngs[get_safe_i(height, width, &(i, j))],
+            );
+            if new_particle.is_some() {
+                let mut changed_particle = new_particle.unwrap();
+                changed_particle.display_color = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
                     .gamma_multiply(lerp(
                         tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
+                            materials[changed_particle.material_id]
                                 .1
                                 .material_color
                                 .shinyness,
                         ),
                         rngs[get_safe_i(height, width, &(i, j))],
                     ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
+                changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
                     .color
@@ -923,49 +802,13 @@ pub fn solve_particle(
                     write_particle(
                         slice_board,
                         get_safe_i(height, width, &(i, j)),
-                        new_particle,
-                        check_board,
-                    )
-                };
-                return;
-            } else if *sublimation_point > current_particle.temperature
-                && physical_transitions
-                    .sublimation
-                    .contains_key(&current_particle.material_id)
-                && *boiling_point < 0_f32
-            {
-                new_particle.material_id = *physical_transitions
-                    .sublimation
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
-                new_particle.display_color = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-                unsafe {
-                    write_particle(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        new_particle,
+                        changed_particle,
                         check_board,
                     )
                 };
                 return;
             }
+
             // This calculates the position on the Y axis
             let mut orientation_y: i32 = 0_i32;
             if slice_board
@@ -1007,12 +850,14 @@ pub fn solve_particle(
                         &(i.wrapping_add(gravity.signum() as usize), j),
                     ))
                     .unwrap_or(current_particle);
-                orientation_y = (((current_particle.speed.y.signum()
+                orientation_y = ((current_particle.speed.y.signum()
                     * (current_particle.speed.y.abs() + 1_f32))
                     - ((materials[next_particle.material_id].1.density
                         / materials[current_particle.material_id].1.density)
                         * gravity
-                        * framedelta)) as i32);
+                        * framedelta)) as i32;
+                orientation_y =
+                    orientation_y.signum() * orientation_y.abs().clamp(1_i32, gravity.abs() as i32);
             }
             let mut ychange = 0_i32;
             for k in 0_i32..orientation_y.abs() {
@@ -1159,6 +1004,42 @@ pub fn solve_particle(
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         Phase::Plasma => {
             current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            let new_particle = phase_change(
+                current_particle,
+                physical_transitions,
+                materials,
+                rngs[get_safe_i(height, width, &(i, j))],
+            );
+            if new_particle.is_some() {
+                let mut changed_particle = new_particle.unwrap();
+                changed_particle.display_color = materials[changed_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .gamma_multiply(lerp(
+                        tuple_to_rangeinclusive(
+                            materials[changed_particle.material_id]
+                                .1
+                                .material_color
+                                .shinyness,
+                        ),
+                        rngs[get_safe_i(height, width, &(i, j))],
+                    ));
+                changed_particle.display_color[3] = materials[changed_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .a();
+                unsafe {
+                    write_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        changed_particle,
+                        check_board,
+                    )
+                };
+                return;
+            }
             // This calculates the position on the Y axis
             let mut orientation_y: i32 = 0_i32;
             if slice_board
@@ -1340,4 +1221,141 @@ pub fn solve_particle(
             }
         }
     }
+}
+
+pub fn phase_change(
+    current_particle: &Particle,
+    physical_transitions: &PhysicalReactions,
+    materials: &Vec<(String, Material)>,
+    rng: f32,
+) -> Option<Particle> {
+    let mut new_particle = *current_particle;
+    match &materials[current_particle.material_id].1.phase {
+        Phase::Air => {}
+        Phase::Solid {
+            melting_point,
+            sublimation_point,
+        } => {
+            if *melting_point < current_particle.temperature
+                && physical_transitions
+                    .melting
+                    .contains_key(&current_particle.material_id)
+                && *sublimation_point < 0_f32
+            {
+                new_particle.material_id = *physical_transitions
+                    .melting
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
+            } else if *sublimation_point < current_particle.temperature
+                && physical_transitions
+                    .sublimation
+                    .contains_key(&current_particle.material_id)
+                && *melting_point < 0_f32
+            {
+                new_particle.material_id = *physical_transitions
+                    .sublimation
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
+            } else {
+                return None;
+            }
+        }
+        Phase::Powder {
+            melting_point,
+            sublimation_point,
+        } => {
+            if *melting_point < current_particle.temperature
+                && physical_transitions
+                    .melting
+                    .contains_key(&current_particle.material_id)
+            {
+                new_particle.material_id = *physical_transitions
+                    .melting
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
+            } else if *sublimation_point < current_particle.temperature
+                && physical_transitions
+                    .sublimation
+                    .contains_key(&current_particle.material_id)
+                && *melting_point < 0_f32
+            {
+                new_particle.material_id = *physical_transitions
+                    .sublimation
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
+            } else {
+                return None;
+            }
+        }
+        Phase::Liquid {
+            viscosity: _,
+            melting_point,
+            boiling_point,
+        } => {
+            // Melting (solid -> liquid)
+            if *melting_point > current_particle.temperature
+                && physical_transitions
+                    .melting
+                    .contains_key(&current_particle.material_id)
+            {
+                new_particle.material_id = *physical_transitions
+                    .melting
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
+            // Boiling/evaporation (liquid -> gas)
+            } else if *boiling_point < current_particle.temperature
+                && physical_transitions
+                    .boiling
+                    .contains_key(&current_particle.material_id)
+            {
+                let default_case = vec![(current_particle.material_id, 1_f32)];
+                for materials in physical_transitions
+                    .boiling
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&default_case)
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
+            } else {
+                return None;
+            }
+        }
+        Phase::Gas {
+            boiling_point,
+            sublimation_point,
+        } => {
+            if *boiling_point > current_particle.temperature
+                && physical_transitions
+                    .boiling
+                    .contains_key(&current_particle.material_id)
+            {
+                let default_case = vec![(current_particle.material_id, 1_f32)];
+                for materials in physical_transitions
+                    .boiling
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&default_case)
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
+            } else if *sublimation_point > current_particle.temperature
+                && physical_transitions
+                    .sublimation
+                    .contains_key(&current_particle.material_id)
+                && *boiling_point < 0_f32
+            {
+                new_particle.material_id = *physical_transitions
+                    .sublimation
+                    .get(&current_particle.material_id)
+                    .unwrap_or(&current_particle.material_id);
+            } else {
+                return None;
+            }
+        }
+        Phase::Plasma => {}
+    }
+    Some(new_particle)
 }

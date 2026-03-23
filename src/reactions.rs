@@ -68,6 +68,8 @@ pub(crate) enum MaterialType {
     Solution,
 }
 
+pub struct ChemicalReactions {}
+
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter, Default)]
 pub(crate) enum MachineTypes {
     #[default]

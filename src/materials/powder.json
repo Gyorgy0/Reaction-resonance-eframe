@@ -268,5 +268,35 @@
                 ]
             }
         }
+    ],
+    [
+        "POWDER::SUCHROSE",
+        {
+            "id": 52,
+            "density": 1.587,
+            "phase": {
+                "Powder": {
+                    "melting_point": 462,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 273.15,
+            "heat_capacity": 1.052,
+            "heat_conductivity": 0.00157,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.25
+                ]
+            }
+        }
     ]
 ]

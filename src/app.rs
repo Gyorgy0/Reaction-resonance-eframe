@@ -4,6 +4,7 @@ use std::{mem::discriminant, u8};
 
 use crate::dialogs::OptionsMenuDialog;
 use crate::egui_input::BrushTool;
+use crate::locale::Locale;
 use crate::physics::{BLACK_BODY_RADIATION_COLORS, PhysicalReactions};
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::debug_text_rendering;
@@ -31,7 +32,10 @@ use strum::IntoEnumIterator;
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // If we add new fields, give them default values when deserializing old state
 pub struct EFrameApp<'a> {
+    #[serde(skip)]
     fullscreen: bool,
+    #[serde(skip)]
+    locale: Locale,
     #[serde(skip)]
     fps_values: Vec<f32>,
     #[serde(skip)]
@@ -72,8 +76,8 @@ impl Default for EFrameApp<'_> {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 512_u16,
-            height: 256_u16,
+            width: 256_u16,
+            height: 128_u16,
             contents: AtomicComparedSlice::new(vec![]),
             gravity: 9.81_f32,
             brush_size: vec2(6_f32, 6_f32),
@@ -102,13 +106,16 @@ impl Default for EFrameApp<'_> {
             /*// This is for serializing particles/components with new fields and enums - testing purposes
 
             //let mut materialhash: AHashMap<String, Material> = AHashMap::from([(String::new(), VOID.clone())]);
-            let materialhash = (String::new(), VOID.clone());
+            let key = vec![1_usize, 2_usize];
+            let values = vec![(1_usize, 0.5_f32)];
+            let materialhash: AHashMap<String, Vec<(usize, f32)>> =
+                AHashMap::from([(format!("{:?}", key).to_string(), values)]);
             let data = serde_json::to_string(&materialhash).unwrap();
             println!("{:?}", data);
             fs::write("src/new.json", data).unwrap();
-            let serialized_data: String =
+            let serialized_data: AHashMap<String, Vec<(usize, f32)>> =
                 serde_json::from_reader(fs::read("src/new.json").unwrap().as_slice()).unwrap();
-            */
+            println!("{:?}", serialized_data);*/
 
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
@@ -133,12 +140,12 @@ impl Default for EFrameApp<'_> {
         let serialized_transition_1: AHashMap<usize, usize> =
             serde_json::from_reader(transition_path_1.unwrap().as_slice()).unwrap();
         let transition_path_2 = fs::read("src/physics/phase_transitions_boiling.json");
-        let serialized_transition_2: AHashMap<usize, usize> =
+        let serialized_transition_2: AHashMap<usize, Vec<(usize, f32)>> =
             serde_json::from_reader(transition_path_2.unwrap().as_slice()).unwrap();
         let transition_path_3 = fs::read("src/physics/phase_transitions_sublimation.json");
         let serialized_transition_3: AHashMap<usize, usize> =
             serde_json::from_reader(transition_path_3.unwrap().as_slice()).unwrap();
-        let transition_path_4 = fs::read("src/physics/phase_transitions_sublimation.json");
+        let transition_path_4 = fs::read("src/physics/phase_transitions_ionization.json");
         let serialized_transition_4: AHashMap<usize, usize> =
             serde_json::from_reader(transition_path_4.unwrap().as_slice()).unwrap();
 
@@ -202,6 +209,7 @@ impl Default for EFrameApp<'_> {
             .collect();
         Self {
             fullscreen: false,
+            locale: Locale::default(),
             fps_values: vec![0_f32; 256_usize],
             black_body_gradient: egui_colorgradient::Gradient::new(
                 egui_colorgradient::InterpolationMethod::Constant,
