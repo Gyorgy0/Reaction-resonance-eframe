@@ -2,6 +2,7 @@ use core::f32;
 use std::fs;
 use std::{mem::discriminant, u8};
 
+use crate::dialogs::OptionsMenuDialog;
 use crate::egui_input::BrushTool;
 use crate::physics::{BLACK_BODY_RADIATION_COLORS, PhysicalReactions};
 use crate::system_data::ApplicationOptions;
@@ -19,11 +20,11 @@ use egui::epaint::Hsva;
 use egui::text::LayoutJob;
 use egui::util::hash;
 use egui::{
-    Color32, ColorImage, Id, Image, LayerId, Layout, Rect, RichText, Sense, Stroke, TextureHandle,
+    Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureHandle,
     TextureOptions, Theme, Vec2, load, pos2, vec2,
 };
 use egui_colorgradient::ColorInterpolator;
-use egui_dialogs::{Dialog, DialogDetails, Dialogs, dialog_window};
+use egui_dialogs::{Dialog, DialogDetails, Dialogs};
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -63,6 +64,7 @@ pub struct EFrameApp<'a> {
     rng: rand::rngs::SmallRng,
     #[serde(skip)]
     response_text: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
+    #[serde(skip)]
     dialogopen: bool,
 }
 
@@ -70,8 +72,8 @@ impl Default for EFrameApp<'_> {
     fn default() -> Self {
         let mut game_board = Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 256_u16,
-            height: 128_u16,
+            width: 512_u16,
+            height: 256_u16,
             contents: AtomicComparedSlice::new(vec![]),
             gravity: 9.81_f32,
             brush_size: vec2(6_f32, 6_f32),
@@ -144,7 +146,7 @@ impl Default for EFrameApp<'_> {
         #[cfg(target_arch = "wasm32")]
         {
             use crate::http_request::get_materials;
-            get_req(response_text.clone());
+            get_materials(response_text.clone());
         }
         #[cfg(target_os = "android")]
         {
@@ -290,6 +292,7 @@ impl eframe::App for EFrameApp<'_> {
         {
             self.game_board.gravity = options.0;
             self.fullscreen = options.1;
+            self.dialogopen = false;
         }
         egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
@@ -520,34 +523,35 @@ impl eframe::App for EFrameApp<'_> {
                         width / self.game_board.width as f32,
                         width / self.game_board.width as f32,
                     );
-                    let heatmap_pixels = self
-                        .game_board
-                        .draw_board_temperature(&self.black_body_gradient);
-                    let frame_image: ColorImage = ColorImage::new(
-                        [
-                            self.game_board.width as usize,
-                            self.game_board.height as usize,
-                        ],
-                        heatmap_pixels,
-                    );
-                    self.heatmap_texture = ctx.load_texture(
-                        "Board_heatmap",
-                        frame_image.clone(),
-                        TextureOptions::LINEAR,
-                    );
-                    self.heatmap_texture
-                        .set(frame_image.clone(), TextureOptions::LINEAR);
-                    ui.painter()
-                        .clone()
-                        .with_clip_rect(board.interact_rect)
-                        .with_layer_id(LayerId::new(egui::Order::Middle, Id::new(hash(3_i32))))
-                        .image(
-                            self.heatmap_texture.id(),
-                            board.interact_rect,
-                            Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
-                            Color32::WHITE,
+                    if !self.dialogopen {
+                        let heatmap_pixels = self
+                            .game_board
+                            .draw_board_temperature(&self.black_body_gradient);
+                        let frame_image: ColorImage = ColorImage::new(
+                            [
+                                self.game_board.width as usize,
+                                self.game_board.height as usize,
+                            ],
+                            heatmap_pixels,
                         );
-
+                        self.heatmap_texture = ctx.load_texture(
+                            "Board_heatmap",
+                            frame_image.clone(),
+                            TextureOptions::LINEAR,
+                        );
+                        self.heatmap_texture
+                            .set(frame_image.clone(), TextureOptions::LINEAR);
+                        ui.painter()
+                            .clone()
+                            .with_clip_rect(board.interact_rect)
+                            .with_layer_id(LayerId::new(egui::Order::Middle, Id::new(hash(3_i32))))
+                            .image(
+                                self.heatmap_texture.id(),
+                                board.interact_rect,
+                                Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+                                Color32::WHITE,
+                            );
+                    }
                     if self.program_options.debug_mode {
                         debug_text_rendering(
                             &self.game_board,
@@ -583,33 +587,35 @@ impl eframe::App for EFrameApp<'_> {
                         height / self.game_board.height as f32,
                         height / self.game_board.height as f32,
                     );
-                    let heatmap_pixels = self
-                        .game_board
-                        .draw_board_temperature(&self.black_body_gradient);
-                    let frame_image: ColorImage = ColorImage::new(
-                        [
-                            self.game_board.width as usize,
-                            self.game_board.height as usize,
-                        ],
-                        heatmap_pixels,
-                    );
-                    self.heatmap_texture = ctx.load_texture(
-                        "Board_heatmap",
-                        frame_image.clone(),
-                        TextureOptions::LINEAR,
-                    );
-                    self.heatmap_texture
-                        .set(frame_image.clone(), TextureOptions::LINEAR);
-                    ui.painter()
-                        .clone()
-                        .with_clip_rect(board.interact_rect)
-                        .with_layer_id(LayerId::new(egui::Order::Middle, Id::new(hash(3_i32))))
-                        .image(
-                            self.heatmap_texture.id(),
-                            board.interact_rect,
-                            Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
-                            Color32::WHITE,
+                    if !self.dialogopen {
+                        let heatmap_pixels = self
+                            .game_board
+                            .draw_board_temperature(&self.black_body_gradient);
+                        let frame_image: ColorImage = ColorImage::new(
+                            [
+                                self.game_board.width as usize,
+                                self.game_board.height as usize,
+                            ],
+                            heatmap_pixels,
                         );
+                        self.heatmap_texture = ctx.load_texture(
+                            "Board_heatmap",
+                            frame_image.clone(),
+                            TextureOptions::LINEAR,
+                        );
+                        self.heatmap_texture
+                            .set(frame_image.clone(), TextureOptions::LINEAR);
+                        ui.painter()
+                            .clone()
+                            .with_clip_rect(board.interact_rect)
+                            .with_layer_id(LayerId::new(egui::Order::Middle, Id::new(hash(3_i32))))
+                            .image(
+                                self.heatmap_texture.id(),
+                                board.interact_rect,
+                                Rect::from_min_max(pos2(0.0, 0.0), pos2(1.0, 1.0)),
+                                Color32::WHITE,
+                            );
+                    }
                     if self.program_options.debug_mode {
                         debug_text_rendering(
                             &self.game_board,
@@ -649,127 +655,5 @@ impl eframe::App for EFrameApp<'_> {
             );
             egui::Context::request_repaint(ctx);
         });
-    }
-}
-pub struct OptionsMenuDialog {
-    pub picked_gravity: f32,
-    pub original_gravity: f32,
-    pub fullscreen: bool,
-}
-
-impl OptionsMenuDialog {
-    pub fn new(gravity: f32, fullscreen: bool) -> Self {
-        Self {
-            picked_gravity: gravity,
-            original_gravity: gravity,
-            fullscreen,
-        }
-    }
-}
-impl Dialog<(f32, bool)> for OptionsMenuDialog {
-    fn show(
-        &mut self,
-        ctx: &egui::Context,
-        dctx: &egui_dialogs::DialogContext,
-    ) -> Option<(f32, bool)> {
-        // Return None if the user hasn't selected something
-        let mut res: Option<(f32, bool)> = None;
-        dialog_window(ctx, dctx, "Options").show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                if ui.button("aaa").clicked() {
-                    res = Some((self.original_gravity, self.fullscreen));
-                }
-                if !self.fullscreen {
-                    if ui.button("Fullscreen").clicked() {
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            let Some(window) = web_sys::window() else {
-                                return;
-                            };
-                            let Some(document) = window.document() else {
-                                return;
-                            };
-                            if self.fullscreen {
-                                let _ = document.exit_fullscreen();
-
-                                let Ok(screen) = window.screen() else {
-                                    return;
-                                };
-                                let _ = screen.orientation().unlock();
-
-                                self.fullscreen = false;
-                            } else {
-                                let Some(element) = document.document_element() else {
-                                    return;
-                                };
-                                let _ = element.request_fullscreen();
-
-                                let Ok(screen) = window.screen() else {
-                                    return;
-                                };
-                                let _ = screen
-                                    .orientation()
-                                    .lock(web_sys::OrientationLockType::Landscape);
-                                self.fullscreen = true;
-                            }
-                        }
-                        #[cfg(not(target_arch = "wasm32"))]
-                        {
-                            if !self.fullscreen {
-                                ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(true));
-                                self.fullscreen = true;
-                            } else {
-                                ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
-                                self.fullscreen = false
-                            }
-                        }
-                    }
-                } else if self.fullscreen && ui.button("Windowed").clicked() {
-                    #[cfg(target_arch = "wasm32")]
-                    {
-                        let Some(window) = web_sys::window() else {
-                            return;
-                        };
-                        let Some(document) = window.document() else {
-                            return;
-                        };
-                        if self.fullscreen {
-                            let _ = document.exit_fullscreen();
-
-                            let Ok(screen) = window.screen() else {
-                                return;
-                            };
-                            let _ = screen.orientation().unlock();
-
-                            self.fullscreen = false;
-                        } else {
-                            let Some(element) = document.document_element() else {
-                                return;
-                            };
-                            let _ = element.request_fullscreen();
-
-                            let Ok(screen) = window.screen() else {
-                                return;
-                            };
-                            let _ = screen
-                                .orientation()
-                                .lock(web_sys::OrientationLockType::Landscape);
-                            self.fullscreen = true;
-                        }
-                    }
-                    #[cfg(not(target_arch = "wasm32"))]
-                    {
-                        ctx.send_viewport_cmd(egui::ViewportCommand::Fullscreen(false));
-                        self.fullscreen = false
-                    }
-                }
-            });
-            ui.with_layout(Layout::right_to_left(egui::Align::Min), |ui| {
-                if ui.button("Back").clicked() {
-                    res = Some((self.original_gravity, self.fullscreen));
-                }
-            });
-        });
-        res
     }
 }

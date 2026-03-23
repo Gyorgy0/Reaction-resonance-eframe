@@ -155,7 +155,6 @@ impl Phase {
 #[inline(always)]
 pub fn solve_heat(
     slice_board: &AtomicComparedSlice<Particle>,
-    //check_board: &Arc<Vec<AtomicParticle>>,
     materials: &Vec<(String, Material)>,
     height: &usize,
     width: &usize,
@@ -198,7 +197,6 @@ pub fn solve_heat(
                         transferred_heat
                             / (materials[neighbouring_particle_id].1.heat_capacity
                                 * materials[neighbouring_particle_id].1.density),
-                        //check_board,
                     )
                 };
             } else if slice_board
@@ -215,7 +213,6 @@ pub fn solve_heat(
                         transferred_heat
                             / (materials[neighbouring_particle_id].1.heat_capacity
                                 * materials[neighbouring_particle_id].1.density),
-                        //check_board,
                     )
                 };
             }
@@ -429,14 +426,10 @@ pub fn solve_particle(
             let terminal_velocity =
                 ((2_f32 * materials[current_particle.material_id].1.density * gravity)
                     / (materials[next_particle.material_id].1.density * 1_f32 * 1.05_f32))
+                    .abs()
                     .sqrt();
-            if speed_y < terminal_velocity {
+            if speed_y.abs() < terminal_velocity {
                 speed_y += gravity * framedelta;
-            }
-            if discriminant(&materials[next_particle.material_id].1.phase)
-                == discriminant(&Phase::solid_default())
-            {
-                speed_y = 0_f32;
             }
             unsafe {
                 write_y_speed_field(
@@ -449,7 +442,7 @@ pub fn solve_particle(
 
             // Change on the Y axis
             let mut ychange = 0;
-            for _k in 0..slice_board
+            for k in 0..=slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
                 .speed
                 .y
@@ -463,7 +456,7 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i + (gravity.signum() as i32 * _k) as usize, j),
+                        &(i + (gravity.signum() as i32 * k) as usize, j),
                     ))
                     .unwrap_or(current_particle);
 
@@ -473,7 +466,7 @@ pub fn solve_particle(
                     && std::mem::discriminant(&materials[future_particle.material_id].1.phase)
                         != std::mem::discriminant(&Phase::solid_default())
                 {
-                    ychange = _k;
+                    ychange = k;
                 }
                 // Checks if the particle falls inside bounds
                 // Checks, whether there is another denser particle in the path of the falling particle
@@ -481,7 +474,7 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i + (gravity.signum() as i32 * _k) as usize, j),
+                        &(i + (gravity.signum() as i32 * k) as usize, j),
                     ))
                     .is_none()
                     || std::mem::discriminant(&materials[future_particle.material_id].1.phase)
@@ -493,7 +486,7 @@ pub fn solve_particle(
                                 width,
                                 &(
                                     (i as f32
-                                        + (gravity.signum() as i32 * _k) as f32
+                                        + (gravity.signum() as i32 * k) as f32
                                         + gravity.signum())
                                         as usize,
                                     j,
@@ -552,7 +545,7 @@ pub fn solve_particle(
                         height,
                         width,
                         &(
-                            i + (gravity.signum() as i32) as usize,
+                            i + (gravity.clamp(-1_f32, 1_f32).round() as i32) as usize,
                             (j as i64).wrapping_add(rnd.signum() as i64) as usize,
                         ),
                     ))
@@ -571,7 +564,7 @@ pub fn solve_particle(
                             height,
                             width,
                             &(
-                                i + (gravity.signum() as i32) as usize,
+                                i + (gravity.clamp(-1_f32, 1_f32).round() as i32) as usize,
                                 (j as i64).wrapping_add(rnd.signum() as i64) as usize,
                             ),
                         ))
@@ -580,6 +573,18 @@ pub fn solve_particle(
                         .1
                         .phase,
                 ) != std::mem::discriminant(&Phase::solid_default())
+                && slice_board
+                    .get(get_safe_i(height, width, &(i, j)))
+                    .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                    .material_id
+                    == slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(i + (gravity.signum() as i32) as usize, j),
+                        ))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id
             {
                 unsafe {
                     swap_particle(
@@ -588,10 +593,7 @@ pub fn solve_particle(
                         get_safe_i(
                             height,
                             width,
-                            &(
-                                i + (gravity.signum() as i32) as usize,
-                                (j as i64).wrapping_add(rnd.signum() as i64) as usize,
-                            ),
+                            &(i, (j as i64).wrapping_add(rnd.signum() as i64) as usize),
                         ),
                         check_board,
                     );
@@ -705,8 +707,9 @@ pub fn solve_particle(
             let terminal_velocity =
                 ((2_f32 * materials[current_particle.material_id].1.density * gravity)
                     / (materials[next_particle.material_id].1.density * 1_f32 * 1.05_f32))
+                    .abs()
                     .sqrt();
-            if speed_y < terminal_velocity {
+            if speed_y.abs() < terminal_velocity {
                 speed_y += gravity * framedelta;
             }
             unsafe {
@@ -804,26 +807,16 @@ pub fn solve_particle(
                         check_board,
                     );
                 }
+                return;
             }
 
             current_particle =
                 slice_board.get_elem(get_safe_i(height, width, &(i + ychange as usize, j)));
             // Viscosity simulation
             let mut speed_x = 0_f32;
-            let mut rnd = rngs[get_safe_i(height, width, &(i, j))];
+            let rnd = rngs[get_safe_i(height, width, &(i, j))];
             if rnd.abs() > (1_f32 - (1_f32 / viscosity)).powi(16) {
-                if slice_board
-                    .get_elem(get_safe_i(
-                        height,
-                        width,
-                        &(i, (j as f32 + rnd.signum()) as usize),
-                    ))
-                    .material_id
-                    == current_particle.material_id
-                {
-                    rnd *= -1_f32;
-                }
-                speed_x = rnd.signum() * (rnd.abs() + (1_f32 / viscosity).sqrt());
+                speed_x = rnd.signum() * (rnd.abs() + (1_f32 / viscosity).powf(0.25_f32));
             }
             // Change on the X axis
             let mut xchange = 0;
@@ -858,6 +851,18 @@ pub fn solve_particle(
                                 .1
                                 .phase,
                         ) != discriminant(&Phase::solid_default()))
+                    && slice_board
+                        .get(get_safe_i(height, width, &(i, j)))
+                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                        .material_id
+                        == slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i + (gravity.signum() as i32) as usize, j),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id
                 {
                     xchange = k;
                 } else {
@@ -1007,8 +1012,7 @@ pub fn solve_particle(
                     - ((materials[next_particle.material_id].1.density
                         / materials[current_particle.material_id].1.density)
                         * gravity
-                        * framedelta)) as i32)
-                    .clamp(-gravity.abs() as i32, gravity.abs() as i32);
+                        * framedelta)) as i32);
             }
             let mut ychange = 0_i32;
             for k in 0_i32..orientation_y.abs() {

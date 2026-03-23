@@ -183,10 +183,8 @@ pub fn update_board(
                     j = ((width - 1_usize) as i64 - (count % width) as i64).unsigned_abs() as usize;
                 }
                 // This ensures that 2 temperature exchanges are not overlapping (so we don't need to synchronize them)
-                if (get_safe_i(&height, &width, &(i, j))
-                    + i
-                    + framecount.is_multiple_of(2_u64) as usize)
-                    .is_multiple_of(3_usize)
+                if (get_safe_i(&height, &width, &(i, j)) + i + (*framecount % 2_u64) as usize)
+                    .is_multiple_of(2)
                 {
                     solve_heat(
                         &game_board.contents,
@@ -361,20 +359,12 @@ pub unsafe fn temp_exchange(
     from_index: usize,
     to_index: usize,
     value: f32,
-    //check_board: &Arc<Vec<AtomicParticle>>,
 ) {
     unsafe {
         // Get a raw pointer to the underlying Vec
         let data_ptr = slice.data.get();
         let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
-        /*if !check_board[from_index]
-            .temperature
-            .swap(true, Ordering::Release)
-            || !check_board[to_index]
-                .temperature
-                .swap(true, Ordering::Release)
-        {*/
         // Get a mutable pointer to the element at `index`
         let from_elem_ptr = vec.as_mut_ptr().add(from_index);
         let mut from_prev_particle: Particle = slice.data.get().as_ref().unwrap()[from_index];
@@ -385,7 +375,6 @@ pub unsafe fn temp_exchange(
         // Write the value into the element (replaces the old value)
         *from_elem_ptr = from_prev_particle;
         *to_elem_ptr = to_prev_particle;
-        //}
     }
 }
 

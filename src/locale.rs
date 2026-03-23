@@ -34,6 +34,7 @@ impl Default for Locale {
     fn default() -> Self {
         Self {
             options_title: String::from("Options"),
+
             screen_option_label: String::from("Screen:"),
             fullscreen_button: String::from("Fullscreen"),
             fullscreen_tooltip: String::from("Maximizes the applications screen."),

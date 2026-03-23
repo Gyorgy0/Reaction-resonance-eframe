@@ -41,7 +41,7 @@
                 }
             },
             "material_type": "Fuel",
-            "initial_temperature": 2903.15,
+            "initial_temperature": 293.15,
             "heat_capacity": 14.305,
             "heat_conductivity": 0.00182,
             "durability": -1,

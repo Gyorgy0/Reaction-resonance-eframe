@@ -1,4 +1,5 @@
 mod app;
+mod dialogs;
 mod egui_input;
 mod http_request;
 mod life_reactions;

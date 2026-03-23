@@ -169,7 +169,7 @@
                 }
             },
             "material_type": "Metal",
-            "initial_temperature": 2903.15,
+            "initial_temperature": 293.15,
             "heat_capacity": 1.228,
             "heat_conductivity": 1.42,
             "durability": -1,

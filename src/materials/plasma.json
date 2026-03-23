@@ -3,12 +3,12 @@
         "PLASMA::FIRE",
         {
             "id": 7,
-            "density": 0.00008988,
+            "density": 0.0002109,
             "phase": "Plasma",
             "material_type": "Solution",
             "initial_temperature": 1673.15,
-            "heat_capacity": 1.1,
-            "heat_conductivity": 0.001,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0011,
             "durability": 50,
             "material_color": {
                 "color": [
