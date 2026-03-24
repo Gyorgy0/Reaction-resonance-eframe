@@ -856,8 +856,10 @@ pub fn solve_particle(
                         / materials[current_particle.material_id].1.density)
                         * gravity
                         * framedelta)) as i32;
-                orientation_y =
-                    orientation_y.signum() * orientation_y.abs().clamp(1_i32, gravity.abs() as i32);
+                if gravity.abs() > 1_f32 {
+                    orientation_y = orientation_y.signum()
+                        * (orientation_y.abs()).clamp(1_i32, gravity.abs() as i32);
+                }
             }
             let mut ychange = 0_i32;
             for k in 0_i32..orientation_y.abs() {
@@ -1081,13 +1083,16 @@ pub fn solve_particle(
                         &(i.wrapping_add(gravity.signum() as usize), j),
                     ))
                     .unwrap_or(current_particle);
-                orientation_y = (((current_particle.speed.y.signum()
+                orientation_y = ((current_particle.speed.y.signum()
                     * (current_particle.speed.y.abs() + 1_f32))
                     - ((materials[next_particle.material_id].1.density
                         / materials[current_particle.material_id].1.density)
                         * gravity
-                        * framedelta)) as i32)
-                    .clamp(-gravity.abs() as i32, gravity.abs() as i32);
+                        * framedelta)) as i32;
+                if gravity.abs() > 1_f32 {
+                    orientation_y = orientation_y.signum()
+                        * (orientation_y.abs()).clamp(1_i32, gravity.abs() as i32);
+                }
             }
             let mut ychange = 0_i32;
             for k in 0_i32..orientation_y.abs() {
@@ -1172,14 +1177,20 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                        &(
+                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                            (j as i32 + (orientation_x.signum() * k)) as usize,
+                        ),
                     ))
                     .is_some()
                     && (materials[slice_board
                         .get(get_safe_i(
                             height,
                             width,
-                            &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                            &(
+                                i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                                (j as i32 + (orientation_x.signum() * k)) as usize,
+                            ),
                         ))
                         .unwrap_or(current_particle)
                         .material_id]
@@ -1191,7 +1202,10 @@ pub fn solve_particle(
                                 .get(get_safe_i(
                                     height,
                                     width,
-                                    &(i, (j as i32 + (orientation_x.signum() * k)) as usize),
+                                    &(
+                                        i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                                        (j as i32 + (orientation_x.signum() * k)) as usize,
+                                    ),
                                 ))
                                 .unwrap_or(current_particle)
                                 .material_id]

@@ -1,4 +1,4 @@
-﻿use std::ops::RangeInclusive;
+use std::ops::RangeInclusive;
 
 use egui::Color32;
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,9 @@ pub static AIR: Material = Material {
     id: 0,
     density: 0.0012041_f32,
     phase: Phase::Air,
-    material_type: MaterialType::Solution,
+    material_type: MaterialType::Oxidizer {
+        combustion_speedup: 0.0_f32,
+    },
     initial_temperature: 293.15_f32,
     heat_capacity: 1.006_f32,
     heat_conductivity: 0.00025_f32,

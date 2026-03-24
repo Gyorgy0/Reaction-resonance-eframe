@@ -80,7 +80,10 @@ impl Default for Locale {
                 (String::from("LIFE:STAR_WARS"), String::from("Star wars")),
             ]),
             category_names: AHashMap::from([
-                (MaterialType::Alloy.discriminant(), String::from("Alloys")),
+                (
+                    MaterialType::alloy_default().discriminant(),
+                    String::from("Alloys"),
+                ),
                 (
                     MaterialType::Ceramic.discriminant(),
                     String::from("Ceramic and glass materials"),
@@ -99,13 +102,19 @@ impl Default for Locale {
                     String::from("Decorative materials"),
                 ),
                 (
-                    MaterialType::Explosive.discriminant(),
+                    MaterialType::explosive_default().discriminant(),
                     String::from("Explosive materials"),
                 ),
-                (MaterialType::Fuel.discriminant(), String::from("Fuels")),
-                (MaterialType::Metal.discriminant(), String::from("Metals")),
                 (
-                    MaterialType::Oxidizer.discriminant(),
+                    MaterialType::fuel_default().discriminant(),
+                    String::from("Fuels"),
+                ),
+                (
+                    MaterialType::metal_default().discriminant(),
+                    String::from("Metals"),
+                ),
+                (
+                    MaterialType::oxidizer_default().discriminant(),
                     String::from("Oxidizers"),
                 ),
                 (

@@ -106,16 +106,17 @@ impl Default for EFrameApp<'_> {
             /*// This is for serializing particles/components with new fields and enums - testing purposes
 
             //let mut materialhash: AHashMap<String, Material> = AHashMap::from([(String::new(), VOID.clone())]);
-            let key = vec![1_usize, 2_usize];
-            let values = vec![(1_usize, 0.5_f32)];
-            let materialhash: AHashMap<String, Vec<(usize, f32)>> =
-                AHashMap::from([(format!("{:?}", key).to_string(), values)]);
-            let data = serde_json::to_string(&materialhash).unwrap();
+            let mut types: Vec<MaterialType> = vec![];
+            for material_type in MaterialType::iter() {
+                types.push(material_type);
+            }
+            let data = serde_json::to_string(&types).unwrap();
             println!("{:?}", data);
             fs::write("src/new.json", data).unwrap();
             let serialized_data: AHashMap<String, Vec<(usize, f32)>> =
                 serde_json::from_reader(fs::read("src/new.json").unwrap().as_slice()).unwrap();
-            println!("{:?}", serialized_data);*/
+            println!("{:?}", serialized_data);
+            */
 
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
@@ -201,7 +202,7 @@ impl Default for EFrameApp<'_> {
         let selected_tool = BrushTool::MaterialBrush {
             selected_material: 0_usize,
         };
-        let selected_category = MaterialType::Fuel;
+        let selected_category = MaterialType::fuel_default();
         let debug_text_job = LayoutJob::default();
         let stops: Vec<(f32, Hsva)> = BLACK_BODY_RADIATION_COLORS
             .iter_mut()

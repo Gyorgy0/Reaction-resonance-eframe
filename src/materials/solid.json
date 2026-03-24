@@ -10,7 +10,12 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": "Fuel",
+            "material_type": {
+                "Fuel": {
+                    "burn_time": 0,
+                    "ignition_temperature": 0.0
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 1.7,
             "heat_conductivity": 0.0017,
@@ -43,7 +48,7 @@
             "material_type": "Solution",
             "initial_temperature": 273.0,
             "heat_capacity": 2.050,
-            "heat_conductivity": 0.00222, 
+            "heat_conductivity": 0.00222,
             "durability": 40,
             "material_color": {
                 "color": [
@@ -138,7 +143,11 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": "Metal",
+            "material_type": {
+                "Metal": {
+                    "reactivity": "ReactsWater"
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 3.5821,
             "heat_conductivity": 0.848,
@@ -168,7 +177,11 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": "Metal",
+            "material_type": {
+                "Metal": {
+                    "reactivity": "ReactsWater"
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 1.228,
             "heat_conductivity": 1.42,
@@ -198,7 +211,11 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": "Metal",
+            "material_type": {
+                "Metal": {
+                    "reactivity": "ReactsWater"
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 0.757,
             "heat_conductivity": 1.025,
@@ -228,7 +245,11 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": "Metal",
+            "material_type": {
+                "Metal": {
+                    "reactivity": "ReactsWater"
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 0.363,
             "heat_conductivity": 0.582,
@@ -258,7 +279,11 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": "Metal",
+            "material_type": {
+                "Metal": {
+                    "reactivity": "ReactsWater"
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 0.242,
             "heat_conductivity": 0.359,

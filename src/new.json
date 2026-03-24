@@ -1,1 +1,52 @@
-{"[1, 2]":[[1,0.5]]}
+[
+    {
+        "Corrosive": {
+            "ph_value": 0.0,
+            "blacklist": false,
+            "material_list": []
+        }
+    },
+    {
+        "Alloy": {
+            "metals": []
+        }
+    },
+    {
+        "CAutomata": {
+            "survival": 0,
+            "birth": 0,
+            "stages": 0
+        }
+    },
+    "Ceramic",
+    {
+        "Explosive": {
+            "burn_time": 0,
+            "ignition_temperature": 0.0,
+            "explosion_power": 0.0
+        }
+    },
+    {
+        "Fuel": {
+            "burn_time": 0,
+            "ignition_temperature": 0.0
+        }
+    },
+    {
+        "Machine": {
+            "machine": "Cloner"
+        }
+    },
+    {
+        "Metal": {
+            "reactivity": "ReactsWeakAcids"
+        }
+    },
+    {
+        "Oxidizer": {
+            "combustion_speedup": 0.0
+        }
+    },
+    "Decor",
+    "Solution"
+]

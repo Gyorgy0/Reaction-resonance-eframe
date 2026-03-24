@@ -10,7 +10,12 @@
                     "sublimation_point": -1
                 }
             },
-            "material_type": "Fuel",
+            "material_type": {
+                "Fuel": {
+                    "burn_time": 0,
+                    "ignition_temperature": 0.0
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 2.225,
             "heat_conductivity": 0.000333,
@@ -40,7 +45,12 @@
                     "sublimation_point": -1
                 }
             },
-            "material_type": "Fuel",
+            "material_type": {
+                "Fuel": {
+                    "burn_time": 0,
+                    "ignition_temperature": 0.0
+                }
+            },
             "initial_temperature": 293.15,
             "heat_capacity": 14.305,
             "heat_conductivity": 0.00182,

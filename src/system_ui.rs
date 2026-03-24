@@ -44,7 +44,7 @@ impl fmt::Display for Phase {
 
 impl fmt::Display for MaterialType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
+        match self {
             MaterialType::Corrosive {
                 ph_value: _,
                 blacklist: _,
@@ -52,7 +52,7 @@ impl fmt::Display for MaterialType {
             } => {
                 write!(f, "Corrosive")
             }
-            MaterialType::Alloy => write!(f, "Alloy"),
+            MaterialType::Alloy { metals: _ } => write!(f, "Alloy"),
             MaterialType::Ceramic => write!(f, "Ceramic"),
             MaterialType::CAutomata {
                 birth: _,
@@ -60,10 +60,19 @@ impl fmt::Display for MaterialType {
                 stages: _,
             } => write!(f, "Cellular automaton"),
             MaterialType::Machine { machine: _ } => write!(f, "Machine"),
-            MaterialType::Metal => write!(f, "Metal"),
-            MaterialType::Explosive => write!(f, "Explosive"),
-            MaterialType::Fuel => write!(f, "Fuel"),
-            MaterialType::Oxidizer => write!(f, "Oxidizer"),
+            MaterialType::Metal { reactivity: _ } => write!(f, "Metal"),
+            MaterialType::Explosive {
+                burn_time: _,
+                ignition_temperature: _,
+                explosion_power: _,
+            } => write!(f, "Explosive"),
+            MaterialType::Fuel {
+                burn_time: _,
+                ignition_temperature: _,
+            } => write!(f, "Fuel"),
+            MaterialType::Oxidizer {
+                combustion_speedup: _,
+            } => write!(f, "Oxidizer"),
             MaterialType::Decor => write!(f, "Decor"),
             MaterialType::Solution => write!(f, "Solution"),
         }
@@ -86,18 +95,29 @@ impl MaterialType {
                 blacklist: _,
                 material_list: _,
             } => include_image!("assets/corrosives_icon.svg"),
-            MaterialType::Alloy => include_image!("assets/alloys_icon.svg"),
+            MaterialType::Alloy { metals: _ } => include_image!("assets/alloys_icon.svg"),
             MaterialType::CAutomata {
                 survival: _,
                 birth: _,
                 stages: _,
             } => include_image!("assets/cautomatas_icon.svg"),
             MaterialType::Ceramic => include_image!("assets/ceramics_icon.svg"),
-            MaterialType::Explosive => include_image!("assets/explosives_icon.svg"),
-            MaterialType::Fuel => include_image!("assets/fuels_icon.svg"),
+            MaterialType::Explosive {
+                burn_time: _,
+                ignition_temperature: _,
+                explosion_power: _,
+            } => {
+                include_image!("assets/explosives_icon.svg")
+            }
+            MaterialType::Fuel {
+                burn_time: _,
+                ignition_temperature: _,
+            } => include_image!("assets/fuels_icon.svg"),
             MaterialType::Machine { machine: _ } => include_image!("assets/machines_icon.svg"),
-            MaterialType::Metal => include_image!("assets/metals_icon.svg"),
-            MaterialType::Oxidizer => include_image!("assets/oxidizers_icon.svg"),
+            MaterialType::Metal { reactivity: _ } => include_image!("assets/metals_icon.svg"),
+            MaterialType::Oxidizer {
+                combustion_speedup: _,
+            } => include_image!("assets/oxidizers_icon.svg"),
             MaterialType::Decor => include_image!("assets/decors_icon.svg"),
             MaterialType::Solution => include_image!("assets/solutions_icon.svg"),
         }

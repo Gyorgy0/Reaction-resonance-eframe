@@ -1,6 +1,5 @@
 use crate::material::tuple_to_rangeinclusive;
 use crate::particle::{AtomicParticle, Particle};
-use crate::physics::Phase;
 use crate::world::{get_safe_i, write_particle};
 use crate::{material::Material, world::AtomicComparedSlice};
 use egui::epaint::Hsva;
@@ -15,9 +14,9 @@ use strum_macros::EnumIter;
 pub(crate) enum MaterialType {
     /// Corrosive material - everything with a pH value lower than 7.0
     ///                      everything with a pH value higher than 7.0
-    Corrosive {ph_value: f32, blacklist: bool, material_list: Vec<usize>},
+    Corrosive {ph_value: f32,blacklist: bool, material_list: Vec<usize>},
     /// Mixture of metals - on reaction with corrosive materials the corrosion resistant metals leave a powder-type material behind
-    Alloy,
+    Alloy {metals: Vec<(usize, f32)>},
     /// Cellular automaton material defined by 3 rules (survival, birth and life stages)
     /// - survival ruleset -> the rule is encoded by the number's binary format
     ///                      0- false   1 - true
@@ -48,17 +47,17 @@ pub(crate) enum MaterialType {
     // Hard, brittle, heat-resistant, and corrosion-resistant material
     Ceramic,
     // A material that generates a lot of energy and lot of gases
-    Explosive,
+    Explosive {burn_time: u8, ignition_temperature: f32, explosion_power: f32},
     // Flammable material under normal circumstances
-    Fuel,
+    Fuel {burn_time: u8, ignition_temperature: f32},
     // Machines e.g. cloners, sinks, pumps, conveyor belts, etc...
     Machine {machine: MachineTypes},
     // Conductive materials, they react based on their reactivity series
     // They are capable of coloring flames 
-    Metal,
+    Metal {reactivity: MetalReactivity},
     // This material can enhance the explosive power of
     // explosives or the burning of fuels by aiding their combustion
-    Oxidizer,
+    Oxidizer {combustion_speedup: f32},
     // This material is indestructible and completely inert it's used for 
     // decoration purposes, mainly pixelart, map making, etc...
     Decor,
@@ -75,6 +74,16 @@ pub(crate) enum MachineTypes {
     #[default]
     Cloner,
     Sink,
+}
+
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize, EnumIter, Default)]
+pub(crate) enum MetalReactivity {
+    ReactsAir,
+    ReactsWater,
+    #[default]
+    ReactsWeakAcids,
+    ReactsStrongAcids,
+    ReactsAquaRegia,
 }
 
 impl MaterialType {
@@ -98,6 +107,35 @@ impl MaterialType {
             ph_value: f32::default(),
             blacklist: bool::default(),
             material_list: vec![],
+        }
+    }
+    pub fn fuel_default() -> Self {
+        MaterialType::Fuel {
+            burn_time: u8::default(),
+            ignition_temperature: f32::default(),
+        }
+    }
+    pub fn explosive_default() -> Self {
+        MaterialType::Explosive {
+            burn_time: u8::default(),
+            ignition_temperature: f32::default(),
+            explosion_power: f32::default(),
+        }
+    }
+
+    pub(crate) fn alloy_default() -> Self {
+        MaterialType::Alloy { metals: vec![] }
+    }
+
+    pub(crate) fn metal_default() -> Self {
+        MaterialType::Metal {
+            reactivity: MetalReactivity::default(),
+        }
+    }
+
+    pub(crate) fn oxidizer_default() -> Self {
+        MaterialType::Oxidizer {
+            combustion_speedup: f32::default(),
         }
     }
 }
@@ -185,63 +223,10 @@ pub(crate) fn solve_reactions(
         .1
         .material_type
     {
-        MaterialType::Fuel => {
-            let rnd = rand::random_range(0..4_u8);
-            if std::mem::discriminant(
-                &materials[prev_board
-                    .get(get_safe_i(height, width, &neumann_positions[rnd as usize]))
-                    .unwrap_or(&prev_board[get_safe_i(height, width, &(i, j))])
-                    .material_id]
-                    .1
-                    .phase,
-            ) == std::mem::discriminant(&Phase::plasma_default())
-                && std::mem::discriminant(
-                    &materials[prev_board
-                        .get(get_safe_i(height, width, &(i, j)))
-                        .unwrap_or(&prev_board[get_safe_i(height, width, &(i, j))])
-                        .material_id]
-                        .1
-                        .phase,
-                ) != std::mem::discriminant(&Phase::plasma_default())
-                && prev_board
-                    .get(get_safe_i(height, width, &neumann_positions[rnd as usize]))
-                    .is_some()
-            {
-                new_particle = prev_board[get_safe_i(height, width, &(i, j))];
-                new_particle.material_id = 7_usize;
-                new_particle.display_color = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[new_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
-                new_particle.display_color[3] = materials[new_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-                if !check_board[get_safe_i(height, width, &(i, j))]
-                    .reaction_written
-                    .load(std::sync::atomic::Ordering::Relaxed)
-                {
-                    unsafe {
-                        write_particle(
-                            slice_board,
-                            get_safe_i(height, width, &(i, j)),
-                            new_particle,
-                            check_board,
-                        )
-                    };
-                }
-            }
-        }
+        MaterialType::Fuel {
+            burn_time: _,
+            ignition_temperature: _,
+        } => {}
         MaterialType::Machine {
             machine: machine_type,
         } => match machine_type {
