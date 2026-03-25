@@ -1,4 +1,5 @@
 use std::cell::UnsafeCell;
+use std::f32;
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
@@ -83,7 +84,7 @@ pub fn update_board(
     framecount: &mut u64,
     framedelta: f32,
 ) {
-    *framecount = framecount.wrapping_add(1);
+    let thread_vector = *framecount = framecount.wrapping_add(1);
     let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
     game_board
         .rngs
@@ -182,10 +183,7 @@ pub fn update_board(
                         as usize;
                     j = ((width - 1_usize) as i64 - (count % width) as i64).unsigned_abs() as usize;
                 }
-                // This ensures that 2 temperature exchanges are not overlapping (so we don't need to synchronize them)
-                if (get_safe_i(&height, &width, &(i, j)) + i + (*framecount % 2_u64) as usize)
-                    .is_multiple_of(2)
-                {
+                if ((*framecount % 5_u64) as i64 + HEAT_OFFSET[i % 5] + j as i64) % 5_i64 == 0_i64 {
                     solve_heat(
                         &game_board.contents,
                         materials,
@@ -194,11 +192,14 @@ pub fn update_board(
                         i,
                         j,
                         &framedelta,
+                        &check_board,
                     );
                 }
             });
     }
 }
+
+const HEAT_OFFSET: [i64; 5] = [0_i64, 2_i64, 4_i64, 1_i64, 3_i64];
 
 /// A method that returns an index inside the specified height and width
 #[inline(always)]
@@ -359,6 +360,8 @@ pub unsafe fn temp_exchange(
     from_index: usize,
     to_index: usize,
     value: f32,
+    count: u8,
+    check_board: &Arc<Vec<AtomicParticle>>,
 ) {
     unsafe {
         // Get a raw pointer to the underlying Vec
@@ -370,11 +373,27 @@ pub unsafe fn temp_exchange(
         let mut from_prev_particle: Particle = slice.data.get().as_ref().unwrap()[from_index];
         let to_elem_ptr = vec.as_mut_ptr().add(to_index);
         let mut to_prev_particle: Particle = slice.data.get().as_ref().unwrap()[to_index];
-        from_prev_particle.temperature -= value;
-        to_prev_particle.temperature += value;
-        // Write the value into the element (replaces the old value)
-        *from_elem_ptr = from_prev_particle;
-        *to_elem_ptr = to_prev_particle;
+        if check_board[from_index]
+            .thread_count
+            .fetch_add(1_u8, Ordering::Relaxed)
+            == count
+            || check_board[to_index]
+                .thread_count
+                .fetch_add(1_u8, Ordering::Relaxed)
+                == count
+        {
+            from_prev_particle.temperature -= value;
+            to_prev_particle.temperature += value;
+            from_prev_particle.temperature =
+                from_prev_particle.temperature.clamp(0_f32, f32::INFINITY);
+            to_prev_particle.temperature = to_prev_particle.temperature.clamp(0_f32, f32::INFINITY);
+            from_prev_particle.temperature.is_nan().then(|| 0_f32);
+            to_prev_particle.temperature.is_nan().then(|| 0_f32);
+
+            // Write the value into the element (replaces the old value)
+            *from_elem_ptr = from_prev_particle;
+            *to_elem_ptr = to_prev_particle;
+        }
     }
 }
 

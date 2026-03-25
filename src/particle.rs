@@ -1,4 +1,4 @@
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, AtomicU8};
 
 use egui::{Color32, Vec2};
 use serde::{Deserialize, Serialize};
@@ -43,6 +43,7 @@ pub struct AtomicParticle {
     pub physics_written: AtomicBool,    // Checks whether the AtomicParticle has been overwritten by a physics reaction
     pub life_written: AtomicBool,       // Checks whether the AtomicParticle has been overwritten by a life reaction
     pub reaction_written: AtomicBool,   // Checks whether the AtomicParticle has been overwritten by a chemical reaction
+    pub thread_count: AtomicU8,
     pub speed_x: AtomicBool,            // Checks whether the AtomicParticle's speed's x componenet has been overwritten
     pub speed_y: AtomicBool,            // Checks whether the AtomicParticle's speed's y componenet has been overwritten
 }
@@ -52,14 +53,15 @@ impl AtomicParticle {
         physics_written_x: bool,
         life_written: bool,
         reaction_written: bool,
+        thread_count: u8,
         speed_x: bool,
         speed_y: bool,
-        _updated: bool,
     ) -> Self {
         Self {
             physics_written: AtomicBool::new(physics_written_x),
             life_written: AtomicBool::new(life_written),
             reaction_written: AtomicBool::new(reaction_written),
+            thread_count: AtomicU8::new(thread_count),
             speed_x: AtomicBool::new(speed_x),
             speed_y: AtomicBool::new(speed_y),
         }
@@ -68,6 +70,6 @@ impl AtomicParticle {
 
 impl Default for AtomicParticle {
     fn default() -> Self {
-        Self::new(false, false, false, false, false, false)
+        Self::new(false, false, false, 0_u8, false, false)
     }
 }
