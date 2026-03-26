@@ -3,20 +3,25 @@ name = "reaction-resonance-eframe"
 version = "0.1.1"
 edition = "2024"
 
+[workspace]
+resolver = "3"
+members = ["dependencies/egui_dialogs", "dependencies/egui_colorgradient"]
+
 [lib]
 # cdylib is required for Android, lib is required for desktop
 crate-type = ["cdylib", "lib"]
 
+[workspace.dependencies]
+eframe = { version = "0.34.0", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
+egui = { version = "0.34.0", features = ["serde"] }
+egui_extras = { version = "0.34.0", features = ["all_loaders", "svg"] }
+
 [dependencies]
+eframe = { version = "0.34.0", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
+egui = { version = "0.34.0", features = ["serde"] }
+egui_extras = { version = "0.34.0", features = ["all_loaders", "svg"] }
 android_logger = "0.15.1"
-crossbeam = "0.8.4"
-eframe = { version = "0.33.3", default-features = false, features = ["android-native-activity", "glow", "persistence", "wayland"] }
-egui = { version = "0.33.3", features = ["serde"] }
-egui-colorgradient = { version = "0.2.3", path = "../egui-colorgradient/egui-colorgradient" }
-egui_dialogs = { git = "https://github.com/Gyorgy0/egui_dialogs.git", version = "0.3.7" }
-egui_extras = { version = "0.33.3", features = ["all_loaders", "svg"] }
-ehttp = "0.6.0"
-env_logger = "0.11.6"
+env_logger = "0.11.10"
 exr = "1.74.0"
 getrandom = { version = ">=0.4.2", features = ["std", "wasm_js"] }
 gif = "0.14.1"
@@ -29,14 +34,16 @@ rand_core = "0.10.0"
 rayon = "1.10.0"
 serde = { version = "1.0.225", features = ["derive"] }
 serde_json = "1.0.145"
-strum = { version = "0.27.2", features = ["strum_macros"] }
-strum_macros = "0.27.2"
+strum = { version = "0.28.0", features = ["strum_macros"] }
+strum_macros = "0.28.0"
 tokio = { version = "1.47.0", features = ["sync"] }
 wasm-bindgen = "0.2.109"
 wasm-bindgen-futures = "0.4.59"
 web-sys = { version = "0.3.77", features = ["Element", "Document", "Window", "OrientationLockType", "Screen", "ScreenOrientation", "RequestInit", "Request", "Headers", "ReferrerPolicy"] }
 wide = "1.1.1"
 winit = { version = "0.30.12", features = ["android-native-activity"] }
+egui_dialogs = { version = "0.3.7", path = "dependencies/egui_dialogs" }
+egui-colorgradient = { version = "0.2.3", path = "dependencies/egui_colorgradient" }
 
 # Profile options:
 # opt-level = 'z' - optimize for size

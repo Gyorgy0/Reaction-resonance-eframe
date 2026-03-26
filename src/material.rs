@@ -1,6 +1,6 @@
-﻿use std::ops::RangeInclusive;
+use std::ops::RangeInclusive;
 
-use egui::{Color32, ahash::AHashMap};
+use egui::Color32;
 use serde::{Deserialize, Serialize};
 
 use crate::{physics::Phase, reactions::MaterialType, world::MaterialColor};
@@ -40,7 +40,7 @@ pub static AIR: Material = Material {
     },
 };
 // Air temperature and it's density
-pub static AIR_DENSITY_BY_TEMP: [(usize, f32); 32] =[
+pub static AIR_DENSITY_BY_TEMP: [(usize, f32); 32] = [
     (198_usize, 0.001783_f32),
     (223_usize, 0.001582),
     (248_usize, 0.001422),

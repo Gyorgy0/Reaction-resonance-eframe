@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::sync::atomic::Ordering;
 
 use egui::vec2;
+use rand::SeedableRng;
 use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
@@ -75,6 +76,23 @@ impl Board {
     }
 }
 
+impl Default for Board {
+    fn default() -> Self {
+        Board {
+            rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
+            width: 256_u16,
+            height: 128_u16,
+            contents: AtomicComparedSlice::new(vec![]),
+            gravity: 9.81_f32,
+            brush_size: vec2(6_f32, 6_f32),
+            brush_shape: BrushShape::Rectangle,
+            cellsize: Vec2::new(2_f32, 2_f32),
+            rngs: vec![],
+            seeds: vec![],
+        }
+    }
+}
+
 #[inline(always)]
 pub fn update_board(
     game_board: &mut Board,
@@ -84,7 +102,7 @@ pub fn update_board(
     framecount: &mut u64,
     framedelta: f32,
 ) {
-    let thread_vector = *framecount = framecount.wrapping_add(1);
+    *framecount = framecount.wrapping_add(1);
     let distribution = Uniform::new_inclusive(-1_f32, 1_f32).unwrap();
     game_board
         .rngs
@@ -387,8 +405,8 @@ pub unsafe fn temp_exchange(
             from_prev_particle.temperature =
                 from_prev_particle.temperature.clamp(0_f32, f32::INFINITY);
             to_prev_particle.temperature = to_prev_particle.temperature.clamp(0_f32, f32::INFINITY);
-            from_prev_particle.temperature.is_nan().then(|| 0_f32);
-            to_prev_particle.temperature.is_nan().then(|| 0_f32);
+            from_prev_particle.temperature.is_nan().then_some(0_f32);
+            to_prev_particle.temperature.is_nan().then_some(0_f32);
 
             // Write the value into the element (replaces the old value)
             *from_elem_ptr = from_prev_particle;

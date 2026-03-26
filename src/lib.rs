@@ -1,7 +1,7 @@
 mod app;
 mod dialogs;
 mod egui_input;
-mod http_request;
+mod included_files;
 mod life_reactions;
 mod locale;
 mod material;

@@ -253,7 +253,7 @@ pub fn solve_particle(
     {
         Phase::Air => {
             current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
-            let current_particle_mass = materials[current_particle.material_id].1.density * ();
+            //let current_particle_mass = materials[current_particle.material_id].1.density * ();
             // This calculates the position on the Y axis
             let mut orientation_y: i32 = 0_i32;
             if slice_board

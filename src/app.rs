@@ -1,5 +1,4 @@
 use core::f32;
-use std::fs;
 use std::{mem::discriminant, u8};
 
 use crate::dialogs::OptionsMenuDialog;
@@ -8,7 +7,6 @@ use crate::locale::Locale;
 use crate::physics::{BLACK_BODY_RADIATION_COLORS, PhysicalReactions};
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::debug_text_rendering;
-use crate::world::AtomicComparedSlice;
 use crate::{
     egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
     material::{AIR, Material},
@@ -25,7 +23,7 @@ use egui::{
     TextureOptions, Theme, Vec2, load, pos2, vec2,
 };
 use egui_colorgradient::ColorInterpolator;
-use egui_dialogs::{Dialog, DialogDetails, Dialogs};
+use egui_dialogs::{DialogDetails, Dialogs};
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
 // We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -35,7 +33,7 @@ pub struct EFrameApp<'a> {
     #[serde(skip)]
     fullscreen: bool,
     #[serde(skip)]
-    locale: Locale,
+    locale: Vec<Locale>,
     #[serde(skip)]
     fps_values: Vec<f32>,
     #[serde(skip)]
@@ -67,27 +65,19 @@ pub struct EFrameApp<'a> {
     #[serde(skip)]
     rng: rand::rngs::SmallRng,
     #[serde(skip)]
-    response_text: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
-    #[serde(skip)]
     dialogopen: bool,
 }
 
 impl Default for EFrameApp<'_> {
     fn default() -> Self {
-        let mut game_board = Board {
-            rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            width: 256_u16,
-            height: 128_u16,
-            contents: AtomicComparedSlice::new(vec![]),
-            gravity: 9.81_f32,
-            brush_size: vec2(6_f32, 6_f32),
-            brush_shape: BrushShape::Rectangle,
-            cellsize: Vec2::new(2_f32, 2_f32),
-            rngs: vec![],
-            seeds: vec![],
-        };
-        game_board.create_board();
+        // Initializes the default values
+        let mut game_board = Board::default();
         let ctx = egui::Context::default();
+
+        // Generates the game's board
+        game_board.create_board();
+
+        // Initializes the texture handles
         let material_texture = ctx.load_texture(
             "Board".to_string(),
             ColorImage::example(),
@@ -99,7 +89,12 @@ impl Default for EFrameApp<'_> {
             TextureOptions::LINEAR,
         );
         let mut materials: Vec<(String, Material)> = vec![(String::new(), AIR.clone())];
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        let serialized_transition_melting: AHashMap<usize, usize>;
+        let serialized_transition_boiling: AHashMap<usize, Vec<(usize, f32)>>;
+        let serialized_transition_sublimation: AHashMap<usize, usize>;
+        let serialized_transition_ionization: AHashMap<usize, usize>;
+        // This is for the PC platform (not-portable)
+        #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
         {
             use std::fs;
 
@@ -118,6 +113,7 @@ impl Default for EFrameApp<'_> {
             println!("{:?}", serialized_data);
             */
 
+            // Materials
             let paths = fs::read_dir("src/materials/").unwrap();
             for path in paths {
                 let materials_per_phase: Result<Vec<u8>, std::io::Error> =
@@ -126,6 +122,8 @@ impl Default for EFrameApp<'_> {
                     serde_json::from_reader(materials_per_phase.unwrap().as_slice()).unwrap();
                 materials.append(&mut serialized_materials);
             }
+
+            // Sorts the elements by their Id's and outputs them to a list
             materials.sort_by_key(|elem| elem.1.id);
             let mut material_ids: Vec<(usize, String)> = vec![];
             materials.iter().for_each(|element| {
@@ -136,59 +134,61 @@ impl Default for EFrameApp<'_> {
                 serde_json::to_string(&material_ids).unwrap(),
             )
             .unwrap();
+
+            // Physical transitions
+            let transition_path_melting = fs::read("src/physics/phase_transitions_melting.json");
+            serialized_transition_melting =
+                serde_json::from_reader(transition_path_melting.unwrap().as_slice()).unwrap();
+            let transition_path_boiling = fs::read("src/physics/phase_transitions_boiling.json");
+            serialized_transition_boiling =
+                serde_json::from_reader(transition_path_boiling.unwrap().as_slice()).unwrap();
+            let transition_path_sublimation =
+                fs::read("src/physics/phase_transitions_sublimation.json");
+            serialized_transition_sublimation =
+                serde_json::from_reader(transition_path_sublimation.unwrap().as_slice()).unwrap();
+            let transition_path_ionization =
+                fs::read("src/physics/phase_transitions_ionization.json");
+            serialized_transition_ionization =
+                serde_json::from_reader(transition_path_ionization.unwrap().as_slice()).unwrap();
         }
-        let transition_path_1 = fs::read("src/physics/phase_transitions_melting.json");
-        let serialized_transition_1: AHashMap<usize, usize> =
-            serde_json::from_reader(transition_path_1.unwrap().as_slice()).unwrap();
-        let transition_path_2 = fs::read("src/physics/phase_transitions_boiling.json");
-        let serialized_transition_2: AHashMap<usize, Vec<(usize, f32)>> =
-            serde_json::from_reader(transition_path_2.unwrap().as_slice()).unwrap();
-        let transition_path_3 = fs::read("src/physics/phase_transitions_sublimation.json");
-        let serialized_transition_3: AHashMap<usize, usize> =
-            serde_json::from_reader(transition_path_3.unwrap().as_slice()).unwrap();
-        let transition_path_4 = fs::read("src/physics/phase_transitions_ionization.json");
-        let serialized_transition_4: AHashMap<usize, usize> =
-            serde_json::from_reader(transition_path_4.unwrap().as_slice()).unwrap();
 
-        let response_text = std::sync::Arc::new(std::sync::Mutex::new(vec![]));
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
         {
-            use crate::http_request::get_materials;
-            get_materials(response_text.clone());
-        }
-        #[cfg(target_os = "android")]
-        {
-            let solid_materials = include_str!("materials/solid.json");
+            use crate::included_files::FILES;
+
+            // Materials
             let mut serialized_materials: Vec<(String, Material)> =
-                serde_json::from_str(&solid_materials).unwrap();
+                serde_json::from_str(&FILES.materials.solid_materials).unwrap();
+
+            serialized_materials
+                .push(serde_json::from_str(&FILES.materials.powder_materials).unwrap());
+
+            serialized_materials
+                .push(serde_json::from_str(&FILES.materials.liquid_materials).unwrap());
+
+            serialized_materials
+                .push(serde_json::from_str(&FILES.materials.gas_materials).unwrap());
+
+            serialized_materials
+                .push(serde_json::from_str(&FILES.materials.plasma_materials).unwrap());
+
+            serialized_materials
+                .push(serde_json::from_str(&FILES.materials.life_materials).unwrap());
+
             materials.append(&mut serialized_materials);
 
-            let powder_materials = include_str!("materials/powder.json");
-            let mut serialized_materials: Vec<(String, Material)> =
-                serde_json::from_str(&powder_materials).unwrap();
-            materials.append(&mut serialized_materials);
-
-            let plasma_materials = include_str!("materials/plasma.json");
-            let mut serialized_materials: Vec<(String, Material)> =
-                serde_json::from_str(&plasma_materials).unwrap();
-            materials.append(&mut serialized_materials);
-
-            let liquid_materials = include_str!("materials/liquid.json");
-            let mut serialized_materials: Vec<(String, Material)> =
-                serde_json::from_str(&liquid_materials).unwrap();
-            materials.append(&mut serialized_materials);
-
-            let life_materials = include_str!("materials/life.json");
-            let mut serialized_materials: Vec<(String, Material)> =
-                serde_json::from_str(&life_materials).unwrap();
-            materials.append(&mut serialized_materials);
-
-            let gas_materials = include_str!("materials/gas.json");
-            let mut serialized_materials: Vec<(String, Material)> =
-                serde_json::from_str(&gas_materials).unwrap();
-            materials.append(&mut serialized_materials);
+            // Physical transitions
+            serialized_transition_melting =
+                serde_json::from_str(&FILES.physics_transition.melting_transitions).unwrap();
+            serialized_transition_boiling =
+                serde_json::from_str(&FILES.physics_transition.boiling_transitions).unwrap();
+            serialized_transition_sublimation =
+                serde_json::from_str(&FILES.physics_transition.sublimation_transitions).unwrap();
+            serialized_transition_ionization =
+                serde_json::from_str(&FILES.physics_transition.ionization_transitions).unwrap();
         }
         let mut material_categories: Vec<Vec<(String, Material)>> = vec![];
+        // Sort material by their ID's
         materials.sort_by_key(|elem| elem.1.id);
         for category in MaterialType::iter() {
             let mut category_vec: Vec<(String, Material)> = vec![];
@@ -210,7 +210,7 @@ impl Default for EFrameApp<'_> {
             .collect();
         Self {
             fullscreen: false,
-            locale: Locale::default(),
+            locale: vec![Locale::default()],
             fps_values: vec![0_f32; 256_usize],
             black_body_gradient: egui_colorgradient::Gradient::new(
                 egui_colorgradient::InterpolationMethod::Constant,
@@ -218,10 +218,10 @@ impl Default for EFrameApp<'_> {
             )
             .interpolator(),
             physical_transitions: PhysicalReactions::new(
-                serialized_transition_1,
-                serialized_transition_2,
-                serialized_transition_3,
-                serialized_transition_4,
+                serialized_transition_melting,
+                serialized_transition_boiling,
+                serialized_transition_sublimation,
+                serialized_transition_ionization,
             ),
             debug_text_job,
             game_board,
@@ -234,7 +234,6 @@ impl Default for EFrameApp<'_> {
             program_options: ApplicationOptions::default(),
             framecount: 0,
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
-            response_text: response_text.clone(),
             dialogs: Dialogs::default(),
             dialogopen: false,
         }
@@ -266,33 +265,8 @@ impl eframe::App for EFrameApp<'_> {
     }
 
     /// Called each time the UI needs repainting, which may be many times per second.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        #[cfg(target_arch = "wasm32")]
-        // Passed values of http requests
-        {
-            if !self.response_text.lock().unwrap().is_empty() {
-                let mut materials_response: Vec<(String, Material)> =
-                    serde_json::from_str(&self.response_text.lock().unwrap().pop().unwrap())
-                        .unwrap();
-                self.materials.append(&mut materials_response);
-                self.materials.sort_by_key(|material| material.1.id);
-                let mut material_categories: Vec<Vec<(String, Material)>> = vec![];
-                for category in MaterialType::iter() {
-                    let mut category_vec: Vec<(String, Material)> = vec![];
-                    for material in self.materials.iter() {
-                        if discriminant(&category) == discriminant(&material.1.material_type) {
-                            category_vec.push(material.clone());
-                        }
-                    }
-                    material_categories.push(category_vec);
-                }
-                self.material_categories = material_categories;
-                let selected_tool = BrushTool::MaterialBrush {
-                    selected_material: 0_usize,
-                };
-                let selected_category = MaterialType::Fuel;
-            }
-        }
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = ui.ctx();
         const OPTIONS_MENU: &str = "options_menu";
         // Logic for showing the dialogs and handling the reply is there is one
         if let Some(res) = self.dialogs.show(ctx)
@@ -303,7 +277,7 @@ impl eframe::App for EFrameApp<'_> {
             self.fullscreen = options.1;
             self.dialogopen = false;
         }
-        egui::TopBottomPanel::top("top panel").show(ctx, |ui| {
+        egui::Panel::top("top panel").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 if ui.button(RichText::new("Options").size(20_f32)).clicked() {
                     DialogDetails::new(OptionsMenuDialog::new(
@@ -351,6 +325,7 @@ impl eframe::App for EFrameApp<'_> {
                         }
                     }
                 });
+
                 if ui
                     .button(
                         RichText::new("Reset")
@@ -361,6 +336,9 @@ impl eframe::App for EFrameApp<'_> {
                 {
                     self.game_board.create_board();
                 }
+            });
+            ui.horizontal(|ui| {
+                ui.label(RichText::new("MATERIAL INFO").size(15_f32).strong());
             });
         });
         egui::TopBottomPanel::bottom(Id::new("materials"))

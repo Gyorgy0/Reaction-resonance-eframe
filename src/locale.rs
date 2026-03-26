@@ -5,6 +5,8 @@ use crate::reactions::{MachineTypes, MaterialType};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Locale {
+    language_id: String,
+    language_name: String,
     options_title: String,
     screen_option_label: String,
     fullscreen_button: String,
@@ -33,8 +35,9 @@ pub struct Locale {
 impl Default for Locale {
     fn default() -> Self {
         Self {
+            language_id: String::from("EN"),
+            language_name: String::from("English"),
             options_title: String::from("Options"),
-
             screen_option_label: String::from("Screen:"),
             fullscreen_button: String::from("Fullscreen"),
             fullscreen_tooltip: String::from("Maximizes the applications screen."),

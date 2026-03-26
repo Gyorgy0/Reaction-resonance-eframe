@@ -1,0 +1,18 @@
+[package]
+name = "egui-colorgradient"
+description = "A color gradient edior for egui"
+repository = "https://gitlab.com/polwel/egui-colorgradient"
+version = "0.2.3"
+edition = "2024"
+license = "MIT"
+keywords = ["gui", "color"]
+categories = ["gui"]
+authors = ["Pol Welter <polwelter@gmail.com>"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+egui = {workspace = true, features = ["default"]}
+egui_extras = { workspace = true, features = ["all_loaders"] }
+eframe = {workspace = true}

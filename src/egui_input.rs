@@ -63,8 +63,8 @@ pub fn handle_mouse_input(
         }
     };
     // Brush resizing with mouse scroll
-    let mouse_scroll = response.ctx.input(|input| input.raw_scroll_delta);
-    if mouse_scroll.y.abs() >= 0.1_f32 {
+    let mouse_scroll = response.ctx.input(|input| input.smooth_scroll_delta);
+    if mouse_scroll.y.abs() > 1.75_f32 {
         resize_brush(
             &mut game_board.brush_size,
             Vec2::splat(1_f32 * (mouse_scroll.y.signum())),
