@@ -3,10 +3,11 @@ use std::{mem::discriminant, u8};
 
 use crate::dialogs::OptionsMenuDialog;
 use crate::egui_input::BrushTool;
-use crate::locale::Locale;
+use crate::locale::{Locale, get_text};
+use crate::particle::Particle;
 use crate::physics::{BLACK_BODY_RADIATION_COLORS, PhysicalReactions};
-use crate::system_data::ApplicationOptions;
-use crate::system_ui::debug_text_rendering;
+use crate::system_data::{ApplicationOptions, get_sign, get_temperature};
+use crate::system_ui::{debug_text_rendering, get_particle};
 use crate::{
     egui_input::{BrushShape, handle_key_inputs, handle_mouse_input, resize_brush},
     material::{AIR, Material},
@@ -31,9 +32,7 @@ use strum::IntoEnumIterator;
 #[serde(default)] // If we add new fields, give them default values when deserializing old state
 pub struct EFrameApp<'a> {
     #[serde(skip)]
-    fullscreen: bool,
-    #[serde(skip)]
-    locale: Vec<Locale>,
+    viewed_particle: Particle,
     #[serde(skip)]
     fps_values: Vec<f32>,
     #[serde(skip)]
@@ -71,8 +70,9 @@ pub struct EFrameApp<'a> {
 impl Default for EFrameApp<'_> {
     fn default() -> Self {
         // Initializes the default values
-        let mut game_board = Board::default();
-        let ctx = egui::Context::default();
+        let mut game_board: Board = Board::default();
+        let ctx: egui::Context = egui::Context::default();
+        let mut program_options: ApplicationOptions = ApplicationOptions::default();
 
         // Generates the game's board
         game_board.create_board();
@@ -88,12 +88,13 @@ impl Default for EFrameApp<'_> {
             ColorImage::example(),
             TextureOptions::LINEAR,
         );
+        let mut locales: Vec<Locale> = vec![];
         let mut materials: Vec<(String, Material)> = vec![(String::new(), AIR.clone())];
         let serialized_transition_melting: AHashMap<usize, usize>;
         let serialized_transition_boiling: AHashMap<usize, Vec<(usize, f32)>>;
         let serialized_transition_sublimation: AHashMap<usize, usize>;
         let serialized_transition_ionization: AHashMap<usize, usize>;
-        // This is for the PC platform (not-portable)
+        // This is for the PC platform (locale and materials and their reactions are serialized from files)
         #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
         {
             use std::fs;
@@ -112,6 +113,22 @@ impl Default for EFrameApp<'_> {
                 serde_json::from_reader(fs::read("src/new.json").unwrap().as_slice()).unwrap();
             println!("{:?}", serialized_data);
             */
+
+            // Locale
+            let paths = fs::read_dir("src/locale").unwrap();
+            for path in paths {
+                if path
+                    .as_ref()
+                    .is_ok_and(|path| path.file_name() != "default_locale.json")
+                {
+                    let locale: Result<Vec<u8>, std::io::Error> =
+                        fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
+                    let serialized_locale: Locale =
+                        serde_json::from_reader(locale.unwrap().as_slice())
+                            .unwrap_or(Locale::default());
+                    locales.push(serialized_locale);
+                }
+            }
 
             // Materials
             let paths = fs::read_dir("src/materials/").unwrap();
@@ -156,6 +173,11 @@ impl Default for EFrameApp<'_> {
         {
             use crate::included_files::FILES;
 
+            // Locale
+            locales.push(serde_json::from_str(&FILES.locales.locale_en).unwrap());
+            locales.push(serde_json::from_str(&FILES.locales.locale_hu).unwrap());
+            locales.push(serde_json::from_str(&FILES.locales.locale_sk).unwrap());
+
             // Materials
             let mut serialized_materials: Vec<(String, Material)> =
                 serde_json::from_str(&FILES.materials.solid_materials).unwrap();
@@ -187,6 +209,8 @@ impl Default for EFrameApp<'_> {
             serialized_transition_ionization =
                 serde_json::from_str(&FILES.physics_transition.ionization_transitions).unwrap();
         }
+
+        program_options.locale = locales;
         let mut material_categories: Vec<Vec<(String, Material)>> = vec![];
         // Sort material by their ID's
         materials.sort_by_key(|elem| elem.1.id);
@@ -209,8 +233,7 @@ impl Default for EFrameApp<'_> {
             .map(|stop| (stop.0, stop.1.into()))
             .collect();
         Self {
-            fullscreen: false,
-            locale: vec![Locale::default()],
+            viewed_particle: Particle::default(),
             fps_values: vec![0_f32; 256_usize],
             black_body_gradient: egui_colorgradient::Gradient::new(
                 egui_colorgradient::InterpolationMethod::Constant,
@@ -231,7 +254,7 @@ impl Default for EFrameApp<'_> {
             heatmap_texture,
             selected_tool,
             selected_category,
-            program_options: ApplicationOptions::default(),
+            program_options,
             framecount: 0,
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
             dialogs: Dialogs::default(),
@@ -271,78 +294,148 @@ impl eframe::App for EFrameApp<'_> {
         // Logic for showing the dialogs and handling the reply is there is one
         if let Some(res) = self.dialogs.show(ctx)
             && res.is_reply_of(OPTIONS_MENU)
-            && let Ok(options) = res.reply::<(f32, bool)>()
+            && let Ok(options) = res.reply::<(f32, ApplicationOptions)>()
         {
             self.game_board.gravity = options.0;
-            self.fullscreen = options.1;
+            self.program_options = options.1;
             self.dialogopen = false;
         }
         egui::Panel::top("top panel").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                if ui.button(RichText::new("Options").size(20_f32)).clicked() {
-                    DialogDetails::new(OptionsMenuDialog::new(
-                        self.game_board.gravity,
-                        self.fullscreen,
-                    ))
-                    .with_id(OPTIONS_MENU)
-                    .show(&mut self.dialogs);
-                    self.dialogopen = true;
-                }
+            egui::ScrollArea::horizontal().show(ui, |ui| {
+                ui.add_space(5_f32);
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new("Brush size: ").size(20_f32));
-                    if ui.button(RichText::new("–").size(20_f32)).clicked() {
-                        resize_brush(&mut self.game_board.brush_size, vec2(-1_f32, 0_f32));
-                    }
-                    ui.label(
-                        RichText::new(format!("X axis: {:03}", self.game_board.brush_size.x))
+                    if ui
+                        .button(
+                            RichText::new(
+                                get_text(
+                                    &self.program_options.locale,
+                                    self.program_options.selected_locale,
+                                )
+                                .options_title
+                                .as_str(),
+                            )
                             .size(20_f32),
-                    );
-                    if ui.button(RichText::new("+").size(20_f32)).clicked() {
-                        resize_brush(&mut self.game_board.brush_size, vec2(1_f32, 0_f32));
+                        )
+                        .clicked()
+                    {
+                        DialogDetails::new(OptionsMenuDialog::new(
+                            self.game_board.gravity,
+                            self.program_options.clone(),
+                            self.materials.clone(),
+                            &self.program_options.locale,
+                            self.program_options.selected_locale,
+                        ))
+                        .with_id(OPTIONS_MENU)
+                        .show(&mut self.dialogs);
+                        self.dialogopen = true;
                     }
-                    ui.separator();
-                    if ui.button(RichText::new("–").size(20_f32)).clicked() {
-                        resize_brush(&mut self.game_board.brush_size, vec2(0_f32, -1_f32));
-                    }
-                    ui.label(
-                        RichText::new(format!("Y axis: {:03}", self.game_board.brush_size.y))
+                    ui.horizontal_centered(|ui| {
+                        ui.label(
+                            RichText::new(
+                                get_text(
+                                    &self.program_options.locale,
+                                    self.program_options.selected_locale,
+                                )
+                                .brush_size_label
+                                .as_str(),
+                            )
                             .size(20_f32),
-                    );
-                    if ui.button(RichText::new("+").size(20_f32)).clicked() {
-                        resize_brush(&mut self.game_board.brush_size, vec2(0_f32, 1_f32));
-                    }
-                    ui.separator();
-                    if ui.button(RichText::new("–").size(20_f32)).clicked() {
-                        resize_brush(&mut self.game_board.brush_size, vec2(-1_f32, -1_f32));
-                    }
-                    if ui.button(RichText::new("+").size(20_f32)).clicked() {
-                        resize_brush(&mut self.game_board.brush_size, vec2(1_f32, 1_f32));
-                    }
-                    ui.separator();
-                    for brush_shapes in BrushShape::iter() {
-                        if ui.button(format!("{:?}", brush_shapes)).clicked() {
-                            self.game_board.brush_shape = brush_shapes;
+                        );
+                        if ui.button(RichText::new("–").size(20_f32)).clicked() {
+                            resize_brush(&mut self.game_board.brush_size, vec2(-1_f32, 0_f32));
                         }
+                        ui.label(
+                            RichText::new(format!(
+                                "{x_label} {size_x:03}",
+                                x_label = get_text(
+                                    &self.program_options.locale,
+                                    self.program_options.selected_locale,
+                                )
+                                .x_axis_label,
+                                size_x = self.game_board.brush_size.x
+                            ))
+                            .size(20_f32),
+                        );
+                        if ui.button(RichText::new("+").size(20_f32)).clicked() {
+                            resize_brush(&mut self.game_board.brush_size, vec2(1_f32, 0_f32));
+                        }
+                        ui.separator();
+                        if ui.button(RichText::new("–").size(20_f32)).clicked() {
+                            resize_brush(&mut self.game_board.brush_size, vec2(0_f32, -1_f32));
+                        }
+                        ui.label(
+                            RichText::new(format!(
+                                "{y_label} {size_y:03}",
+                                y_label = get_text(
+                                    &self.program_options.locale,
+                                    self.program_options.selected_locale,
+                                )
+                                .y_axis_label,
+                                size_y = self.game_board.brush_size.y
+                            ))
+                            .size(20_f32),
+                        );
+                        if ui.button(RichText::new("+").size(20_f32)).clicked() {
+                            resize_brush(&mut self.game_board.brush_size, vec2(0_f32, 1_f32));
+                        }
+                        ui.separator();
+                        if ui.button(RichText::new("–").size(20_f32)).clicked() {
+                            resize_brush(&mut self.game_board.brush_size, vec2(-1_f32, -1_f32));
+                        }
+                        if ui.button(RichText::new("+").size(20_f32)).clicked() {
+                            resize_brush(&mut self.game_board.brush_size, vec2(1_f32, 1_f32));
+                        }
+                        ui.separator();
+                        for brush_shapes in BrushShape::iter() {
+                            if ui.button(format!("{:?}", brush_shapes)).clicked() {
+                                self.game_board.brush_shape = brush_shapes;
+                            }
+                        }
+                    });
+
+                    if ui
+                        .add(
+                            egui::widgets::Button::new(
+                                RichText::new(
+                                    get_text(
+                                        &self.program_options.locale,
+                                        self.program_options.selected_locale,
+                                    )
+                                    .reset_button
+                                    .as_str(),
+                                )
+                                .heading()
+                                .strong(),
+                            )
+                            .stroke(Stroke::new(1_f32, Color32::WHITE))
+                            .fill(Color32::DARK_RED),
+                        )
+                        .clicked()
+                    {
+                        self.game_board.create_board();
                     }
                 });
-
-                if ui
-                    .button(
-                        RichText::new("Reset")
-                            .size(20_f32)
-                            .background_color(Color32::DARK_RED),
-                    )
-                    .clicked()
-                {
-                    self.game_board.create_board();
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label(RichText::new("MATERIAL INFO").size(15_f32).strong());
+                ui.add_space(5_f32);
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new(format!(
+                            "{particle_temp:>16.2} {temperature_sign}   |   {particle_name}",
+                            particle_temp = get_temperature(
+                                self.program_options.temperature_scale,
+                                self.viewed_particle.temperature
+                            ),
+                            temperature_sign = get_sign(self.program_options.temperature_scale),
+                            particle_name = self.materials[self.viewed_particle.material_id].0,
+                        ))
+                        .size(15_f32)
+                        .strong()
+                        .monospace(),
+                    );
+                });
             });
         });
-        egui::TopBottomPanel::bottom(Id::new("materials"))
-            .exact_height(50_f32)
+        egui::Panel::bottom(Id::new("materials"))
+            .exact_size(50_f32)
             .show(ctx, |ui| {
                 egui::ScrollArea::new([true, false]).show(ui, |ui| {
                     ui.horizontal(|ui| {
@@ -374,9 +467,9 @@ impl eframe::App for EFrameApp<'_> {
                     ui.add(egui::Separator::default().spacing(10_f32));
                 });
             });
-        egui::SidePanel::right(Id::new("material categories"))
+        egui::Panel::right(Id::new("material categories"))
             .resizable(false)
-            .default_width(32_f32)
+            .default_size(32_f32)
             .show_separator_line(false)
             .show(ctx, |ui| {
                 egui::ScrollArea::new([false, true])
@@ -384,17 +477,30 @@ impl eframe::App for EFrameApp<'_> {
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
                             ui.vertical(|ui| {
+                                let button_width = ui.content_rect().width() * 0.035;
+                                let button =
+                                    egui::widgets::Button::new(RichText::new("0123456789"))
+                                        .stroke(Stroke::new(1_f32, Color32::WHITE))
+                                        .min_size(Vec2::new(button_width, button_width / 2_f32));
+                                let placed_button = ui.add_visible(false, button);
                                 ui.horizontal_centered(|ui| {
                                     if ui
                                         .add(
                                             egui::Button::new(
-                                                RichText::new("Eraser")
-                                                    .heading()
-                                                    .strong()
-                                                    .monospace(),
+                                                RichText::new(
+                                                    get_text(
+                                                        &self.program_options.locale,
+                                                        self.program_options.selected_locale,
+                                                    )
+                                                    .eraser_button
+                                                    .as_str(),
+                                                )
+                                                .heading()
+                                                .strong()
+                                                .monospace(),
                                             )
                                             .stroke(Stroke::new(1_f32, Color32::WHITE))
-                                            .min_size(ctx.used_size() * 0.0425_f32),
+                                            .min_size(placed_button.intrinsic_size().unwrap()),
                                         )
                                         .clicked()
                                     {
@@ -416,14 +522,21 @@ impl eframe::App for EFrameApp<'_> {
                                     if ui
                                         .add(
                                             egui::Button::new(
-                                                RichText::new(" Heat ")
-                                                    .heading()
-                                                    .strong()
-                                                    .monospace(),
+                                                RichText::new(
+                                                    get_text(
+                                                        &self.program_options.locale,
+                                                        self.program_options.selected_locale,
+                                                    )
+                                                    .heat_button
+                                                    .as_str(),
+                                                )
+                                                .heading()
+                                                .strong()
+                                                .monospace(),
                                             )
                                             .fill(Color32::DARK_RED)
                                             .stroke(Stroke::new(1_f32, Color32::WHITE))
-                                            .min_size(ctx.used_size() * 0.0425_f32),
+                                            .min_size(placed_button.intrinsic_size().unwrap()),
                                         )
                                         .clicked()
                                     {
@@ -435,14 +548,21 @@ impl eframe::App for EFrameApp<'_> {
                                     if ui
                                         .add(
                                             egui::Button::new(
-                                                RichText::new(" Cool ")
-                                                    .heading()
-                                                    .strong()
-                                                    .monospace(),
+                                                RichText::new(
+                                                    get_text(
+                                                        &self.program_options.locale,
+                                                        self.program_options.selected_locale,
+                                                    )
+                                                    .cool_button
+                                                    .as_str(),
+                                                )
+                                                .heading()
+                                                .strong()
+                                                .monospace(),
                                             )
                                             .fill(Color32::DARK_BLUE)
                                             .stroke(Stroke::new(1_f32, Color32::WHITE))
-                                            .min_size(ctx.used_size() * 0.0425_f32),
+                                            .min_size(placed_button.intrinsic_size().unwrap()),
                                         )
                                         .clicked()
                                     {
@@ -453,13 +573,26 @@ impl eframe::App for EFrameApp<'_> {
                                 MaterialType::iter().for_each(|category| {
                                     let category_button = ui.add(
                                         egui::Button::new(
-                                            Image::new(category.get_icon())
-                                                .fit_to_exact_size(ctx.used_size() * 0.075_f32),
+                                            Image::new(category.get_icon()).fit_to_exact_size(
+                                                Vec2::splat(
+                                                    placed_button.intrinsic_size().unwrap().x
+                                                        * 0.9_f32,
+                                                ),
+                                            ),
                                         )
                                         .corner_radius(10_u8),
                                     );
                                     if category_button.hovered() {
-                                        category_button.show_tooltip_text(category.to_string());
+                                        category_button.show_tooltip_text(
+                                            get_text(
+                                                &self.program_options.locale,
+                                                self.program_options.selected_locale,
+                                            )
+                                            .category_names
+                                            .get(&category.discriminant())
+                                            .unwrap()
+                                            .as_str(),
+                                        );
                                     }
                                     if category_button.clicked() {
                                         self.selected_category = category;
@@ -506,6 +639,7 @@ impl eframe::App for EFrameApp<'_> {
             {
                 ui.horizontal_centered(|ui| {
                     let board = ui.add(board_display);
+                    self.viewed_particle = get_particle(&self.game_board, &board);
                     self.game_board.cellsize = vec2(
                         width / self.game_board.width as f32,
                         width / self.game_board.width as f32,
@@ -570,6 +704,7 @@ impl eframe::App for EFrameApp<'_> {
             } else {
                 ui.vertical_centered(|ui| {
                     let board = ui.add(board_display);
+                    self.viewed_particle = get_particle(&self.game_board, &board);
                     self.game_board.cellsize = vec2(
                         height / self.game_board.height as f32,
                         height / self.game_board.height as f32,

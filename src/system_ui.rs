@@ -339,7 +339,7 @@ pub fn debug_text_rendering(
     let mean_fps = fps_values.iter().sum::<f32>() / fps_values.len() as f32;
     debug_text_job.append(
         format!(
-            "FPS: {}\n\nName: {}\nParticle:\n{:?}",
+            "\nFPS: {}\n\nName: {}\nParticle:\n{:?}",
             mean_fps.round(),
             materials[viewed_particle.material_id].0,
             viewed_particle
@@ -362,4 +362,21 @@ pub fn debug_text_rendering(
             Color32::WHITE,
         ));
     *debug_text_job = LayoutJob::default();
+}
+
+pub fn get_particle(game_board: &Board, board: &Response) -> Particle {
+    let cursor_position = board.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
+    let pos = ((cursor_position - board.interact_rect.min) / game_board.cellsize)
+        .floor()
+        .to_pos2();
+    let default_particle = Particle::default();
+    let viewed_particle: &Particle = game_board
+        .contents
+        .get(get_safe_i(
+            &(game_board.height as usize),
+            &(game_board.width as usize),
+            &(pos.y as usize, pos.x as usize),
+        ))
+        .unwrap_or(&default_particle);
+    *viewed_particle
 }

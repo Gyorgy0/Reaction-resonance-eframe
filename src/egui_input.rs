@@ -64,7 +64,8 @@ pub fn handle_mouse_input(
     };
     // Brush resizing with mouse scroll
     let mouse_scroll = response.ctx.input(|input| input.smooth_scroll_delta);
-    if mouse_scroll.y.abs() > 1.75_f32 {
+    let time_since_last_scroll = response.ctx.input(|input| input.time_since_last_scroll());
+    if mouse_scroll.y.abs() > 1_f32 && time_since_last_scroll < 0.001_f32 {
         resize_brush(
             &mut game_board.brush_size,
             Vec2::splat(1_f32 * (mouse_scroll.y.signum())),
@@ -196,7 +197,7 @@ pub fn get_tool_action(
         BrushTool::ThermalBrush { temp_delta: _ } => {
             let mut new_particle = *game_board.contents.get_elem(cellpos);
             new_particle.temperature += selected_tool.get_temp_delta();
-            new_particle.temperature = new_particle.temperature.clamp(0_f32, f32::INFINITY);
+            new_particle.temperature = new_particle.temperature.clamp(0_f32, 99_999_f32);
             unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
         }
 

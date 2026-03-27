@@ -5,7 +5,6 @@ use std::sync::atomic::Ordering;
 
 use egui::vec2;
 use rand::SeedableRng;
-use rayon::iter::IndexedParallelIterator;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
@@ -395,7 +394,7 @@ pub unsafe fn temp_exchange(
             .thread_count
             .fetch_add(1_u8, Ordering::Relaxed)
             == count
-            || check_board[to_index]
+            && check_board[to_index]
                 .thread_count
                 .fetch_add(1_u8, Ordering::Relaxed)
                 == count
@@ -403,8 +402,8 @@ pub unsafe fn temp_exchange(
             from_prev_particle.temperature -= value;
             to_prev_particle.temperature += value;
             from_prev_particle.temperature =
-                from_prev_particle.temperature.clamp(0_f32, f32::INFINITY);
-            to_prev_particle.temperature = to_prev_particle.temperature.clamp(0_f32, f32::INFINITY);
+                from_prev_particle.temperature.clamp(0_f32, 99_999_f32);
+            to_prev_particle.temperature = to_prev_particle.temperature.clamp(0_f32, 99_999_f32);
             from_prev_particle.temperature.is_nan().then_some(0_f32);
             to_prev_particle.temperature.is_nan().then_some(0_f32);
 

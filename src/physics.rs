@@ -166,8 +166,8 @@ pub fn solve_heat(
 ) {
     let neumann_positions = [
         (i.wrapping_add(1), j),
-        (i.saturating_sub(1), j),
         (i, j.wrapping_add(1)),
+        (i.saturating_sub(1), j),
         (i, j.saturating_sub(1)),
     ];
     // Calculating heat conduction
@@ -208,7 +208,7 @@ pub fn solve_heat(
                 .get(get_safe_i(height, width, &pos))
                 .unwrap_or(current_particle)
                 .temperature
-                >= current_particle.temperature
+                > current_particle.temperature
             {
                 unsafe {
                     temp_exchange(
@@ -224,6 +224,9 @@ pub fn solve_heat(
                 };
             }
             count += 1_u8;
+            check_board[get_safe_i(height, width, &neumann_positions[(count % 4) as usize])]
+                .thread_count
+                .swap(count, std::sync::atomic::Ordering::Relaxed);
         }
     }
 }

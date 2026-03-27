@@ -1,35 +1,75 @@
 use egui::ahash::AHashMap;
 use serde::{Deserialize, Serialize};
 
-use crate::reactions::{MachineTypes, MaterialType};
+use crate::{
+    material::Material,
+    reactions::{MachineTypes, MaterialType},
+};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Locale {
-    language_id: String,
-    language_name: String,
-    options_title: String,
-    screen_option_label: String,
-    fullscreen_button: String,
-    fullscreen_tooltip: String,
-    windowed_button: String,
-    windowed_tooltip: String,
-    gravity_option_label: String,
-    brush_size_label: String,
-    x_axis_label: String,
-    y_axis_label: String,
-    reset_button: String,
-    reset_tooltip: String,
-    eraser_button: String,
-    eraser_tooltip: String,
-    heat_button: String,
-    heat_tooltip: String,
-    cool_button: String,
-    cool_tooltip: String,
-    rectangle_brush_tooltip: String,
-    rhombus_brush_tooltip: String,
-    ellipse_brush_tooltip: String,
-    element_names: AHashMap<String, String>,
-    category_names: AHashMap<u8, String>,
+    pub language_id: String,
+    pub language_name: String,
+    pub options_title: String,
+    pub screen_option_label: String,
+    pub fullscreen_button: String,
+    pub fullscreen_tooltip: String,
+    pub windowed_button: String,
+    pub windowed_tooltip: String,
+    pub temperature_scale_label: String,
+    pub temperature_kelvin_option: String,
+    pub temperature_celsius_option: String,
+    pub temperature_fahrenheit_option: String,
+    pub gravity_option_label: String,
+    pub sun_button: String,
+    pub mercury_button: String,
+    pub venus_button: String,
+    pub moon_button: String,
+    pub earth_button: String,
+    pub mars_button: String,
+    pub jupiter_button: String,
+    pub saturn_button: String,
+    pub uranus_button: String,
+    pub neptune_button: String,
+    pub pluto_button: String,
+    pub language_label: String,
+    pub generate_default_locale_button: String,
+    pub board_size_label: String,
+    pub options_ok_button: String,
+    pub options_cancel_button: String,
+    pub brush_size_label: String,
+    pub x_axis_label: String,
+    pub y_axis_label: String,
+    pub reset_button: String,
+    pub reset_tooltip: String,
+    pub eraser_button: String,
+    pub eraser_tooltip: String,
+    pub heat_button: String,
+    pub heat_tooltip: String,
+    pub cool_button: String,
+    pub cool_tooltip: String,
+    pub rectangle_brush_tooltip: String,
+    pub rhombus_brush_tooltip: String,
+    pub ellipse_brush_tooltip: String,
+    pub element_names: AHashMap<String, String>,
+    pub category_names: AHashMap<u8, String>,
+}
+
+impl Locale {
+    pub fn get_language_name(&self) -> String {
+        String::from(&self.language_name)
+    }
+    pub fn fill_elements(&mut self, materials: Vec<(String, Material)>) {
+        for material in materials {
+            if !self.element_names.contains_key(&material.0) {
+                self.element_names.insert(material.0, String::new());
+            }
+        }
+    }
+}
+
+pub fn get_text(locale: &Vec<Locale>, selected_locale: usize) -> &Locale {
+    &locale[selected_locale]
 }
 
 impl Default for Locale {
@@ -38,12 +78,32 @@ impl Default for Locale {
             language_id: String::from("EN"),
             language_name: String::from("English"),
             options_title: String::from("Options"),
+            gravity_option_label: String::from("Gravity:"),
+            sun_button: String::from("Sun"),
+            mercury_button: String::from("Mercury"),
+            venus_button: String::from("Venus"),
+            moon_button: String::from("Moon"),
+            earth_button: String::from("Earth"),
+            mars_button: String::from("Mars"),
+            jupiter_button: String::from("Jupiter"),
+            saturn_button: String::from("Saturn"),
+            uranus_button: String::from("Uranus"),
+            neptune_button: String::from("Neptune"),
+            pluto_button: String::from("Pluto"),
+            language_label: String::from("Language:"),
+            generate_default_locale_button: String::from("Generate default locale"),
+            board_size_label: String::from("Board size:"),
+            options_ok_button: String::from("Ok"),
+            options_cancel_button: String::from("Cancel"),
             screen_option_label: String::from("Screen:"),
             fullscreen_button: String::from("Fullscreen"),
             fullscreen_tooltip: String::from("Maximizes the applications screen."),
             windowed_button: String::from("Windowed"),
             windowed_tooltip: String::from("Sets the application's screen as a resizeable window."),
-            gravity_option_label: String::from("Gravity:"),
+            temperature_scale_label: String::from("Temperature scale:"),
+            temperature_kelvin_option: String::from("Kelvin (K)"),
+            temperature_celsius_option: String::from("Celsius (°C)"),
+            temperature_fahrenheit_option: String::from("Fahrenheit (°F)"),
             brush_size_label: String::from("Brush size:"),
             x_axis_label: String::from("X axis:"),
             y_axis_label: String::from("Y axis:"),
@@ -58,30 +118,7 @@ impl Default for Locale {
             rectangle_brush_tooltip: String::from("Rectangle"),
             rhombus_brush_tooltip: String::from("Rhombus"),
             ellipse_brush_tooltip: String::from("Ellipse"),
-            element_names: AHashMap::from([
-                (String::from("GAS:METHANE"), String::from("Methane")),
-                (String::from("LIQUID:WATER"), String::from("Water")),
-                (String::from("LIQUID:MILK"), String::from("Milk")),
-                (String::from("LIQUID:HONEY"), String::from("Honey")),
-                (String::from("PLASMA:FIRE"), String::from("Fire")),
-                (String::from("POWDER:SAND"), String::from("Sand")),
-                (
-                    String::from("POWDER:COLORFUL_SAND"),
-                    String::from("Colorful sand"),
-                ),
-                (String::from("POWDER:SAWDUST"), String::from("Sawdust")),
-                (String::from("SOLID:WOOD"), String::from("Wood")),
-                (String::from("SOLID:CLONER"), String::from("Cloner")),
-                (String::from("SOLID:SINK"), String::from("Sink")),
-                (String::from("LIFE:GOL"), String::from("Game of Life")),
-                (String::from("LIFE:MAZE"), String::from("Maze")),
-                (
-                    String::from("LIFE:WALLED_CITIES"),
-                    String::from("Walled cities"),
-                ),
-                (String::from("LIFE:DIAMOEBA"), String::from("Diamoeba")),
-                (String::from("LIFE:STAR_WARS"), String::from("Star wars")),
-            ]),
+            element_names: AHashMap::from([]),
             category_names: AHashMap::from([
                 (
                     MaterialType::alloy_default().discriminant(),

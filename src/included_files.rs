@@ -65,5 +65,5 @@ const CHEMISTRY_FILES: ChemistryFolder = ChemistryFolder {
 const LOCALE_FILES: LocaleFolder = LocaleFolder {
     locale_en: include_str!("locale/locale_en.json"),
     locale_hu: include_str!("locale/locale_hu.json"),
-    locale_sk: include_str!("locale/locale_hu.json"),
+    locale_sk: include_str!("locale/locale_sk.json"),
 };
