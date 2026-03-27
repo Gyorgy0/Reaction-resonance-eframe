@@ -148,7 +148,7 @@ impl Default for EFrameApp<'_> {
             });
             fs::write(
                 "src/material_ids.json",
-                serde_json::to_string(&material_ids).unwrap(),
+                serde_json::to_string_pretty(&material_ids).unwrap(),
             )
             .unwrap();
 
@@ -425,7 +425,11 @@ impl eframe::App for EFrameApp<'_> {
                                 self.viewed_particle.temperature
                             ),
                             temperature_sign = get_sign(self.program_options.temperature_scale),
-                            particle_name = self.materials[self.viewed_particle.material_id].0,
+                            particle_name = self.program_options.locale
+                                [self.program_options.selected_locale]
+                                .element_names
+                                .get(&self.materials[self.viewed_particle.material_id].0)
+                                .unwrap(),
                         ))
                         .size(15_f32)
                         .strong()
@@ -446,10 +450,16 @@ impl eframe::App for EFrameApp<'_> {
                                     && ui
                                         .add(
                                             egui::Button::new(
-                                                RichText::new(material.0.clone())
-                                                    .size(20_f32)
-                                                    .color(Color32::WHITE)
-                                                    .strong(),
+                                                RichText::new(
+                                                    self.program_options.locale
+                                                        [self.program_options.selected_locale]
+                                                        .element_names
+                                                        .get(&material.0)
+                                                        .unwrap(),
+                                                )
+                                                .size(20_f32)
+                                                .color(Color32::WHITE)
+                                                .strong(),
                                             )
                                             .min_size(vec2(Default::default(), 35_f32))
                                             .stroke(
@@ -479,7 +489,7 @@ impl eframe::App for EFrameApp<'_> {
                             ui.vertical(|ui| {
                                 let button_width = ui.content_rect().width() * 0.035;
                                 let button =
-                                    egui::widgets::Button::new(RichText::new("0123456789"))
+                                    egui::widgets::Button::new(RichText::new("01234567891"))
                                         .stroke(Stroke::new(1_f32, Color32::WHITE))
                                         .min_size(Vec2::new(button_width, button_width / 2_f32));
                                 let placed_button = ui.add_visible(false, button);
