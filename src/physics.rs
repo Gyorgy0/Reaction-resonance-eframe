@@ -153,7 +153,7 @@ impl Phase {
 #[inline(always)]
 pub fn solve_heat(
     slice_board: &AtomicComparedSlice<Particle>,
-    materials: &Vec<(String, Material)>,
+    materials: &[(String, Material)],
     height: &usize,
     width: &usize,
     i: usize,
@@ -232,7 +232,7 @@ pub fn solve_heat(
 pub fn solve_particle(
     slice_board: &AtomicComparedSlice<Particle>,
     check_board: &Arc<Vec<AtomicParticle>>,
-    materials: &Vec<(String, Material)>,
+    materials: &[(String, Material)],
     physical_transitions: &PhysicalReactions,
     rngs: &Vec<f32>,
     seeds: &Vec<f32>,
@@ -1375,7 +1375,7 @@ pub fn solve_particle(
 pub fn phase_change(
     current_particle: &Particle,
     physical_transitions: &PhysicalReactions,
-    materials: &Vec<(String, Material)>,
+    materials: &[(String, Material)],
     rng: f32,
 ) -> Option<Particle> {
     let mut new_particle = *current_particle;

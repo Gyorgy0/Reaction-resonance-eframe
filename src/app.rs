@@ -1,7 +1,7 @@
 use core::f32;
 use std::{mem::discriminant, u8};
 
-use crate::dialogs::OptionsMenuDialog;
+use crate::dialogs::{BoardSize, OptionsMenuDialog};
 use crate::egui_input::BrushTool;
 use crate::locale::{Locale, get_text};
 use crate::particle::Particle;
@@ -222,8 +222,6 @@ impl Default for EFrameApp<'_> {
                 from_str(&FILES.physics_transition.boiling_transitions).unwrap();
             serialized_transition_sublimation =
                 from_str(&FILES.physics_transition.sublimation_transitions).unwrap();
-            serialized_transition_ionization =
-                from_str(&FILES.physics_transition.ionization_transitions).unwrap();
 
             // Chemical reactions
             serialized_reactions_fuels =
@@ -314,11 +312,17 @@ impl eframe::App for EFrameApp<'_> {
         // Logic for showing the dialogs and handling the reply is there is one
         if let Some(res) = self.dialogs.show(ctx)
             && res.is_reply_of(OPTIONS_MENU)
-            && let Ok(options) = res.reply::<(f32, ApplicationOptions)>()
+            && let Ok(options) = res.reply::<(f32, ApplicationOptions, BoardSize)>()
         {
             self.game_board.gravity = options.0;
             self.program_options = options.1;
             self.dialogopen = false;
+            if self.game_board.board_size != options.2 {
+                self.game_board.board_size = options.2;
+                self.game_board.width = self.game_board.board_size.get_size().0;
+                self.game_board.height = self.game_board.board_size.get_size().1;
+                self.game_board.create_board();
+            }
         }
         egui::Panel::top("top panel").show(ctx, |ui| {
             egui::ScrollArea::horizontal().show(ui, |ui| {
@@ -340,6 +344,7 @@ impl eframe::App for EFrameApp<'_> {
                     {
                         DialogDetails::new(OptionsMenuDialog::new(
                             self.game_board.gravity,
+                            self.game_board.board_size,
                             self.program_options.clone(),
                             self.materials.clone(),
                             &self.program_options.locale,

@@ -27,10 +27,7 @@ pub fn handle_mouse_input(
                 let cellpos = get_safe_i(
                     &(game_board.height as usize),
                     &(game_board.width as usize),
-                    &(
-                        (y.saturating_add(pos.y as i64)) as usize,
-                        (x.saturating_add(pos.x as i64)) as usize,
-                    ),
+                    &((y + pos.y as i64) as usize, (x + pos.x as i64) as usize),
                 );
 
                 if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1

@@ -11,9 +11,9 @@ use std::sync::Arc;
 pub(crate) fn solve_cells(
     slice_board: &AtomicComparedSlice<Particle>,
     check_board: &Arc<Vec<AtomicParticle>>,
-    prev_board: &Vec<Particle>,
-    board_rngs: &Vec<f32>,
-    materials: &Vec<(String, Material)>,
+    prev_board: &[Particle],
+    board_rngs: &[f32],
+    materials: &[(String, Material)],
     height: &usize,
     width: &usize,
     i: usize,

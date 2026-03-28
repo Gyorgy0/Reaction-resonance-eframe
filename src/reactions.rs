@@ -243,6 +243,7 @@ pub(crate) fn solve_reactions(
                     let rng = rngs.get(get_safe_i(height, width, &pos)).unwrap();
                     if checked_particle.temperature > *ignition_temperature
                         && !current_particle.burning
+                        && materials[checked_particle.material_id].1.phase == Phase::Air
                     {
                         current_particle.burning = true;
                         current_particle.particle_health = *burn_time;

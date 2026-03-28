@@ -8,6 +8,7 @@ use rand::SeedableRng;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
+use crate::dialogs::BoardSize;
 use crate::egui_input::BrushShape;
 use crate::life_reactions::solve_cells;
 use crate::material::Material;
@@ -47,6 +48,7 @@ pub(crate) struct MaterialColor{
 #[rustfmt::skip]
 pub struct Board {
     pub rng: rand::rngs::SmallRng,
+    pub board_size: BoardSize,
     pub width: u16,
     pub height: u16,
     pub contents: AtomicComparedSlice<Particle>,
@@ -80,6 +82,7 @@ impl Default for Board {
     fn default() -> Self {
         Board {
             rng: rand::rngs::SmallRng::seed_from_u64(0_u64),
+            board_size: BoardSize::default(),
             width: 256_u16,
             height: 128_u16,
             contents: AtomicComparedSlice::new(vec![]),
@@ -96,7 +99,7 @@ impl Default for Board {
 #[inline(always)]
 pub fn update_board(
     game_board: &mut Board,
-    materials: &Vec<(String, Material)>,
+    materials: &[(String, Material)],
     physical_transitions: &PhysicalReactions,
     chemical_reactions: &ChemicalReactions,
     is_stopped: bool,

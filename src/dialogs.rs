@@ -1,7 +1,9 @@
 use std::{f32, ops::RangeInclusive};
 
 use egui::{Layout, Separator, Vec2};
-use egui_dialogs::{Dialog, dialog_window};
+use egui_dialogs::{Dialog, DialogContext, dialog_window};
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 use crate::{
     locale::{Locale, get_text},
@@ -12,6 +14,8 @@ use crate::{
 pub struct OptionsMenuDialog {
     pub picked_gravity: f32,
     pub default_gravity: f32,
+    pub picked_board_size: BoardSize,
+    pub original_board_size: BoardSize,
     pub original_program_options: ApplicationOptions,
     pub program_options: ApplicationOptions,
     pub materials: Vec<(String, Material)>,
@@ -22,30 +26,33 @@ pub struct OptionsMenuDialog {
 impl OptionsMenuDialog {
     pub fn new(
         gravity: f32,
+        board_size: BoardSize,
         program_options: ApplicationOptions,
         materials: Vec<(String, Material)>,
-        locale: &Vec<Locale>,
+        locale: &[Locale],
         selected_locale: usize,
     ) -> Self {
         Self {
             picked_gravity: gravity,
+            picked_board_size: board_size,
+            original_board_size: board_size,
             default_gravity: 9.81_f32,
             original_program_options: program_options.clone(),
             program_options: program_options.clone(),
             materials,
-            locale: locale.clone(),
+            locale: locale.to_vec(),
             selected_locale,
         }
     }
 }
-impl Dialog<(f32, ApplicationOptions)> for OptionsMenuDialog {
+impl Dialog<(f32, ApplicationOptions, BoardSize)> for OptionsMenuDialog {
     fn show(
         &mut self,
         ctx: &egui::Context,
-        dctx: &egui_dialogs::DialogContext,
-    ) -> Option<(f32, ApplicationOptions)> {
+        dctx: &DialogContext,
+    ) -> Option<(f32, ApplicationOptions, BoardSize)> {
         // Return None if the user hasn't selected something
-        let mut res: Option<(f32, ApplicationOptions)> = None;
+        let mut res: Option<(f32, ApplicationOptions, BoardSize)> = None;
         dialog_window(
             ctx,
             dctx,
@@ -493,7 +500,11 @@ impl Dialog<(f32, ApplicationOptions)> for OptionsMenuDialog {
                             .clicked()
                         {
                             self.program_options.selected_locale = index;
-                            res = Some((self.picked_gravity, self.program_options.clone()));
+                            res = Some((
+                                self.picked_gravity,
+                                self.program_options.clone(),
+                                self.original_board_size,
+                            ));
                         }
                     }
                     // This is for the PC platform (locale and materials and their reactions are serialized from files)
@@ -538,6 +549,22 @@ impl Dialog<(f32, ApplicationOptions)> for OptionsMenuDialog {
                         .board_size_label
                         .as_str(),
                     );
+                    for size_options in BoardSize::iter() {
+                        if ui
+                            .radio_value(
+                                &mut self.picked_board_size,
+                                size_options,
+                                format!(
+                                    "{size_x} × {size_y}",
+                                    size_x = size_options.get_size().0,
+                                    size_y = size_options.get_size().1
+                                ),
+                            )
+                            .clicked()
+                        {
+                            self.picked_board_size = size_options;
+                        }
+                    }
                 });
                 ui.separator();
                 ui.with_layout(Layout::right_to_left(egui::Align::Min), |ui| {
@@ -553,7 +580,11 @@ impl Dialog<(f32, ApplicationOptions)> for OptionsMenuDialog {
                             )
                             .clicked()
                         {
-                            res = Some((self.picked_gravity, self.program_options.clone()));
+                            res = Some((
+                                self.picked_gravity,
+                                self.program_options.clone(),
+                                self.picked_board_size,
+                            ));
                         }
                         if ui
                             .button(
@@ -566,13 +597,40 @@ impl Dialog<(f32, ApplicationOptions)> for OptionsMenuDialog {
                             )
                             .clicked()
                         {
-                            res =
-                                Some((self.default_gravity, self.original_program_options.clone()));
+                            res = Some((
+                                self.default_gravity,
+                                self.original_program_options.clone(),
+                                self.original_board_size,
+                            ));
                         }
                     });
                 });
             });
         });
         res
+    }
+}
+
+#[derive(PartialEq, Copy, Clone, Default, EnumIter)]
+pub enum BoardSize {
+    Tiny,
+    Small,
+    #[default]
+    Normal,
+    Large,
+    Huge,
+    Extreme,
+}
+
+impl BoardSize {
+    pub fn get_size(&self) -> (u16, u16) {
+        match self {
+            BoardSize::Tiny => (64_u16, 32_u16),
+            BoardSize::Small => (128_u16, 64_u16),
+            BoardSize::Normal => (256_u16, 128_u16),
+            BoardSize::Large => (384_u16, 192_u16),
+            BoardSize::Huge => (512_u16, 256_u16),
+            BoardSize::Extreme => (768_u16, 384_u16),
+        }
     }
 }
