@@ -90,7 +90,6 @@ pub struct PhysicalReactions {
     pub(crate) melting: AHashMap<usize, usize>,
     pub(crate) boiling: AHashMap<usize, Vec<(usize, f32)>>,
     pub(crate) sublimation: AHashMap<usize, usize>,
-    pub(crate) ionization: AHashMap<usize, usize>,
 }
 
 impl PhysicalReactions {
@@ -98,13 +97,11 @@ impl PhysicalReactions {
         melting: AHashMap<usize, usize>,
         boiling: AHashMap<usize, Vec<(usize, f32)>>,
         sublimation: AHashMap<usize, usize>,
-        ionization: AHashMap<usize, usize>,
     ) -> Self {
         Self {
             melting,
             boiling,
             sublimation,
-            ionization,
         }
     }
 }
@@ -225,7 +222,7 @@ pub fn solve_heat(
             }
             count += 1_u8;
             check_board[get_safe_i(height, width, &neumann_positions[(count % 4) as usize])]
-                .thread_count
+                .temperature_write_count
                 .swap(count, std::sync::atomic::Ordering::Relaxed);
         }
     }
@@ -1507,7 +1504,20 @@ pub fn phase_change(
                 return None;
             }
         }
-        Phase::Plasma => return None,
+        Phase::Plasma => {
+            // If the plasma temperature gets below 65% of it's initial temperature then it disappears
+            if current_particle.temperature
+                < 0.65_f32
+                    * materials[current_particle.material_id]
+                        .1
+                        .initial_temperature
+            {
+                new_particle.material_id = Particle::default().material_id;
+                return Some(new_particle);
+            } else {
+                return None;
+            }
+        }
     }
     Some(new_particle)
 }

@@ -2,6 +2,7 @@
 name = "reaction-resonance-eframe"
 version = "0.1.1"
 edition = "2024"
+rust-version = "1.85"
 
 [workspace]
 resolver = "3"
@@ -45,6 +46,7 @@ winit = { version = "0.30.12", features = ["android-native-activity"] }
 egui_dialogs = { version = "0.3.7", path = "dependencies/egui_dialogs" }
 egui-colorgradient = { version = "0.2.3", path = "dependencies/egui_colorgradient" }
 egui-file-dialog = "0.12.0"
+wasm-bindgen-rayon = "1.3.0"
 
 # Profile options:
 # opt-level = 'z' - optimize for size

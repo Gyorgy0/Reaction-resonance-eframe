@@ -1,7 +1,9 @@
+cargo-features = ["edition2024"]
 [package]
 name = "egui-colorgradient"
 description = "A color gradient edior for egui"
 repository = "https://gitlab.com/polwel/egui-colorgradient"
+rust-version = "1.85"
 version = "0.2.3"
 edition = "2024"
 license = "MIT"

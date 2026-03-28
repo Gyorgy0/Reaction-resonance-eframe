@@ -16,6 +16,7 @@ use crate::particle::Particle;
 use crate::physics::PhysicalReactions;
 use crate::physics::solve_heat;
 use crate::physics::solve_particle;
+use crate::reactions::ChemicalReactions;
 use crate::reactions::solve_reactions;
 use egui::Color32;
 use egui::Vec2;
@@ -97,6 +98,7 @@ pub fn update_board(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
     physical_transitions: &PhysicalReactions,
+    chemical_reactions: &ChemicalReactions,
     is_stopped: bool,
     framecount: &mut u64,
     framedelta: f32,
@@ -178,6 +180,7 @@ pub fn update_board(
                     &check_board,
                     &prev_board,
                     materials,
+                    chemical_reactions,
                     &game_board.rngs,
                     &game_board.seeds,
                     &height,
@@ -391,11 +394,11 @@ pub unsafe fn temp_exchange(
         let to_elem_ptr = vec.as_mut_ptr().add(to_index);
         let mut to_prev_particle: Particle = slice.data.get().as_ref().unwrap()[to_index];
         if check_board[from_index]
-            .thread_count
+            .temperature_write_count
             .fetch_add(1_u8, Ordering::Relaxed)
             == count
             && check_board[to_index]
-                .thread_count
+                .temperature_write_count
                 .fetch_add(1_u8, Ordering::Relaxed)
                 == count
         {

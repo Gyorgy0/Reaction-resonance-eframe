@@ -6,6 +6,7 @@ use crate::egui_input::BrushTool;
 use crate::locale::{Locale, get_text};
 use crate::particle::Particle;
 use crate::physics::{BLACK_BODY_RADIATION_COLORS, PhysicalReactions};
+use crate::reactions::ChemicalReactions;
 use crate::system_data::{ApplicationOptions, get_sign, get_temperature};
 use crate::system_ui::{debug_text_rendering, get_particle};
 use crate::{
@@ -37,6 +38,8 @@ pub struct EFrameApp<'a> {
     fps_values: Vec<f32>,
     #[serde(skip)]
     physical_transitions: PhysicalReactions,
+    #[serde(skip)]
+    chemical_reactions: ChemicalReactions,
     #[serde(skip)]
     black_body_gradient: ColorInterpolator,
     #[serde(skip)]
@@ -93,7 +96,8 @@ impl Default for EFrameApp<'_> {
         let serialized_transition_melting: AHashMap<usize, usize>;
         let serialized_transition_boiling: AHashMap<usize, Vec<(usize, f32)>>;
         let serialized_transition_sublimation: AHashMap<usize, usize>;
-        let serialized_transition_ionization: AHashMap<usize, usize>;
+
+        let serialized_reactions_fuels: AHashMap<usize, Vec<(usize, f32)>>;
         // This is for the PC platform (locale and materials and their reactions are serialized from files)
         #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
         {
@@ -163,51 +167,67 @@ impl Default for EFrameApp<'_> {
                 fs::read("src/physics/phase_transitions_sublimation.json");
             serialized_transition_sublimation =
                 serde_json::from_reader(transition_path_sublimation.unwrap().as_slice()).unwrap();
-            let transition_path_ionization =
-                fs::read("src/physics/phase_transitions_ionization.json");
-            serialized_transition_ionization =
-                serde_json::from_reader(transition_path_ionization.unwrap().as_slice()).unwrap();
+
+            // Chemical reactions
+            let reaction_path_fuel = fs::read("src/chemistry/chemical_reactions_fuels.json");
+            serialized_reactions_fuels =
+                serde_json::from_reader(reaction_path_fuel.unwrap().as_slice()).unwrap();
         }
 
         #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
         {
+            use egui::TextBuffer;
+            use serde_json::from_str;
+
             use crate::included_files::FILES;
 
             // Locale
-            locales.push(serde_json::from_str(&FILES.locales.locale_en).unwrap());
-            locales.push(serde_json::from_str(&FILES.locales.locale_hu).unwrap());
-            locales.push(serde_json::from_str(&FILES.locales.locale_sk).unwrap());
+            locales.push(from_str(&FILES.locales.locale_en).unwrap());
+            locales.push(from_str(&FILES.locales.locale_hu).unwrap());
+            locales.push(from_str(&FILES.locales.locale_sk).unwrap());
 
             // Materials
             let mut serialized_materials: Vec<(String, Material)> =
-                serde_json::from_str(&FILES.materials.solid_materials).unwrap();
+                from_str(&FILES.materials.solid_materials).unwrap();
+
+            serialized_materials.append(
+                (from_str(&FILES.materials.powder_materials))
+                    .as_mut()
+                    .unwrap(),
+            );
+
+            serialized_materials.append(
+                from_str(&FILES.materials.liquid_materials)
+                    .as_mut()
+                    .unwrap(),
+            );
+
+            serialized_materials.append(from_str(&FILES.materials.gas_materials).as_mut().unwrap());
+
+            serialized_materials.append(
+                from_str(&FILES.materials.plasma_materials)
+                    .as_mut()
+                    .unwrap(),
+            );
 
             serialized_materials
-                .push(serde_json::from_str(&FILES.materials.powder_materials).unwrap());
-
-            serialized_materials
-                .push(serde_json::from_str(&FILES.materials.liquid_materials).unwrap());
-
-            serialized_materials
-                .push(serde_json::from_str(&FILES.materials.gas_materials).unwrap());
-
-            serialized_materials
-                .push(serde_json::from_str(&FILES.materials.plasma_materials).unwrap());
-
-            serialized_materials
-                .push(serde_json::from_str(&FILES.materials.life_materials).unwrap());
+                .append(from_str(&FILES.materials.life_materials).as_mut().unwrap());
 
             materials.append(&mut serialized_materials);
 
             // Physical transitions
             serialized_transition_melting =
-                serde_json::from_str(&FILES.physics_transition.melting_transitions).unwrap();
+                from_str(&FILES.physics_transition.melting_transitions).unwrap();
             serialized_transition_boiling =
-                serde_json::from_str(&FILES.physics_transition.boiling_transitions).unwrap();
+                from_str(&FILES.physics_transition.boiling_transitions).unwrap();
             serialized_transition_sublimation =
-                serde_json::from_str(&FILES.physics_transition.sublimation_transitions).unwrap();
+                from_str(&FILES.physics_transition.sublimation_transitions).unwrap();
             serialized_transition_ionization =
-                serde_json::from_str(&FILES.physics_transition.ionization_transitions).unwrap();
+                from_str(&FILES.physics_transition.ionization_transitions).unwrap();
+
+            // Chemical reactions
+            serialized_reactions_fuels =
+                from_str(&FILES.chemical_reactions.fuel_reactions).unwrap();
         }
 
         program_options.locale = locales;
@@ -244,8 +264,8 @@ impl Default for EFrameApp<'_> {
                 serialized_transition_melting,
                 serialized_transition_boiling,
                 serialized_transition_sublimation,
-                serialized_transition_ionization,
             ),
+            chemical_reactions: ChemicalReactions::new(serialized_reactions_fuels),
             debug_text_job,
             game_board,
             materials,
@@ -386,10 +406,44 @@ impl eframe::App for EFrameApp<'_> {
                             resize_brush(&mut self.game_board.brush_size, vec2(1_f32, 1_f32));
                         }
                         ui.separator();
-                        for brush_shapes in BrushShape::iter() {
-                            if ui.button(format!("{:?}", brush_shapes)).clicked() {
-                                self.game_board.brush_shape = brush_shapes;
-                            }
+                        if ui
+                            .button(
+                                get_text(
+                                    &self.program_options.locale,
+                                    self.program_options.selected_locale,
+                                )
+                                .rectangle_brush_tooltip
+                                .as_str(),
+                            )
+                            .clicked()
+                        {
+                            self.game_board.brush_shape = BrushShape::Rectangle;
+                        }
+                        if ui
+                            .button(
+                                get_text(
+                                    &self.program_options.locale,
+                                    self.program_options.selected_locale,
+                                )
+                                .rhombus_brush_tooltip
+                                .as_str(),
+                            )
+                            .clicked()
+                        {
+                            self.game_board.brush_shape = BrushShape::Rhombus;
+                        }
+                        if ui
+                            .button(
+                                get_text(
+                                    &self.program_options.locale,
+                                    self.program_options.selected_locale,
+                                )
+                                .ellipse_brush_tooltip
+                                .as_str(),
+                            )
+                            .clicked()
+                        {
+                            self.game_board.brush_shape = BrushShape::Ellipse;
                         }
                     });
 
@@ -429,7 +483,7 @@ impl eframe::App for EFrameApp<'_> {
                                 [self.program_options.selected_locale]
                                 .element_names
                                 .get(&self.materials[self.viewed_particle.material_id].0)
-                                .unwrap(),
+                                .unwrap_or(&self.materials[self.viewed_particle.material_id].0),
                         ))
                         .size(15_f32)
                         .strong()
@@ -455,13 +509,13 @@ impl eframe::App for EFrameApp<'_> {
                                                         [self.program_options.selected_locale]
                                                         .element_names
                                                         .get(&material.0)
-                                                        .unwrap(),
+                                                        .unwrap_or(&material.0),
                                                 )
                                                 .size(20_f32)
                                                 .color(Color32::WHITE)
                                                 .strong(),
                                             )
-                                            .min_size(vec2(Default::default(), 35_f32))
+                                            .min_size(vec2(70_f32, 35_f32))
                                             .stroke(
                                                 Stroke::new(1_f32, material.1.material_color.color),
                                             ),
@@ -705,6 +759,7 @@ impl eframe::App for EFrameApp<'_> {
                         &mut self.game_board,
                         &self.materials,
                         &self.physical_transitions,
+                        &self.chemical_reactions,
                         &mut self.program_options,
                         &mut self.framecount,
                         ctx.input(|time| time.unstable_dt),
@@ -770,6 +825,7 @@ impl eframe::App for EFrameApp<'_> {
                         &mut self.game_board,
                         &self.materials,
                         &self.physical_transitions,
+                        &self.chemical_reactions,
                         &mut self.program_options,
                         &mut self.framecount,
                         ctx.input(|time| time.unstable_dt),
@@ -781,6 +837,7 @@ impl eframe::App for EFrameApp<'_> {
                 &mut self.game_board,
                 &self.materials,
                 &self.physical_transitions,
+                &self.chemical_reactions,
                 self.program_options.simulation_stopped,
                 &mut self.framecount,
                 ctx.input(|time| time.unstable_dt),

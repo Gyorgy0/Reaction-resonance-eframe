@@ -13,6 +13,7 @@ mod system_ui;
 mod world;
 pub use app::EFrameApp;
 
+pub use wasm_bindgen_rayon::init_thread_pool;
 // When compiling to Android
 #[cfg(target_os = "android")]
 #[unsafe(no_mangle)]

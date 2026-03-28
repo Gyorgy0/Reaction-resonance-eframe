@@ -1,6 +1,6 @@
 use egui::{
-    include_image, vec2, Align, Align2, FontId, Image, ImageSource, Label, Layout, ScrollArea,
-    Vec2, WidgetText,
+    Align, Align2, FontId, Image, ImageSource, Label, Layout, ScrollArea, Vec2, WidgetText,
+    include_image, vec2,
 };
 use sys_locale::get_locales;
 

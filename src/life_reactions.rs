@@ -100,7 +100,8 @@ pub(crate) fn solve_cells(
                         .1
                         .material_type
                         .get_max_stage()
-                        == prev_board[get_safe_i(height, width, &cell_positions[pos])].life_stage
+                        == prev_board[get_safe_i(height, width, &cell_positions[pos])]
+                            .particle_health
                 {
                     alive_neighbours += 1_u8;
                 }
@@ -112,14 +113,14 @@ pub(crate) fn solve_cells(
             if ((survival.reverse_bits() & 0b0000_0001_u8) * alive_neighbours) == alive_neighbours
                 && prev_board[get_safe_i(height, width, &(i, j))].material_id
                     == automatons[automaton].unwrap()
-                && prev_board[get_safe_i(height, width, &(i, j))].life_stage
+                && prev_board[get_safe_i(height, width, &(i, j))].particle_health
                     == materials[automatons[automaton].unwrap()]
                         .1
                         .material_type
                         .get_max_stage()
             {
                 new_particle = prev_board[get_safe_i(height, width, &(i, j))];
-                new_particle.life_stage = new_particle.life_stage.saturating_sub(1_u8);
+                new_particle.particle_health = new_particle.particle_health.saturating_sub(1_u8);
             }
             /*// Survive by health
             else if prev_board[get_safe_i(height, width, &(i, j))].life_stage > 0_u8
@@ -133,10 +134,10 @@ pub(crate) fn solve_cells(
             if ((birth.reverse_bits() & 0b0000_0001_u8) * alive_neighbours) == alive_neighbours
                 && prev_board[get_safe_i(height, width, &(i, j))].material_id
                     != automatons[automaton].unwrap()
-                && prev_board[get_safe_i(height, width, &(i, j))].life_stage == 0_u8
+                && prev_board[get_safe_i(height, width, &(i, j))].particle_health == 0_u8
             {
                 new_particle.material_id = automatons[automaton].unwrap();
-                new_particle.life_stage = materials[automatons[automaton].unwrap()]
+                new_particle.particle_health = materials[automatons[automaton].unwrap()]
                     .1
                     .material_type
                     .get_max_stage();

@@ -13,7 +13,8 @@
             "material_type": {
                 "Fuel": {
                     "burn_time": 0,
-                    "ignition_temperature": 0.0
+                    "ignition_temperature": 0.0,
+                    "flame_temperature": 0.0
                 }
             },
             "initial_temperature": 293.15,
@@ -306,6 +307,36 @@
         "SOLID::DRY_ICE",
         {
             "id": 49,
+            "density": 1.562,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": 194.6855
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 174.6855,
+            "heat_capacity": 0.843,
+            "heat_conductivity": 0.0001662,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    1.05,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::NEW_ELEMENT",
+        {
+            "id": 53,
             "density": 1.562,
             "phase": {
                 "Solid": {

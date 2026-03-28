@@ -69,6 +69,7 @@ impl fmt::Display for MaterialType {
             MaterialType::Fuel {
                 burn_time: _,
                 ignition_temperature: _,
+                flame_temperature: _,
             } => write!(f, "Fuel"),
             MaterialType::Oxidizer {
                 combustion_speedup: _,
@@ -112,6 +113,7 @@ impl MaterialType {
             MaterialType::Fuel {
                 burn_time: _,
                 ignition_temperature: _,
+                flame_temperature: _,
             } => include_image!("assets/fuels_icon.svg"),
             MaterialType::Machine { machine: _ } => include_image!("assets/machines_icon.svg"),
             MaterialType::Metal { reactivity: _ } => include_image!("assets/metals_icon.svg"),
@@ -310,7 +312,7 @@ pub fn get_shape(brush_shape: BrushShape, brush_size: Vec2, x: i64, y: i64) -> (
 
 pub fn debug_text_rendering(
     game_board: &Board,
-    materials: &Vec<(String, Material)>,
+    materials: &[(String, Material)],
     debug_text_job: &mut LayoutJob,
     fps_values: &mut Vec<f32>,
     board: &Response,

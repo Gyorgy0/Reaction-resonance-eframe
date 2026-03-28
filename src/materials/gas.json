@@ -12,8 +12,9 @@
             },
             "material_type": {
                 "Fuel": {
-                    "burn_time": 0,
-                    "ignition_temperature": 0.0
+                    "burn_time": 16,
+                    "ignition_temperature": 810.15,
+                    "flame_temperature": 2230.15
                 }
             },
             "initial_temperature": 293.15,
@@ -47,8 +48,9 @@
             },
             "material_type": {
                 "Fuel": {
-                    "burn_time": 0,
-                    "ignition_temperature": 0.0
+                    "burn_time": 1,
+                    "ignition_temperature": 808.15,
+                    "flame_temperature": 2318.15
                 }
             },
             "initial_temperature": 293.15,

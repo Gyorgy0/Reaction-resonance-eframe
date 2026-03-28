@@ -11,7 +11,6 @@ pub struct PhysicsFolder<'a> {
     pub melting_transitions: &'a str,
     pub boiling_transitions: &'a str,
     pub sublimation_transitions: &'a str,
-    pub ionization_transitions: &'a str,
 }
 
 pub struct ChemistryFolder<'a> {
@@ -54,7 +53,6 @@ const PHYSICS_FILES: PhysicsFolder = PhysicsFolder {
     melting_transitions: include_str!("physics/phase_transitions_melting.json"),
     boiling_transitions: include_str!("physics/phase_transitions_boiling.json"),
     sublimation_transitions: include_str!("physics/phase_transitions_sublimation.json"),
-    ionization_transitions: include_str!("physics/phase_transitions_ionization.json"),
 };
 const CHEMISTRY_FILES: ChemistryFolder = ChemistryFolder {
     alloy_reactions: include_str!("chemistry/chemical_reactions_alloys.json"),

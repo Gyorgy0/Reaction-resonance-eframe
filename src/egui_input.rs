@@ -1,5 +1,6 @@
 use crate::particle::Particle;
 use crate::physics::PhysicalReactions;
+use crate::reactions::ChemicalReactions;
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
@@ -78,6 +79,7 @@ pub fn handle_key_inputs(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
     physical_transitions: &PhysicalReactions,
+    chemical_reactions: &ChemicalReactions,
     program_options: &mut ApplicationOptions,
     framecount: &mut u64,
     framedelta: f32,
@@ -98,6 +100,7 @@ pub fn handle_key_inputs(
             game_board,
             materials,
             physical_transitions,
+            chemical_reactions,
             program_options.simulation_stopped,
             framecount,
             framedelta,
@@ -162,7 +165,7 @@ pub fn get_tool_action(
                 vec2(0_f32, 0_f32),
                 293.15,
             );
-            new_particle.life_stage = materials[selected_tool.get_selected_material()]
+            new_particle.particle_health = materials[selected_tool.get_selected_material()]
                 .1
                 .material_type
                 .get_max_stage();
