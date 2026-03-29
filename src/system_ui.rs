@@ -142,10 +142,16 @@ impl Board {
             .par_iter()
             .enumerate()
             .map(|px| {
-                gradient
+                (gradient
                     .sample_at(self.contents.get_elem(px.0).temperature)
                     .unwrap_or(Rgba::TRANSPARENT)
-                    .into()
+                    * Rgba::from_srgba_unmultiplied(
+                        255_u8,
+                        255_u8,
+                        255_u8,
+                        self.contents.get_elem(px.0).display_color.a(),
+                    ))
+                .into()
             })
             .collect()
     }

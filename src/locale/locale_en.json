@@ -97,6 +97,7 @@
     "POWDER::POWDERED_SODIUM": "Powdered sodium",
     "LIQUID::MOLTEN_SODIUM": "Molten sodium",
     "LIFE::HIGH_LIFE": "Life: High life",
+    "POWDER::ASH": "Ash",
     "": ""
   },
   "category_names": {

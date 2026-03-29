@@ -502,8 +502,10 @@ pub fn solve_particle(
                 // Falling and checking if there is a particle with a larger density
                 if materials[current_particle.material_id].1.density
                     > materials[future_particle.material_id].1.density
-                    && std::mem::discriminant(&materials[future_particle.material_id].1.phase)
+                    && (std::mem::discriminant(&materials[future_particle.material_id].1.phase)
                         != std::mem::discriminant(&Phase::solid_default())
+                        || std::mem::discriminant(&materials[future_particle.material_id].1.phase)
+                            != std::mem::discriminant(&Phase::powder_default()))
                 {
                     ychange = k;
                 }
@@ -597,7 +599,7 @@ pub fn solve_particle(
                         .material_id]
                         .1
                         .density
-                && std::mem::discriminant(
+                && (std::mem::discriminant(
                     &materials[slice_board
                         .get(get_safe_i(
                             height,
@@ -611,19 +613,46 @@ pub fn solve_particle(
                         .material_id]
                         .1
                         .phase,
-                ) != std::mem::discriminant(&Phase::solid_default())
-                && std::mem::discriminant(
-                    &materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(i, (j as i64).wrapping_add(rnd.signum() as i64) as usize),
-                        ))
-                        .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
-                        .material_id]
-                        .1
-                        .phase,
-                ) != std::mem::discriminant(&Phase::solid_default())
+                ) != std::mem::discriminant(&Phase::powder_default())
+                    && std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, (j as i64).wrapping_add(rnd.signum() as i64) as usize),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(&Phase::powder_default())
+                    && std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(
+                                    i + (gravity.clamp(-1_f32, 1_f32).round() as i32) as usize,
+                                    (j as i64).wrapping_add(rnd.signum() as i64) as usize,
+                                ),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(&Phase::solid_default())
+                    && std::mem::discriminant(
+                        &materials[slice_board
+                            .get(get_safe_i(
+                                height,
+                                width,
+                                &(i, (j as i64).wrapping_add(rnd.signum() as i64) as usize),
+                            ))
+                            .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
+                            .material_id]
+                            .1
+                            .phase,
+                    ) != std::mem::discriminant(&Phase::solid_default()))
                 && slice_board
                     .get(get_safe_i(height, width, &(i, j)))
                     .unwrap_or(slice_board.get_elem(get_safe_i(height, width, &(i, j))))
@@ -1505,9 +1534,9 @@ pub fn phase_change(
             }
         }
         Phase::Plasma => {
-            // If the plasma temperature gets below 55% of it's initial temperature then it disappears
+            // If the plasma temperature gets below 65% of it's initial temperature then it disappears
             if current_particle.temperature
-                < 0.55_f32
+                < 0.65_f32
                     * materials[current_particle.material_id]
                         .1
                         .initial_temperature

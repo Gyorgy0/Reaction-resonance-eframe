@@ -1,4 +1,4 @@
-use crate::particle::{AtomicParticle, Particle};
+use crate::particle::Particle;
 use crate::physics::PhysicalReactions;
 use crate::reactions::ChemicalReactions;
 use crate::system_data::ApplicationOptions;
@@ -6,7 +6,6 @@ use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
 use std::ops::{AddAssign, Not, RangeInclusive};
-use std::sync::Arc;
 use strum_macros::EnumIter;
 
 // Handles mouse/touch controls

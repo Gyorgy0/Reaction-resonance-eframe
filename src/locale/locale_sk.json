@@ -75,7 +75,7 @@
     "LIQUID::HONEY": "Meď",
     "LIFE::REPLICATOR": "Life: Replikátor",
     "LIQUID::WATER": "Voda",
-    "GAS::STEAM": "Pára",
+    "GAS::STEAM": "Para",
     "SOLID::ICE": "Laď",
     "GAS::HYDROGEN": "Vodík",
     "SOLID::SODIUM": "Sodík",
@@ -97,6 +97,7 @@
     "POWDER::POWDERED_SODIUM": "Sodík v prášku",
     "LIQUID::MOLTEN_SODIUM": "Tekutý sodík",
     "LIFE::HIGH_LIFE": "Life: High life",
+    "POWDER::ASH": "Popol",
     "": ""
   },
   "category_names": {
