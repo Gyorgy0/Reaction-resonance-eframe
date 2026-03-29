@@ -1,9 +1,9 @@
 use std::sync::atomic::{AtomicBool, AtomicU8};
 
-use egui::{Color32, Vec2};
+use egui::{Color32, Vec2, lerp};
 use serde::{Deserialize, Serialize};
 
-use crate::material::{AIR, Material};
+use crate::material::{AIR, Material, tuple_to_rangeinclusive};
 
 #[rustfmt::skip]
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
@@ -12,9 +12,8 @@ pub struct Particle {
     pub speed: Vec2,                    // Vectors of the particle (x, y)
     pub temperature: f32,               // Temperature of the particle
     pub cloned_material: usize,         // Cloned material for the Cloner material type
-    pub particle_health: u8,            // "Health" of the simulated cell (does it need to exist?)
+    pub particle_health: u16,           // "Health" of the simulated cell (does it need to exist?)
     pub burning: bool,                  // Is the particle burning?
-    pub updated: bool,                  // Is it updated?
     pub display_color: Color32,         // Displayed color
 }
 
@@ -25,11 +24,20 @@ impl Particle {
             speed,
             temperature,
             cloned_material: 0_usize,
-            particle_health: 0_u8,
+            particle_health: 0_u16,
             burning: false,
-            updated: false,
             display_color: material.material_color.color,
         }
+    }
+    // Applies the material's color and shinyness to the particle's display color
+    pub fn set_color(&mut self, materials: &[(String, Material)], noise_val: f32) -> Self {
+        self.display_color = materials[self.material_id].1.material_color.color;
+        self.display_color = self.display_color.gamma_multiply(lerp(
+            tuple_to_rangeinclusive(materials[self.material_id].1.material_color.shinyness),
+            noise_val,
+        ));
+        self.display_color[3] = materials[self.material_id].1.material_color.color.a();
+        *self
     }
 }
 

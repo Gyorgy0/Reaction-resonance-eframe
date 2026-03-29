@@ -46,6 +46,8 @@ pub struct Locale {
     pub eraser_tooltip: String,
     pub heat_button: String,
     pub heat_tooltip: String,
+    pub default_heat_button: String,
+    pub default_heat_tooltip: String,
     pub cool_button: String,
     pub cool_tooltip: String,
     pub rectangle_brush_tooltip: String,
@@ -113,6 +115,8 @@ impl Default for Locale {
             eraser_tooltip: String::from("Selects the eraser tool."),
             heat_button: String::from("Heat"),
             heat_tooltip: String::from("Selects the heating tool."),
+            default_heat_button: String::from("Default\ntemperature"),
+            default_heat_tooltip: String::from("Selects the default heat tool."),
             cool_button: String::from("Cool"),
             cool_tooltip: String::from("Selects the cooling tool."),
             rectangle_brush_tooltip: String::from("Rectangle"),
@@ -165,7 +169,7 @@ impl Default for Locale {
                     MaterialType::CAutomata {
                         survival: 0_u8,
                         birth: 0_u8,
-                        stages: 0_u8,
+                        stages: 0_u16,
                     }
                     .discriminant(),
                     String::from("Cellular automatons"),

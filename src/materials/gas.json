@@ -12,7 +12,7 @@
             },
             "material_type": {
                 "Fuel": {
-                    "burn_time": 16,
+                    "burn_time": 0,
                     "ignition_temperature": 810.15,
                     "flame_temperature": 2230.15
                 }
@@ -48,7 +48,7 @@
             },
             "material_type": {
                 "Fuel": {
-                    "burn_time": 1,
+                    "burn_time": 0,
                     "ignition_temperature": 808.15,
                     "flame_temperature": 2318.15
                 }

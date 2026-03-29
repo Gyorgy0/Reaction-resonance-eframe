@@ -72,9 +72,9 @@
             },
             "material_type": {
                 "Fuel": {
-                    "burn_time": 0,
-                    "ignition_temperature": 0.0,
-                    "flame_temperature": 0.0
+                    "burn_time": 300,
+                    "ignition_temperature": 573.15,
+                    "flame_temperature": 973.15
                 }
             },
             "initial_temperature": 293.15,
@@ -321,6 +321,36 @@
                 "shinyness": [
                     0.95,
                     1.25
+                ]
+            }
+        }
+    ],
+    [
+        "POWDER::ASH",
+        {
+            "id": 53,
+            "density": 2.97,
+            "phase": {
+                "Powder": {
+                    "melting_point": 1173.15,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 273.15,
+            "heat_capacity": 1.0,
+            "heat_conductivity": 0.0017,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    184,
+                    194,
+                    202,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
                 ]
             }
         }

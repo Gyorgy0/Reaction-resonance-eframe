@@ -1505,9 +1505,9 @@ pub fn phase_change(
             }
         }
         Phase::Plasma => {
-            // If the plasma temperature gets below 65% of it's initial temperature then it disappears
+            // If the plasma temperature gets below 55% of it's initial temperature then it disappears
             if current_particle.temperature
-                < 0.65_f32
+                < 0.55_f32
                     * materials[current_particle.material_id]
                         .1
                         .initial_temperature

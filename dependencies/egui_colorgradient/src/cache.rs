@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use egui::{ahash::HashMap, util::cache::CacheTrait};
 
 type Generation = u32;

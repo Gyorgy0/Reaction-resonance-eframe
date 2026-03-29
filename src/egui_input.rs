@@ -1,4 +1,4 @@
-use crate::particle::Particle;
+use crate::particle::{AtomicParticle, Particle};
 use crate::physics::PhysicalReactions;
 use crate::reactions::ChemicalReactions;
 use crate::system_data::ApplicationOptions;
@@ -6,6 +6,7 @@ use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
 use std::ops::{AddAssign, Not, RangeInclusive};
+use std::sync::Arc;
 use strum_macros::EnumIter;
 
 // Handles mouse/touch controls
@@ -123,9 +124,10 @@ pub fn resize_brush(brush_size: &mut Vec2, change: Vec2) {
     *brush_size = brush_size.clamp(vec2(0_f32, 0_f32), vec2(256_f32, 256_f32));
 }
 
+#[derive(Debug, PartialEq)]
 pub(crate) enum BrushTool {
     MaterialBrush { selected_material: usize },
-    ThermalBrush { temp_delta: f32 },
+    ThermalBrush { temp_delta: f32, default_temp: bool },
     MixBrush,
     EraseBrush,
 }
@@ -140,8 +142,24 @@ impl BrushTool {
 
     pub fn get_temp_delta(&self) -> f32 {
         let mut returnval: f32 = 0_f32;
-        if let BrushTool::ThermalBrush { temp_delta } = self {
+        if let BrushTool::ThermalBrush {
+            temp_delta,
+            default_temp: _,
+        } = self
+        {
             returnval = *temp_delta;
+        };
+        returnval
+    }
+
+    pub fn get_default_temp(&self) -> bool {
+        let mut returnval: bool = false;
+        if let BrushTool::ThermalBrush {
+            temp_delta: _,
+            default_temp,
+        } = self
+        {
+            returnval = *default_temp;
         };
         returnval
     }
@@ -194,10 +212,17 @@ pub fn get_tool_action(
             unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
         }
 
-        BrushTool::ThermalBrush { temp_delta: _ } => {
+        BrushTool::ThermalBrush {
+            temp_delta: _,
+            default_temp,
+        } => {
             let mut new_particle = *game_board.contents.get_elem(cellpos);
-            new_particle.temperature += selected_tool.get_temp_delta();
-            new_particle.temperature = new_particle.temperature.clamp(0_f32, 99_999_f32);
+            if !*default_temp {
+                new_particle.temperature += selected_tool.get_temp_delta();
+                new_particle.temperature = new_particle.temperature.clamp(0_f32, 99_999_f32);
+            } else {
+                new_particle.temperature = 273.15_f32;
+            }
             unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
         }
 

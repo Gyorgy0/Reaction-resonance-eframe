@@ -176,7 +176,6 @@ impl Default for EFrameApp<'_> {
 
         #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
         {
-            use egui::TextBuffer;
             use serde_json::from_str;
 
             use crate::included_files::FILES;
@@ -247,7 +246,7 @@ impl Default for EFrameApp<'_> {
         let selected_category = MaterialType::fuel_default();
         let debug_text_job = LayoutJob::default();
         let stops: Vec<(f32, Hsva)> = BLACK_BODY_RADIATION_COLORS
-            .iter_mut()
+            .iter()
             .map(|stop| (stop.0, stop.1.into()))
             .collect();
         Self {
@@ -553,6 +552,9 @@ impl eframe::App for EFrameApp<'_> {
                                         .min_size(Vec2::new(button_width, button_width / 2_f32));
                                 let placed_button = ui.add_visible(false, button);
                                 ui.horizontal_centered(|ui| {
+                                    ui.style_mut().visuals.widgets.hovered.weak_bg_fill =
+                                        Color32::GRAY;
+                                    ui.style_mut().visuals.widgets.hovered.expansion = 1_f32;
                                     if ui
                                         .add(
                                             egui::Button::new(
@@ -579,15 +581,21 @@ impl eframe::App for EFrameApp<'_> {
                                     }
                                 });
                                 if discriminant(&self.selected_tool)
-                                    == discriminant(&BrushTool::ThermalBrush { temp_delta: 0_f32 })
+                                    == discriminant(&BrushTool::ThermalBrush {
+                                        temp_delta: 0_f32,
+                                        default_temp: false,
+                                    })
+                                    && !self.selected_tool.get_default_temp()
                                 {
                                     self.selected_tool = BrushTool::ThermalBrush {
                                         temp_delta: (self.selected_tool.get_temp_delta().signum()
                                             * (self.game_board.brush_size.max_elem() + 1_f32))
                                             / 16_f32,
+                                        default_temp: false,
                                     };
                                 }
                                 ui.horizontal_centered(|ui| {
+                                    ui.style_mut().visuals.widgets.hovered.expansion = 1_f32;
                                     if ui
                                         .add(
                                             egui::Button::new(
@@ -609,11 +617,44 @@ impl eframe::App for EFrameApp<'_> {
                                         )
                                         .clicked()
                                     {
-                                        self.selected_tool =
-                                            BrushTool::ThermalBrush { temp_delta: 1_f32 };
+                                        self.selected_tool = BrushTool::ThermalBrush {
+                                            temp_delta: 1_f32,
+                                            default_temp: false,
+                                        };
                                     }
                                 });
                                 ui.horizontal_centered(|ui| {
+                                    ui.style_mut().visuals.widgets.hovered.expansion = 1_f32;
+                                    if ui
+                                        .add(
+                                            egui::Button::new(
+                                                RichText::new(
+                                                    get_text(
+                                                        &self.program_options.locale,
+                                                        self.program_options.selected_locale,
+                                                    )
+                                                    .default_heat_button
+                                                    .as_str(),
+                                                )
+                                                .heading()
+                                                .strong()
+                                                .monospace(),
+                                            )
+                                            .fill(Color32::DARK_GREEN)
+                                            .stroke(Stroke::new(1_f32, Color32::WHITE))
+                                            .min_size(placed_button.intrinsic_size().unwrap()),
+                                        )
+                                        .clicked()
+                                    {
+                                        self.selected_tool = BrushTool::ThermalBrush {
+                                            temp_delta: 0_f32,
+                                            default_temp: true,
+                                        };
+                                        println!("{:?}", self.selected_tool);
+                                    }
+                                });
+                                ui.horizontal_centered(|ui| {
+                                    ui.style_mut().visuals.widgets.hovered.expansion = 1_f32;
                                     if ui
                                         .add(
                                             egui::Button::new(
@@ -635,8 +676,10 @@ impl eframe::App for EFrameApp<'_> {
                                         )
                                         .clicked()
                                     {
-                                        self.selected_tool =
-                                            BrushTool::ThermalBrush { temp_delta: -1_f32 };
+                                        self.selected_tool = BrushTool::ThermalBrush {
+                                            temp_delta: -1_f32,
+                                            default_temp: false,
+                                        };
                                     }
                                 });
                                 MaterialType::iter().for_each(|category| {

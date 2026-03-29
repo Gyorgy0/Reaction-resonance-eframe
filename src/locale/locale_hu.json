@@ -37,6 +37,8 @@
   "eraser_tooltip": "Kiválasztja a radír eszközt.",
   "heat_button": "Hevítés",
   "heat_tooltip": "Kiválasztja a hevítő eszközt.",
+  "default_heat_button": "Normál",
+  "default_heat_tooltip": "Kiválasztja a standard hőmérsékletet beállító eszközt.",
   "cool_button": "Hűtés",
   "cool_tooltip": "Kiválasztja a hűtő eszközt.",
   "rectangle_brush_tooltip": "Négyszög",

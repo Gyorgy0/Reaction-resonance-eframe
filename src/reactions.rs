@@ -1,7 +1,7 @@
 use crate::material::tuple_to_rangeinclusive;
 use crate::particle::{AtomicParticle, Particle};
 use crate::physics::Phase;
-use crate::world::{get_safe_i, write_particle};
+use crate::world::{get_safe_i, write_particle, write_particle_seq};
 use crate::{material::Material, world::AtomicComparedSlice};
 use egui::ahash::AHashMap;
 use egui::epaint::Hsva;
@@ -46,13 +46,13 @@ pub(crate) enum MaterialType {
     ///     |  #  |  #  |  #  |
     ///     |-----|-----|-----|
     /// 
-    CAutomata {survival: u8, birth:u8, stages: u8},
+    CAutomata {survival: u8, birth:u8, stages: u16},
     // Hard, brittle, heat-resistant, and corrosion-resistant material
     Ceramic,
     // A material that generates a lot of energy and lot of gases
-    Explosive {burn_time: u8, ignition_temperature: f32, explosion_power: f32},
+    Explosive {ignition_temperature: f32, explosion_power: f32},
     // Flammable material under normal circumstances
-    Fuel {burn_time: u8, ignition_temperature: f32, flame_temperature: f32},
+    Fuel {burn_time: u16, ignition_temperature: f32, flame_temperature: f32},
     // Machines e.g. cloners, sinks, pumps, conveyor belts, etc...
     Machine {machine: MachineTypes},
     // Conductive materials, they react based on their reactivity series
@@ -104,7 +104,7 @@ impl MaterialType {
         MaterialType::CAutomata {
             survival: u8::default(),
             birth: u8::default(),
-            stages: u8::default(),
+            stages: u16::default(),
         }
     }
     pub fn machine_default() -> Self {
@@ -121,14 +121,13 @@ impl MaterialType {
     }
     pub fn fuel_default() -> Self {
         MaterialType::Fuel {
-            burn_time: u8::default(),
+            burn_time: u16::default(),
             ignition_temperature: f32::default(),
             flame_temperature: f32::default(),
         }
     }
     pub fn explosive_default() -> Self {
         MaterialType::Explosive {
-            burn_time: u8::default(),
             ignition_temperature: f32::default(),
             explosion_power: f32::default(),
         }
@@ -178,8 +177,8 @@ impl MaterialType {
         returnval
     }
 
-    pub fn get_max_stage(&self) -> u8 {
-        let mut returnval: u8 = 0_u8;
+    pub fn get_max_stage(&self) -> u16 {
+        let mut returnval: u16 = 0_u16;
         if let MaterialType::CAutomata {
             birth: _,
             survival: _,
@@ -221,6 +220,7 @@ pub(crate) fn solve_reactions(
         (i, j.saturating_sub(1)),
     ];
     let mut current_particle = *slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+    let current_rng = rngs.get(get_safe_i(height, width, &(i, j))).unwrap().abs();
     match &materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
         .1
         .material_type
@@ -230,17 +230,35 @@ pub(crate) fn solve_reactions(
             ignition_temperature,
             flame_temperature,
         } => {
-            if current_particle.burning && current_particle.particle_health > 0 {
-                current_particle.particle_health =
-                    current_particle.particle_health.saturating_sub(1_u8);
-            } else if current_particle.burning && current_particle.particle_health == 0 {
+            if current_particle.burning && current_particle.particle_health > 0_u16 {
+                current_particle.particle_health -= 1_u16;
+            } else if current_particle.burning && current_particle.particle_health == 0_u16 {
                 current_particle.burning = false;
+                if chemical_reactions
+                    .fuel
+                    .get(&current_particle.material_id)
+                    .is_some()
+                {
+                    for products in chemical_reactions
+                        .fuel
+                        .get(&current_particle.material_id)
+                        .unwrap()
+                    {
+                        if current_rng > (1_f32 - products.1) {
+                            current_particle.material_id = products.0;
+                            current_particle.temperature = *flame_temperature;
+                            current_particle.display_color =
+                                materials[products.0].1.material_color.color;
+                            break;
+                        }
+                    }
+                }
             }
             for pos in neumann_positions {
                 if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
                     let mut checked_particle =
                         *slice_board.get(get_safe_i(height, width, &pos)).unwrap();
-                    let rng = rngs.get(get_safe_i(height, width, &pos)).unwrap();
+                    let rng = rngs.get(get_safe_i(height, width, &pos)).unwrap().abs();
                     if checked_particle.temperature > *ignition_temperature
                         && !current_particle.burning
                         && materials[checked_particle.material_id].1.phase == Phase::Air
@@ -251,39 +269,48 @@ pub(crate) fn solve_reactions(
                     if discriminant(&materials[checked_particle.material_id].1.phase)
                         == discriminant(&Phase::Air)
                         && current_particle.burning
+                        && current_particle.particle_health > 0_u16
                     {
-                        let default_case = vec![(current_particle.material_id, 1_f32)];
-                        for products in chemical_reactions
+                        if chemical_reactions
                             .fuel
                             .get(&current_particle.material_id)
-                            .unwrap_or(&default_case)
+                            .is_some()
                         {
-                            if *rng > (1_f32 - products.1) {
-                                checked_particle.material_id = products.0;
-                                checked_particle.temperature = *flame_temperature;
-                                checked_particle.display_color =
-                                    materials[products.0].1.material_color.color;
-                                break;
+                            for products in chemical_reactions
+                                .fuel
+                                .get(&current_particle.material_id)
+                                .unwrap()
+                            {
+                                if rng > (1_f32 - products.1) {
+                                    checked_particle.material_id = products.0;
+                                    checked_particle.temperature = *flame_temperature;
+                                    checked_particle.set_color(
+                                        materials,
+                                        _seeds[get_safe_i(height, width, &pos)],
+                                    );
+                                    unsafe {
+                                        write_particle(
+                                            slice_board,
+                                            get_safe_i(height, width, &pos),
+                                            checked_particle,
+                                            check_board,
+                                        )
+                                    };
+                                    break;
+                                }
                             }
                         }
-                        unsafe {
-                            write_particle(
-                                slice_board,
-                                get_safe_i(height, width, &(i, j)),
-                                checked_particle,
-                                check_board,
-                            )
-                        };
                     }
                 }
-                unsafe {
-                    write_particle(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        current_particle,
-                        check_board,
-                    )
-                };
+            }
+            current_particle.set_color(materials, _seeds[get_safe_i(height, width, &(i, j))]);
+            unsafe {
+                write_particle(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    current_particle,
+                    check_board,
+                )
             }
         }
         MaterialType::Machine {
@@ -313,25 +340,8 @@ pub(crate) fn solve_reactions(
                     {
                         current_particle.material_id =
                             prev_board[get_safe_i(height, width, &(i, j))].cloned_material;
-                        current_particle.display_color = materials[current_particle.material_id]
-                            .1
-                            .material_color
-                            .color;
-                        current_particle.display_color =
-                            current_particle.display_color.gamma_multiply(lerp(
-                                tuple_to_rangeinclusive(
-                                    materials[current_particle.material_id]
-                                        .1
-                                        .material_color
-                                        .shinyness,
-                                ),
-                                rngs[get_safe_i(height, width, &(i, j))],
-                            ));
-                        current_particle.display_color[3] = materials[current_particle.material_id]
-                            .1
-                            .material_color
-                            .color
-                            .a();
+                        current_particle
+                            .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
                         unsafe {
                             write_particle(
                                 slice_board,
@@ -345,21 +355,23 @@ pub(crate) fn solve_reactions(
             }
             MachineTypes::Sink => {
                 for pos in neumann_positions.into_iter() {
-                    if materials[prev_board[get_safe_i(height, width, &pos)].material_id]
-                        .1
-                        .material_type
-                        .get_machine_type()
-                        != MachineTypes::Sink
-                    {
-                        current_particle = Particle::default();
-                        unsafe {
-                            write_particle(
-                                slice_board,
-                                get_safe_i(height, width, &pos),
-                                current_particle,
-                                check_board,
-                            )
-                        };
+                    if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
+                        if materials[prev_board[get_safe_i(height, width, &pos)].material_id]
+                            .1
+                            .material_type
+                            .get_machine_type()
+                            != MachineTypes::Sink
+                        {
+                            current_particle = Particle::default();
+                            unsafe {
+                                write_particle(
+                                    slice_board,
+                                    get_safe_i(height, width, &pos),
+                                    current_particle,
+                                    check_board,
+                                )
+                            };
+                        }
                     }
                 }
             }

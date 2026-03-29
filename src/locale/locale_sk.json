@@ -37,6 +37,8 @@
   "eraser_tooltip": "Vyberie nástroj na mazanie.",
   "heat_button": "Ohrievanie",
   "heat_tooltip": "Vyberie nástroj na ohrievanie.",
+  "default_heat_button": "Štandard",
+  "default_heat_tooltip": "Vyberie nástroj na nastavenie normálnej teploty",
   "cool_button": "Chladenie",
   "cool_tooltip": "Vyberie nástroj na chladenie.",
   "rectangle_brush_tooltip": "Štvorec",

@@ -62,7 +62,6 @@ impl fmt::Display for MaterialType {
             MaterialType::Machine { machine: _ } => write!(f, "Machine"),
             MaterialType::Metal { reactivity: _ } => write!(f, "Metal"),
             MaterialType::Explosive {
-                burn_time: _,
                 ignition_temperature: _,
                 explosion_power: _,
             } => write!(f, "Explosive"),
@@ -104,7 +103,6 @@ impl MaterialType {
             } => include_image!("assets/cautomatas_icon.svg"),
             MaterialType::Ceramic => include_image!("assets/ceramics_icon.svg"),
             MaterialType::Explosive {
-                burn_time: _,
                 ignition_temperature: _,
                 explosion_power: _,
             } => {

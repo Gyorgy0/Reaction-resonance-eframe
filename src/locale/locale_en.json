@@ -37,6 +37,8 @@
   "eraser_tooltip": "Selects the eraser tool.",
   "heat_button": "Heat",
   "heat_tooltip": "Selects the heating tool.",
+  "default_heat_button": "Normal",
+  "default_heat_tooltip": "Selects the normal temperature tool.",
   "cool_button": "Cool",
   "cool_tooltip": "Selects the cooling tool.",
   "rectangle_brush_tooltip": "Rectangle",
