@@ -53,7 +53,9 @@ impl fmt::Display for MaterialType {
                 write!(f, "Corrosive")
             }
             MaterialType::Alloy { metals: _ } => write!(f, "Alloy"),
-            MaterialType::Ceramic => write!(f, "Ceramic"),
+            MaterialType::Ceramic {
+                chemical_resistance: _,
+            } => write!(f, "Ceramic"),
             MaterialType::CAutomata {
                 birth: _,
                 survival: _,
@@ -64,6 +66,7 @@ impl fmt::Display for MaterialType {
             MaterialType::Explosive {
                 ignition_temperature: _,
                 explosion_power: _,
+                flame_temperature: _,
             } => write!(f, "Explosive"),
             MaterialType::Fuel {
                 burn_time: _,
@@ -101,10 +104,13 @@ impl MaterialType {
                 birth: _,
                 stages: _,
             } => include_image!("assets/cautomatas_icon.svg"),
-            MaterialType::Ceramic => include_image!("assets/ceramics_icon.svg"),
+            MaterialType::Ceramic {
+                chemical_resistance: _,
+            } => include_image!("assets/ceramics_icon.svg"),
             MaterialType::Explosive {
                 ignition_temperature: _,
                 explosion_power: _,
+                flame_temperature: _,
             } => {
                 include_image!("assets/explosives_icon.svg")
             }

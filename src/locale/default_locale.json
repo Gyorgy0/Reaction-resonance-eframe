@@ -35,6 +35,8 @@
   "reset_tooltip": "Resets the board.",
   "eraser_button": "Eraser",
   "eraser_tooltip": "Selects the eraser tool.",
+  "mix_button": "Mix",
+  "mix_tooltip": "Selects the mixer tool.",
   "heat_button": "Heat",
   "heat_tooltip": "Selects the heating tool.",
   "default_heat_button": "Normal",

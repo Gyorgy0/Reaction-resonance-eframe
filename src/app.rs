@@ -169,7 +169,7 @@ impl Default for EFrameApp<'_> {
                 serde_json::from_reader(transition_path_sublimation.unwrap().as_slice()).unwrap();
 
             // Chemical reactions
-            let reaction_path_fuel = fs::read("src/chemistry/chemical_reactions_fuels.json");
+            let reaction_path_fuel = fs::read("src/chemistry/chemical_reactions_burning.json");
             serialized_reactions_fuels =
                 serde_json::from_reader(reaction_path_fuel.unwrap().as_slice()).unwrap();
         }
@@ -224,7 +224,7 @@ impl Default for EFrameApp<'_> {
 
             // Chemical reactions
             serialized_reactions_fuels =
-                from_str(&FILES.chemical_reactions.fuel_reactions).unwrap();
+                from_str(&FILES.chemical_reactions.burning_reactions).unwrap();
         }
 
         program_options.locale = locales;
@@ -604,6 +604,34 @@ impl eframe::App for EFrameApp<'_> {
                                                         &self.program_options.locale,
                                                         self.program_options.selected_locale,
                                                     )
+                                                    .mix_button
+                                                    .as_str(),
+                                                )
+                                                .heading()
+                                                .strong()
+                                                .monospace(),
+                                            )
+                                            .fill(Color32::from_rgba_unmultiplied(
+                                                69_u8, 28_u8, 10_u8, 255_u8,
+                                            ))
+                                            .stroke(Stroke::new(1_f32, Color32::WHITE))
+                                            .min_size(placed_button.intrinsic_size().unwrap()),
+                                        )
+                                        .clicked()
+                                    {
+                                        self.selected_tool = BrushTool::MixBrush;
+                                    }
+                                });
+                                ui.horizontal_centered(|ui| {
+                                    ui.style_mut().visuals.widgets.hovered.expansion = 1_f32;
+                                    if ui
+                                        .add(
+                                            egui::Button::new(
+                                                RichText::new(
+                                                    get_text(
+                                                        &self.program_options.locale,
+                                                        self.program_options.selected_locale,
+                                                    )
                                                     .heat_button
                                                     .as_str(),
                                                 )
@@ -650,7 +678,6 @@ impl eframe::App for EFrameApp<'_> {
                                             temp_delta: 0_f32,
                                             default_temp: true,
                                         };
-                                        println!("{:?}", self.selected_tool);
                                     }
                                 });
                                 ui.horizontal_centered(|ui| {
@@ -800,6 +827,7 @@ impl eframe::App for EFrameApp<'_> {
                     handle_mouse_input(
                         &mut self.game_board,
                         &self.materials,
+                        &mut self.rng,
                         &self.selected_tool,
                         board.clone(),
                     );
@@ -866,6 +894,7 @@ impl eframe::App for EFrameApp<'_> {
                     handle_mouse_input(
                         &mut self.game_board,
                         &self.materials,
+                        &mut self.rng,
                         &self.selected_tool,
                         board.clone(),
                     );

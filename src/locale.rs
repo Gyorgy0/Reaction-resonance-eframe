@@ -44,6 +44,8 @@ pub struct Locale {
     pub reset_tooltip: String,
     pub eraser_button: String,
     pub eraser_tooltip: String,
+    pub mix_button: String,
+    pub mix_tooltip: String,
     pub heat_button: String,
     pub heat_tooltip: String,
     pub default_heat_button: String,
@@ -113,10 +115,12 @@ impl Default for Locale {
             reset_tooltip: String::from("Resets the board."),
             eraser_button: String::from("Eraser"),
             eraser_tooltip: String::from("Selects the eraser tool."),
+            mix_button: String::from("Mix"),
+            mix_tooltip: String::from("Selects the mixer tool."),
             heat_button: String::from("Heat"),
             heat_tooltip: String::from("Selects the heating tool."),
-            default_heat_button: String::from("Default\ntemperature"),
-            default_heat_tooltip: String::from("Selects the default heat tool."),
+            default_heat_button: String::from("Normal"),
+            default_heat_tooltip: String::from("Selects the normal temperature tool."),
             cool_button: String::from("Cool"),
             cool_tooltip: String::from("Selects the cooling tool."),
             rectangle_brush_tooltip: String::from("Rectangle"),
@@ -129,7 +133,10 @@ impl Default for Locale {
                     String::from("Alloys"),
                 ),
                 (
-                    MaterialType::Ceramic.discriminant(),
+                    (MaterialType::Ceramic {
+                        chemical_resistance: f32::default(),
+                    })
+                    .discriminant(),
                     String::from("Ceramic and glass materials"),
                 ),
                 (

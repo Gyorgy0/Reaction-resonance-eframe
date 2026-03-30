@@ -1,10 +1,12 @@
 use crate::particle::Particle;
-use crate::physics::PhysicalReactions;
+use crate::physics::{Phase, PhysicalReactions};
 use crate::reactions::ChemicalReactions;
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::get_shape;
 use crate::{material::Material, world::*};
 use egui::{Key, Response, Vec2, lerp, pos2, vec2};
+use rand::rngs::SmallRng;
+use rand::seq::SliceRandom;
 use std::ops::{AddAssign, Not, RangeInclusive};
 use strum_macros::EnumIter;
 
@@ -12,6 +14,7 @@ use strum_macros::EnumIter;
 pub fn handle_mouse_input(
     game_board: &mut Board,
     materials: &Vec<(String, Material)>,
+    rng: &mut SmallRng,
     selected_tool: &BrushTool,
     response: Response,
 ) {
@@ -22,18 +25,62 @@ pub fn handle_mouse_input(
     if response.dragged_by(egui::PointerButton::Primary)
         || response.clicked_by(egui::PointerButton::Primary)
     {
-        for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
-            for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
-                let cellpos = get_safe_i(
-                    &(game_board.height as usize),
-                    &(game_board.width as usize),
-                    &((y + pos.y as i64) as usize, (x + pos.x as i64) as usize),
+        if selected_tool == &BrushTool::MixBrush {
+            let mut mixed_particles: Vec<Particle> = vec![];
+            let mut mixed_indices: Vec<usize> = vec![];
+            for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
+                for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
+                    let cellpos = get_safe_i(
+                        &(game_board.height as usize),
+                        &(game_board.width as usize),
+                        &((y + pos.y as i64) as usize, (x + pos.x as i64) as usize),
+                    );
+                    if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
+                        && game_board.contents.get(cellpos).is_some()
+                        && materials[game_board
+                            .contents
+                            .get(cellpos)
+                            .unwrap_or(&Particle::default())
+                            .material_id]
+                            .1
+                            .phase
+                            != Phase::Air
+                    {
+                        mixed_particles.push(*game_board.contents.get(cellpos).unwrap());
+                        mixed_indices.push(cellpos);
+                    }
+                }
+            }
+            mixed_indices.shuffle(rng);
+            for i in 0..mixed_indices.len() {
+                get_tool_action(
+                    materials,
+                    selected_tool,
+                    mixed_indices[i],
+                    &mixed_particles[i],
+                    game_board,
                 );
+            }
+        } else {
+            for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
+                for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
+                    let cellpos = get_safe_i(
+                        &(game_board.height as usize),
+                        &(game_board.width as usize),
+                        &((y + pos.y as i64) as usize, (x + pos.x as i64) as usize),
+                    );
 
-                if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
-                    && game_board.contents.get(cellpos).is_some()
-                {
-                    get_tool_action(materials, selected_tool, cellpos, game_board);
+                    if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
+                        && game_board.contents.get(cellpos).is_some()
+                    {
+                        get_tool_action(
+                            materials,
+                            selected_tool,
+                            cellpos,
+                            &Particle::default(),
+                            game_board,
+                        );
+                    }
                 }
             }
         }
@@ -128,7 +175,6 @@ pub(crate) enum BrushTool {
     MaterialBrush { selected_material: usize },
     ThermalBrush { temp_delta: f32, default_temp: bool },
     MixBrush,
-    EraseBrush,
 }
 impl BrushTool {
     pub fn get_selected_material(&self) -> usize {
@@ -168,6 +214,7 @@ pub fn get_tool_action(
     materials: &Vec<(String, Material)>,
     selected_tool: &BrushTool,
     cellpos: usize,
+    particle: &Particle,
     game_board: &mut Board,
 ) {
     match selected_tool {
@@ -225,11 +272,8 @@ pub fn get_tool_action(
             unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
         }
 
-        BrushTool::MixBrush => todo!(),
-
-        BrushTool::EraseBrush => {
-            let new_particle = Particle::default();
-            unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
+        BrushTool::MixBrush => {
+            unsafe { write_particle_seq(&game_board.contents, cellpos, *particle) };
         }
     }
 }

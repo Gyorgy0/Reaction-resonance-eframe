@@ -671,7 +671,9 @@
             "durability": -1,
             "material_color": {
                 "color": [
-                    143, 144, 0,
+                    143,
+                    144,
+                    0,
                     255
                 ],
                 "shinyness": [

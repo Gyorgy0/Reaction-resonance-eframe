@@ -106,7 +106,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsAir"
+                    "reactivity": "Air"
                 }
             },
             "initial_temperature": 473.65,
@@ -141,7 +141,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsAir"
+                    "reactivity": "Air"
                 }
             },
             "initial_temperature": 390.944,
@@ -176,7 +176,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsAir"
+                    "reactivity": "Air"
                 }
             },
             "initial_temperature": 356.7,
@@ -211,7 +211,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsAir"
+                    "reactivity": "Air"
                 }
             },
             "initial_temperature": 332.45,
@@ -246,7 +246,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsAir"
+                    "reactivity": "Air"
                 }
             },
             "initial_temperature": 321.7,
@@ -263,6 +263,284 @@
                 "shinyness": [
                     1.05,
                     1.35
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_SULFUR",
+        {
+            "id": 58,
+            "density": 1.81,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 2000.0,
+                    "melting_point": 388.36,
+                    "boiling_point": 717.8
+                }
+            },
+            "material_type": {
+                "Fuel": {
+                    "burn_time": 400,
+                    "ignition_temperature": 717.8,
+                    "flame_temperature": 1173.15
+                }
+            },
+            "initial_temperature": 408.36,
+            "heat_capacity": 0.71,
+            "heat_conductivity": 0.0021,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    231,
+                    0,
+                    0,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_OXYGEN",
+        {
+            "id": 61,
+            "density": 1.14,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 3.0,
+                    "melting_point": 54.36,
+                    "boiling_point": 90.188
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "combustion_speedup": 1.4
+                }
+            },
+            "initial_temperature": 74.36,
+            "heat_capacity": 0.92,
+            "heat_conductivity": 0.27,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    0,
+                    185,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_COPPER",
+        {
+            "id": 64,
+            "density": 8.02,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "boiling_point": 2835,
+                    "melting_point": 1357.77
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 1457.77,
+            "heat_capacity": 0.757,
+            "heat_conductivity": 1.025,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    152,
+                    51,
+                    34,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_GOLD",
+        {
+            "id": 67,
+            "density": 17.31,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "boiling_point": 3243,
+                    "melting_point": 1337.33
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 1437.77,
+            "heat_capacity": 0.129,
+            "heat_conductivity": 3.18,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    252,
+                    189,
+                    22,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_IRON",
+        {
+            "id": 70,
+            "density": 6.98,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "boiling_point": 3134,
+                    "melting_point": 1811
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 1911,
+            "heat_capacity": 0.129,
+            "heat_conductivity": 0.804,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    188,
+                    186,
+                    189,
+                    255
+                ],
+                "shinyness": [
+                    1.0,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_TIN",
+        {
+            "id": 73,
+            "density": 6.99,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "boiling_point": 2875,
+                    "melting_point": 505.08
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 555.08,
+            "heat_capacity": 0.228,
+            "heat_conductivity": 0.668,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    213,
+                    213,
+                    205,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_ZINC",
+        {
+            "id": 76,
+            "density": 6.57,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "boiling_point": 1180,
+                    "melting_point": 692.68
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 792.68,
+            "heat_capacity": 0.228,
+            "heat_conductivity": 0.668,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    197,
+                    197,
+                    197,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_NITROGEN",
+        {
+            "id": 78,
+            "density": 0.81,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 1.0,
+                    "boiling_point": 77.355,
+                    "melting_point": 63.23
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 65.23,
+            "heat_capacity": 1.04,
+            "heat_conductivity": 0.00026,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    195,
+                    195,
+                    195,
+                    195
+                ],
+                "shinyness": [
+                    1.0,
+                    1.1
                 ]
             }
         }

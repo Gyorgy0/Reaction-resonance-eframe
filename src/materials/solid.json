@@ -146,7 +146,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsWater"
+                    "reactivity": "Water"
                 }
             },
             "initial_temperature": 293.15,
@@ -180,7 +180,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsWater"
+                    "reactivity": "Water"
                 }
             },
             "initial_temperature": 293.15,
@@ -214,7 +214,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsWater"
+                    "reactivity": "Water"
                 }
             },
             "initial_temperature": 293.15,
@@ -248,7 +248,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsWater"
+                    "reactivity": "Air"
                 }
             },
             "initial_temperature": 293.15,
@@ -282,7 +282,7 @@
             },
             "material_type": {
                 "Metal": {
-                    "reactivity": "ReactsWater"
+                    "reactivity": "Air"
                 }
             },
             "initial_temperature": 293.15,
@@ -329,6 +329,236 @@
                 "shinyness": [
                     1.05,
                     1.35
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::SULFUR",
+        {
+            "id": 57,
+            "density": 2.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": 388.36,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 273.15,
+            "heat_capacity": 0.71,
+            "heat_conductivity": 0.0021,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    231,
+                    191,
+                    0,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::COPPER",
+        {
+            "id": 62,
+            "density": 8.935,
+            "phase": {
+                "Solid": {
+                    "melting_point": 1357.77,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "StrongAcids"
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.385,
+            "heat_conductivity": 4.01,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    198,
+                    69,
+                    41,
+                    255
+                ],
+                "shinyness": [
+                    1.05,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::GOLD",
+        {
+            "id": 65,
+            "density": 19.283,
+            "phase": {
+                "Solid": {
+                    "melting_point": 1337.33,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "AquaRegia"
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.129,
+            "heat_conductivity": 3.18,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    252,
+                    189,
+                    22,
+                    255
+                ],
+                "shinyness": [
+                    1.05,
+                    1.75
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::IRON",
+        {
+            "id": 68,
+            "density": 7.874,
+            "phase": {
+                "Solid": {
+                    "melting_point": 1811,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.129,
+            "heat_conductivity": 0.804,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    188,
+                    186,
+                    189,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::TIN",
+        {
+            "id": 71,
+            "density": 7.289,
+            "phase": {
+                "Solid": {
+                    "melting_point": 505.08,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.228,
+            "heat_conductivity": 0.668,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    213,
+                    213,
+                    205,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::ZINC",
+        {
+            "id": 74,
+            "density": 7.14,
+            "phase": {
+                "Solid": {
+                    "melting_point": 692.68,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Metal": {
+                    "reactivity": "WeakAcids"
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.39,
+            "heat_conductivity": 1.16,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    197,
+                    197,
+                    197,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::NITROGEN_ICE",
+        {
+            "id": 79,
+            "density": 0.81,
+            "phase": {
+                "Solid": {
+                    "melting_point": 63.23,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 43.23,
+            "heat_capacity": 1.04,
+            "heat_conductivity": 0.00026,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    195,
+                    195,
+                    195,
+                    195
+                ],
+                "shinyness": [
+                    0.95,
+                    1.0
                 ]
             }
         }
