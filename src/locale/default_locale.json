@@ -100,6 +100,15 @@
     "LIQUID::MOLTEN_SODIUM": "",
     "LIFE::HIGH_LIFE": "",
     "POWDER::ASH": "",
+    "GAS::FlUORINE": "",
+    "GAS::CHLORINE": "",
+    "GAS::HYDROGEN_FLUORIDE": "",
+    "GAS::HYDROGEN_CHLORIDE": "",
+    "GAS::FLUORINE_AND_HYDROGEN": "",
+    "GAS::CHLORINE_AND_HYDROGEN": "",
+    "GAS::OZONE": "",
+    "SOLID::BRONZE": "",
+    "LIQUID::MOLTEN_BRONZE": "",
     "": ""
   },
   "category_names": {

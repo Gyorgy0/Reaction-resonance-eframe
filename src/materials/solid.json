@@ -554,11 +554,54 @@
                     195,
                     195,
                     195,
-                    195
+                    255
                 ],
                 "shinyness": [
                     0.95,
                     1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::BRONZE",
+        {
+            "id": 89,
+            "density": 8.8,
+            "phase": {
+                "Solid": {
+                    "melting_point": 1018.15,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": {
+                "Alloy": {
+                    "metals": [
+                        [
+                            63,
+                            0.75
+                        ],
+                        [
+                            72,
+                            0.25
+                        ]
+                    ]
+                }
+            },
+            "initial_temperature": 43.23,
+            "heat_capacity": 0.435,
+            "heat_conductivity": 0.26,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    149,
+                    126,
+                    58,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
                 ]
             }
         }

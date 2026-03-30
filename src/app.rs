@@ -97,7 +97,8 @@ impl Default for EFrameApp<'_> {
         let serialized_transition_boiling: AHashMap<usize, Vec<(usize, f32)>>;
         let serialized_transition_sublimation: AHashMap<usize, usize>;
 
-        let serialized_reactions_fuels: AHashMap<usize, Vec<(usize, f32)>>;
+        let serialized_reactions_burning: AHashMap<usize, Vec<(usize, f32)>>;
+        let serialized_reactions_mingling: AHashMap<String, Vec<(usize, f32)>>;
         // This is for the PC platform (locale and materials and their reactions are serialized from files)
         #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
         {
@@ -106,17 +107,20 @@ impl Default for EFrameApp<'_> {
             /*// This is for serializing particles/components with new fields and enums - testing purposes
 
             //let mut materialhash: AHashMap<String, Material> = AHashMap::from([(String::new(), VOID.clone())]);
-            let mut types: Vec<MaterialType> = vec![];
-            for material_type in MaterialType::iter() {
-                types.push(material_type);
-            }
-            let data = serde_json::to_string(&types).unwrap();
+            let mut mingling_reactions: AHashMap<String, Vec<(usize, f32)>> = AHashMap::new();
+            mingling_reactions.insert(
+                String::from(format!(
+                    "({:?},{:?}),({:?},{:?})",
+                    42_usize, 1_f32, 82_usize, 1_f32
+                )),
+                vec![(86_usize, 1.0_f32)],
+            );
+            let data = serde_json::to_string(&mingling_reactions).unwrap();
             println!("{:?}", data);
             fs::write("src/new.json", data).unwrap();
             let serialized_data: AHashMap<String, Vec<(usize, f32)>> =
                 serde_json::from_reader(fs::read("src/new.json").unwrap().as_slice()).unwrap();
-            println!("{:?}", serialized_data);
-            */
+            println!("{:?}", serialized_data);*/
 
             // Locale
             let paths = fs::read_dir("src/locale").unwrap();
@@ -166,14 +170,17 @@ impl Default for EFrameApp<'_> {
             let transition_path_sublimation =
                 fs::read("src/physics/phase_transitions_sublimation.json");
             serialized_transition_sublimation =
-                serde_json::from_reader(transition_path_sublimation.unwrap().as_slice()).unwrap();
+                serde_json::from_slice(transition_path_sublimation.unwrap().as_slice()).unwrap();
 
             // Chemical reactions
-            let reaction_path_fuel = fs::read("src/chemistry/chemical_reactions_burning.json");
-            serialized_reactions_fuels =
-                serde_json::from_reader(reaction_path_fuel.unwrap().as_slice()).unwrap();
-        }
+            let reaction_path_burning = fs::read("src/chemistry/chemical_reactions_burning.json");
+            serialized_reactions_burning =
+                serde_json::from_reader(reaction_path_burning.unwrap().as_slice()).unwrap();
+            let reaction_path_mingling = fs::read("src/chemistry/chemical_reactions_mingling.json");
 
+            serialized_reactions_mingling =
+                serde_json::from_slice(reaction_path_mingling.unwrap().as_slice()).unwrap();
+        }
         #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
         {
             use serde_json::from_str;
@@ -223,8 +230,10 @@ impl Default for EFrameApp<'_> {
                 from_str(&FILES.physics_transition.sublimation_transitions).unwrap();
 
             // Chemical reactions
-            serialized_reactions_fuels =
+            serialized_reactions_burning =
                 from_str(&FILES.chemical_reactions.burning_reactions).unwrap();
+            serialized_reactions_mingling =
+                from_str(&FILES.chemical_reactions.mingling_reactions).unwrap();
         }
 
         program_options.locale = locales;
@@ -262,7 +271,10 @@ impl Default for EFrameApp<'_> {
                 serialized_transition_boiling,
                 serialized_transition_sublimation,
             ),
-            chemical_reactions: ChemicalReactions::new(serialized_reactions_fuels),
+            chemical_reactions: ChemicalReactions::new(
+                serialized_reactions_burning,
+                serialized_reactions_mingling,
+            ),
             debug_text_job,
             game_board,
             materials,

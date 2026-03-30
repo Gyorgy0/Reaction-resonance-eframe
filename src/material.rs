@@ -3,7 +3,11 @@ use std::ops::RangeInclusive;
 use egui::Color32;
 use serde::{Deserialize, Serialize};
 
-use crate::{physics::Phase, reactions::MaterialType, world::MaterialColor};
+use crate::{
+    physics::Phase,
+    reactions::{MaterialType, OxidizingAgent},
+    world::MaterialColor,
+};
 
 #[rustfmt::skip]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
@@ -28,7 +32,8 @@ pub static AIR: Material = Material {
     density: 0.0012041_f32,
     phase: Phase::Air,
     material_type: MaterialType::Oxidizer {
-        combustion_speedup: 0.0_f32,
+        oxidizing_agent: OxidizingAgent::Oxygen,
+        combustion_speedup: 1.0_f32,
     },
     initial_temperature: 293.15_f32,
     heat_capacity: 1.006_f32,

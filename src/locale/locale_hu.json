@@ -128,6 +128,15 @@
     "SOLID::NITROGEN_ICE": "Nitrogén jég",
     "POWDER::POWDERED_NITROGEN_ICE": "Nitrogén jégpor",
     "POWDER::GUNPOWDER": "Puskapor",
+    "GAS::FlUORINE": "Fluor",
+    "GAS::CHLORINE": "Klór",
+    "GAS::HYDROGEN_FLUORIDE": "Hidrogén-fluorid",
+    "GAS::HYDROGEN_CHLORIDE": "Hidrogén-klorid",
+    "GAS::FLUORINE_AND_HYDROGEN": "Fluor és hidrogén",
+    "GAS::CHLORINE_AND_HYDROGEN": "Klór és hidrogén",
+    "GAS::OZONE": "Ózon",
+    "SOLID::BRONZE": "Bronz",
+    "LIQUID::MOLTEN_BRONZE": "Olvadt bronz",
     "": ""
   },
   "category_names": {

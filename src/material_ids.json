@@ -326,5 +326,41 @@
   [
     81,
     "POWDER::GUNPOWDER"
+  ],
+  [
+    82,
+    "GAS::FlUORINE"
+  ],
+  [
+    83,
+    "GAS::CHLORINE"
+  ],
+  [
+    84,
+    "GAS::HYDROGEN_FLUORIDE"
+  ],
+  [
+    85,
+    "GAS::HYDROGEN_CHLORIDE"
+  ],
+  [
+    86,
+    "GAS::FLUORINE_AND_HYDROGEN"
+  ],
+  [
+    87,
+    "GAS::CHLORINE_AND_HYDROGEN"
+  ],
+  [
+    88,
+    "GAS::OZONE"
+  ],
+  [
+    89,
+    "SOLID::BRONZE"
+  ],
+  [
+    90,
+    "LIQUID::MOLTEN_BRONZE"
   ]
 ]

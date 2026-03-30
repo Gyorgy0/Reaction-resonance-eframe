@@ -318,6 +318,7 @@
             },
             "material_type": {
                 "Oxidizer": {
+                    "oxidizing_agent": "Oxygen",
                     "combustion_speedup": 1.4
                 }
             },
@@ -541,6 +542,50 @@
                 "shinyness": [
                     1.0,
                     1.1
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_BRONZE",
+        {
+            "id": 90,
+            "density": 8.2,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 3.0,
+                    "boiling_point": 2835,
+                    "melting_point": 1018.15
+                }
+            },
+             "material_type": {
+                "Alloy": {
+                    "metals": [
+                        [
+                            63,
+                            0.75
+                        ],
+                        [
+                            72,
+                            0.25
+                        ]
+                    ]
+                }
+            },
+            "initial_temperature": 1118.15,
+            "heat_capacity": 0.228,
+            "heat_conductivity": 0.668,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    149,
+                    126,
+                    58,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.0
                 ]
             }
         }

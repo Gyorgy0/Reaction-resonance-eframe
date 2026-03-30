@@ -210,6 +210,7 @@
             },
             "material_type": {
                 "Oxidizer": {
+                    "oxidizing_agent": "Oxygen",
                     "combustion_speedup": 1.3
                 }
             },
@@ -257,6 +258,243 @@
                 "shinyness": [
                     0.95,
                     1.05
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::FlUORINE",
+        {
+            "id": 82,
+            "density": 0.0017,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 85.03,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "oxidizing_agent": "Fluorine",
+                    "combustion_speedup": 1.25
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.824,
+            "heat_conductivity": 0.00026,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    150,
+                    156,
+                    50,
+                    195
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::CHLORINE",
+        {
+            "id": 83,
+            "density": 0.0032,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 239.11,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "oxidizing_agent": "Chlorine",
+                    "combustion_speedup": 1.22
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.479,
+            "heat_conductivity": 0.00009,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    102,
+                    156,
+                    50,
+                    195
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::HYDROGEN_FLUORIDE",
+        {
+            "id": 84,
+            "density": 0.0012,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 292.6,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.824,
+            "heat_conductivity": 0.00026,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    216,
+                    216,
+                    186,
+                    186
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::HYDROGEN_CHLORIDE",
+        {
+            "id": 85,
+            "density": 0.0015,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 188.1,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.479,
+            "heat_conductivity": 0.00009,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    186,
+                    216,
+                    186,
+                    195
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::FLUORINE_AND_HYDROGEN",
+        {
+            "id": 86,
+            "density": 0.00121,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 85.03,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": {
+                "Explosive": {
+                    "ignition_temperature": 408.15,
+                    "explosion_power": 6.6,
+                    "flame_temperature": 1318.15
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.824,
+            "heat_conductivity": 0.00026,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    220,
+                    220,
+                    195,
+                    195
+                ],
+                "shinyness": [
+                    0.9,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::CHLORINE_AND_HYDROGEN",
+        {
+            "id": 87,
+            "density": 0.00151,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 239.11,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": {
+                "Explosive": {
+                    "ignition_temperature": 408.15,
+                    "explosion_power": 6.6,
+                    "flame_temperature": 1318.15
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.479,
+            "heat_conductivity": 0.00009,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    195,
+                    220,
+                    195,
+                    195
+                ],
+                "shinyness": [
+                    0.9,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::OZONE",
+        {
+            "id": 88,
+            "density": 0.00214,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 161,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "oxidizing_agent": "Oxygen",
+                    "combustion_speedup": 1.37
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.92,
+            "heat_conductivity": 0.00027,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    95,
+                    155,
+                    255,
+                    195
+                ],
+                "shinyness": [
+                    0.9,
+                    1.1
                 ]
             }
         }

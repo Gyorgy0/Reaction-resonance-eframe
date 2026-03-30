@@ -74,6 +74,7 @@ impl fmt::Display for MaterialType {
                 flame_temperature: _,
             } => write!(f, "Fuel"),
             MaterialType::Oxidizer {
+                oxidizing_agent: _,
                 combustion_speedup: _,
             } => write!(f, "Oxidizer"),
             MaterialType::Decor => write!(f, "Decor"),
@@ -122,6 +123,7 @@ impl MaterialType {
             MaterialType::Machine { machine: _ } => include_image!("assets/machines_icon.svg"),
             MaterialType::Metal { reactivity: _ } => include_image!("assets/metals_icon.svg"),
             MaterialType::Oxidizer {
+                oxidizing_agent: _,
                 combustion_speedup: _,
             } => include_image!("assets/oxidizers_icon.svg"),
             MaterialType::Decor => include_image!("assets/decors_icon.svg"),

@@ -14,9 +14,8 @@ pub struct PhysicsFolder<'a> {
 }
 
 pub struct ChemistryFolder<'a> {
-    pub alloy_reactions: &'a str,
     pub burning_reactions: &'a str,
-    pub metal_reactions: &'a str,
+    pub mingling_reactions: &'a str,
 }
 
 pub struct LocaleFolder<'a> {
@@ -54,9 +53,8 @@ const PHYSICS_FILES: PhysicsFolder = PhysicsFolder {
     sublimation_transitions: include_str!("physics/phase_transitions_sublimation.json"),
 };
 const CHEMISTRY_FILES: ChemistryFolder = ChemistryFolder {
-    alloy_reactions: include_str!("chemistry/chemical_reactions_alloys.json"),
     burning_reactions: include_str!("chemistry/chemical_reactions_burning.json"),
-    metal_reactions: include_str!("chemistry/chemical_reactions_metals.json"),
+    mingling_reactions: include_str!("chemistry/chemical_reactions_mingling.json"),
 };
 const LOCALE_FILES: LocaleFolder = LocaleFolder {
     locale_en: include_str!("locale/locale_en.json"),

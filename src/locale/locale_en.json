@@ -128,6 +128,15 @@
     "SOLID::NITROGEN_ICE": "Nitrogen ice",
     "POWDER::POWDERED_NITROGEN_ICE": "Powdered nitrogen ice",
     "POWDER::GUNPOWDER": "Gunpowder",
+    "GAS::FlUORINE": "Fluorine",
+    "GAS::CHLORINE": "Chlorine",
+    "GAS::HYDROGEN_FLUORIDE": "Hydrogen fluoride",
+    "GAS::HYDROGEN_CHLORIDE": "Hydrogen chloride",
+    "GAS::FLUORINE_AND_HYDROGEN": "Fluorine and hydrogen",
+    "GAS::CHLORINE_AND_HYDROGEN": "Chlorine and hydrogen",
+    "GAS::OZONE": "Ozone",
+    "SOLID::BRONZE": "Bronze",
+    "LIQUID::MOLTEN_BRONZE": "Molten bronze",
     "": ""
   },
   "category_names": {

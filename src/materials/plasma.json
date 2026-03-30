@@ -28,7 +28,7 @@
         "PLASMA::SULFUR",
         {
             "id": 55,
-            "density": 0.0002109,
+            "density": 0.001431,
             "phase": "Plasma",
             "material_type": "Solution",
             "initial_temperature": 1073.15,
