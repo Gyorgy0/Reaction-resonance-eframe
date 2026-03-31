@@ -42,11 +42,7 @@
             "machine": "Cloner"
         }
     },
-    {
-        "Metal": {
-            "reactivity": "WeakAcids"
-        }
-    },
+    "Metal",
     {
         "Oxidizer": {
             "oxidizing_agent": "Oxygen",

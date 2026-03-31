@@ -1,12 +1,12 @@
 use crate::{
     material::{Material, tuple_to_rangeinclusive},
     particle::{AtomicParticle, Particle},
+    reactions::PhaseTransition,
     world::{
         AtomicComparedSlice, get_safe_i, swap_particle, temp_exchange, write_particle,
         write_x_speed_field, write_y_speed_field,
     },
 };
-use egui::ahash::AHashMap;
 use egui::{Color32, lerp};
 use serde::{Deserialize, Serialize};
 use std::{mem::discriminant, sync::Arc};
@@ -87,16 +87,16 @@ pub const BLACK_BODY_RADIATION_COLORS: [(f32, Color32); 17] = [
 ];
 
 pub struct PhysicalReactions {
-    pub(crate) melting: AHashMap<usize, usize>,
-    pub(crate) boiling: AHashMap<usize, Vec<(usize, f32)>>,
-    pub(crate) sublimation: AHashMap<usize, usize>,
+    pub(crate) melting: Vec<PhaseTransition>,
+    pub(crate) boiling: Vec<PhaseTransition>,
+    pub(crate) sublimation: Vec<PhaseTransition>,
 }
 
 impl PhysicalReactions {
     pub fn new(
-        melting: AHashMap<usize, usize>,
-        boiling: AHashMap<usize, Vec<(usize, f32)>>,
-        sublimation: AHashMap<usize, usize>,
+        melting: Vec<PhaseTransition>,
+        boiling: Vec<PhaseTransition>,
+        sublimation: Vec<PhaseTransition>,
     ) -> Self {
         Self {
             melting,
@@ -1417,23 +1417,53 @@ pub fn phase_change(
             if *melting_point < current_particle.temperature
                 && physical_transitions
                     .melting
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
                 && *sublimation_point < 0_f32
             {
-                new_particle.material_id = *physical_transitions
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
+                for materials in physical_transitions
                     .melting
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
+                    .unwrap_or(&default_case)
+                    .to
+                    .clone()
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
             } else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
                 && *melting_point < 0_f32
             {
-                new_particle.material_id = *physical_transitions
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
+                for materials in physical_transitions
                     .sublimation
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
+                    .unwrap_or(&default_case)
+                    .to
+                    .clone()
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
             } else {
                 return None;
             }
@@ -1445,22 +1475,52 @@ pub fn phase_change(
             if *melting_point < current_particle.temperature
                 && physical_transitions
                     .melting
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
             {
-                new_particle.material_id = *physical_transitions
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
+                for materials in physical_transitions
                     .melting
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
+                    .unwrap_or(&default_case)
+                    .to
+                    .clone()
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
             } else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
                 && *melting_point < 0_f32
             {
-                new_particle.material_id = *physical_transitions
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
+                for materials in physical_transitions
                     .sublimation
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
+                    .unwrap_or(&default_case)
+                    .to
+                    .clone()
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
             } else {
                 return None;
             }
@@ -1474,23 +1534,47 @@ pub fn phase_change(
             if *melting_point > current_particle.temperature
                 && physical_transitions
                     .melting
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
             {
-                new_particle.material_id = *physical_transitions
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
+                for materials in physical_transitions
                     .melting
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
+                    .unwrap_or(&default_case)
+                    .to
+                    .clone()
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
             // Boiling/evaporation (liquid -> gas)
             } else if *boiling_point < current_particle.temperature
                 && physical_transitions
                     .boiling
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
             {
-                let default_case = vec![(current_particle.material_id, 1_f32)];
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
                 for materials in physical_transitions
                     .boiling
-                    .get(&current_particle.material_id)
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
                     .unwrap_or(&default_case)
+                    .to
+                    .clone()
                 {
                     if rng > (1_f32 - materials.1) {
                         new_particle.material_id = materials.0;
@@ -1507,13 +1591,22 @@ pub fn phase_change(
             if *boiling_point > current_particle.temperature
                 && physical_transitions
                     .boiling
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
             {
-                let default_case = vec![(current_particle.material_id, 1_f32)];
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
                 for materials in physical_transitions
                     .boiling
-                    .get(&current_particle.material_id)
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
                     .unwrap_or(&default_case)
+                    .to
+                    .clone()
                 {
                     if rng > (1_f32 - materials.1) {
                         new_particle.material_id = materials.0;
@@ -1522,13 +1615,28 @@ pub fn phase_change(
             } else if *sublimation_point > current_particle.temperature
                 && physical_transitions
                     .sublimation
-                    .contains_key(&current_particle.material_id)
+                    .iter()
+                    .any(|original_material| original_material.from == current_particle.material_id)
                 && *boiling_point < 0_f32
             {
-                new_particle.material_id = *physical_transitions
+                let default_case = PhaseTransition {
+                    from: current_particle.material_id,
+                    to: vec![(current_particle.material_id, 1.0)],
+                };
+                for materials in physical_transitions
                     .sublimation
-                    .get(&current_particle.material_id)
-                    .unwrap_or(&current_particle.material_id);
+                    .iter()
+                    .find(|original_material| {
+                        original_material.from == current_particle.material_id
+                    })
+                    .unwrap_or(&default_case)
+                    .to
+                    .clone()
+                {
+                    if rng > (1_f32 - materials.1) {
+                        new_particle.material_id = materials.0;
+                    }
+                }
             } else {
                 return None;
             }

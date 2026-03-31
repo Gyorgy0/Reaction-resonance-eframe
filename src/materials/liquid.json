@@ -104,11 +104,7 @@
                     "melting_point": 453.65
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Air"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 473.65,
             "heat_capacity": 3.5821,
             "heat_conductivity": 0.848,
@@ -139,11 +135,7 @@
                     "melting_point": 370.944
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Air"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 390.944,
             "heat_capacity": 1.228,
             "heat_conductivity": 1.42,
@@ -174,11 +166,7 @@
                     "melting_point": 336.7
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Air"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 356.7,
             "heat_capacity": 0.757,
             "heat_conductivity": 1.025,
@@ -209,11 +197,7 @@
                     "melting_point": 312.45
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Air"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 332.45,
             "heat_capacity": 0.363,
             "heat_conductivity": 0.582,
@@ -244,11 +228,7 @@
                     "melting_point": 301.7
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Air"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 321.7,
             "heat_capacity": 0.242,
             "heat_conductivity": 0.359,
@@ -352,11 +332,7 @@
                     "melting_point": 1357.77
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 1457.77,
             "heat_capacity": 0.757,
             "heat_conductivity": 1.025,
@@ -387,11 +363,7 @@
                     "melting_point": 1337.33
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 1437.77,
             "heat_capacity": 0.129,
             "heat_conductivity": 3.18,
@@ -422,11 +394,7 @@
                     "melting_point": 1811
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 1911,
             "heat_capacity": 0.129,
             "heat_conductivity": 0.804,
@@ -457,11 +425,7 @@
                     "melting_point": 505.08
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 555.08,
             "heat_capacity": 0.228,
             "heat_conductivity": 0.668,
@@ -492,11 +456,7 @@
                     "melting_point": 692.68
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 792.68,
             "heat_capacity": 0.228,
             "heat_conductivity": 0.668,

@@ -1,8 +1,8 @@
 [
     {
-        "reagents": [
+        "burn_reagents": [
             0,
-            0
+            "Oxygen"
         ],
         "products": [
             [

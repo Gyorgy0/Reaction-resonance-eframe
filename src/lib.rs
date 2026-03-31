@@ -11,7 +11,7 @@ mod reactions;
 mod system_data;
 mod system_ui;
 mod world;
-pub use app::EFrameApp;
+pub use crate::system_data::EFrameApp;
 
 pub use wasm_bindgen_rayon::init_thread_pool;
 // When compiling to Android

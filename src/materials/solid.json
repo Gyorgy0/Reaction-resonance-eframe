@@ -144,11 +144,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Water"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 3.5821,
             "heat_conductivity": 0.848,
@@ -178,11 +174,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Water"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 1.228,
             "heat_conductivity": 1.42,
@@ -212,11 +204,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Water"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.757,
             "heat_conductivity": 1.025,
@@ -246,11 +234,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Air"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.363,
             "heat_conductivity": 0.582,
@@ -280,11 +264,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "Air"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.242,
             "heat_conductivity": 0.359,
@@ -374,11 +354,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "StrongAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.385,
             "heat_conductivity": 4.01,
@@ -408,11 +384,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "AquaRegia"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.129,
             "heat_conductivity": 3.18,
@@ -442,11 +414,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.129,
             "heat_conductivity": 0.804,
@@ -476,11 +444,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.228,
             "heat_conductivity": 0.668,
@@ -510,11 +474,7 @@
                     "sublimation_point": -1.0
                 }
             },
-            "material_type": {
-                "Metal": {
-                    "reactivity": "WeakAcids"
-                }
-            },
+            "material_type": "Metal",
             "initial_temperature": 293.15,
             "heat_capacity": 0.39,
             "heat_conductivity": 1.16,

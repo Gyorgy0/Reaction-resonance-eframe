@@ -140,12 +140,7 @@ impl Default for Locale {
                     String::from("Ceramic and glass materials"),
                 ),
                 (
-                    (MaterialType::Corrosive {
-                        ph_value: f32::default(),
-                        blacklist: bool::default(),
-                        material_list: vec![],
-                    })
-                    .discriminant(),
+                    MaterialType::Corrosive.discriminant(),
                     String::from("Corrosive materials"),
                 ),
                 (
