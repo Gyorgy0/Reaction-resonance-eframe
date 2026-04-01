@@ -1,0 +1,92 @@
+[
+    [
+        "POWDER::POWDERED_LITHIUM",
+        {
+            "id": 37,
+            "density": 0.5334,
+            "phase": {
+                "Powder": {
+                    "melting_point": 453.65,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 3.5821,
+            "heat_conductivity": 0.848,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    146,
+                    143,
+                    126,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "POWDER::POWDERED_RUBIDIUM",
+        {
+            "id": 40,
+            "density": 1.534,
+            "phase": {
+                "Powder": {
+                    "melting_point": 312.45,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.363,
+            "heat_conductivity": 0.582,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    163,
+                    161,
+                    159,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "POWDER::POWDERED_CAESIUM",
+        {
+            "id": 41,
+            "density": 1.886,
+            "phase": {
+                "Powder": {
+                    "melting_point": 301.7,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.242,
+            "heat_conductivity": 0.359,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    107,
+                    102,
+                    44,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ]
+]

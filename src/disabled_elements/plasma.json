@@ -1,0 +1,77 @@
+[
+    [
+        "PLASMA::LITHIUM_FLAME",
+        {
+            "id": 103,
+            "density": 0.0002109,
+            "phase": "Plasma",
+            "material_type": "Solution",
+            "initial_temperature": 1673.15,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0081,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    54,
+                    98,
+                    32
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "PLASMA::RUBIDIUM_FLAME",
+        {
+            "id": 106,
+            "density": 0.0002109,
+            "phase": "Plasma",
+            "material_type": "Solution",
+            "initial_temperature": 1673.15,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0081,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    123,
+                    255,
+                    32
+                ],
+                "shinyness": [
+                    0.95,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "PLASMA::CAESIUM_FLAME",
+        {
+            "id": 107,
+            "density": 0.0002109,
+            "phase": "Plasma",
+            "material_type": "Solution",
+            "initial_temperature": 1673.15,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0081,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    110,
+                    65,
+                    255,
+                    32
+                ],
+                "shinyness": [
+                    0.95,
+                    1.1
+                ]
+            }
+        }
+    ]
+]

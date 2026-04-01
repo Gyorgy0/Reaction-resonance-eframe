@@ -93,40 +93,9 @@
         }
     ],
     [
-        "LIQUID::MOLTEN_LITHIUM",
-        {
-            "id": 44,
-            "density": 0.512,
-            "phase": {
-                "Liquid": {
-                    "viscosity": 2.0,
-                    "boiling_point": 1617,
-                    "melting_point": 453.65
-                }
-            },
-            "material_type": "Metal",
-            "initial_temperature": 473.65,
-            "heat_capacity": 3.5821,
-            "heat_conductivity": 0.848,
-            "durability": 50,
-            "material_color": {
-                "color": [
-                    146,
-                    143,
-                    126,
-                    255
-                ],
-                "shinyness": [
-                    0.95,
-                    1.05
-                ]
-            }
-        }
-    ],
-    [
         "LIQUID::MOLTEN_SODIUM",
         {
-            "id": 45,
+            "id": 38,
             "density": 0.927,
             "phase": {
                 "Liquid": {
@@ -157,7 +126,7 @@
     [
         "LIQUID::MOLTEN_POTASSIUM",
         {
-            "id": 46,
+            "id": 39,
             "density": 0.82948,
             "phase": {
                 "Liquid": {
@@ -186,71 +155,9 @@
         }
     ],
     [
-        "LIQUID::MOLTEN_RUBIDIUM",
-        {
-            "id": 47,
-            "density": 1.46,
-            "phase": {
-                "Liquid": {
-                    "viscosity": 2.0,
-                    "boiling_point": 961,
-                    "melting_point": 312.45
-                }
-            },
-            "material_type": "Metal",
-            "initial_temperature": 332.45,
-            "heat_capacity": 0.363,
-            "heat_conductivity": 0.582,
-            "durability": 50,
-            "material_color": {
-                "color": [
-                    163,
-                    161,
-                    159,
-                    255
-                ],
-                "shinyness": [
-                    0.9,
-                    1.1
-                ]
-            }
-        }
-    ],
-    [
-        "LIQUID::MOLTEN_CAESIUM",
-        {
-            "id": 48,
-            "density": 1.843,
-            "phase": {
-                "Liquid": {
-                    "viscosity": 2.0,
-                    "boiling_point": 944,
-                    "melting_point": 301.7
-                }
-            },
-            "material_type": "Metal",
-            "initial_temperature": 321.7,
-            "heat_capacity": 0.242,
-            "heat_conductivity": 0.359,
-            "durability": 50,
-            "material_color": {
-                "color": [
-                    107,
-                    102,
-                    44,
-                    255
-                ],
-                "shinyness": [
-                    1.05,
-                    1.35
-                ]
-            }
-        }
-    ],
-    [
         "LIQUID::MOLTEN_SULFUR",
         {
-            "id": 58,
+            "id": 49,
             "density": 1.81,
             "phase": {
                 "Liquid": {
@@ -287,7 +194,7 @@
     [
         "LIQUID::LIQUID_OXYGEN",
         {
-            "id": 61,
+            "id": 52,
             "density": 1.14,
             "phase": {
                 "Liquid": {
@@ -323,7 +230,7 @@
     [
         "LIQUID::MOLTEN_COPPER",
         {
-            "id": 64,
+            "id": 55,
             "density": 8.02,
             "phase": {
                 "Liquid": {
@@ -354,7 +261,7 @@
     [
         "LIQUID::MOLTEN_GOLD",
         {
-            "id": 67,
+            "id": 58,
             "density": 17.31,
             "phase": {
                 "Liquid": {
@@ -385,7 +292,7 @@
     [
         "LIQUID::MOLTEN_IRON",
         {
-            "id": 70,
+            "id": 61,
             "density": 6.98,
             "phase": {
                 "Liquid": {
@@ -416,7 +323,7 @@
     [
         "LIQUID::MOLTEN_TIN",
         {
-            "id": 73,
+            "id": 64,
             "density": 6.99,
             "phase": {
                 "Liquid": {
@@ -447,7 +354,7 @@
     [
         "LIQUID::MOLTEN_ZINC",
         {
-            "id": 76,
+            "id": 67,
             "density": 6.57,
             "phase": {
                 "Liquid": {
@@ -478,7 +385,7 @@
     [
         "LIQUID::LIQUID_NITROGEN",
         {
-            "id": 78,
+            "id": 69,
             "density": 0.81,
             "phase": {
                 "Liquid": {
@@ -509,7 +416,7 @@
     [
         "LIQUID::MOLTEN_BRONZE",
         {
-            "id": 90,
+            "id": 81,
             "density": 8.2,
             "phase": {
                 "Liquid": {
@@ -541,6 +448,37 @@
                     149,
                     126,
                     58,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_ALUMINIUM",
+        {
+            "id": 92,
+            "density": 2.375,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 933.47,
+                    "boiling_point": 2743
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.897,
+            "heat_conductivity": 2.37,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    85,
+                    94,
+                    103,
                     255
                 ],
                 "shinyness": [

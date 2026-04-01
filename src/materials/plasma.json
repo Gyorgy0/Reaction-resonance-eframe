@@ -1,6 +1,6 @@
 [
     [
-        "PLASMA::AIR",
+        "PLASMA::FLAME",
         {
             "id": 7,
             "density": 0.0002109,
@@ -15,7 +15,7 @@
                     255,
                     160,
                     0,
-                    255
+                    100
                 ],
                 "shinyness": [
                     0.99,
@@ -25,10 +25,10 @@
         }
     ],
     [
-        "PLASMA::SULFUR",
+        "PLASMA::SULFUR_FLAME",
         {
-            "id": 55,
-            "density": 0.001431,
+            "id": 46,
+            "density": 0.0002109,
             "phase": "Plasma",
             "material_type": "Solution",
             "initial_temperature": 1073.15,
@@ -40,11 +40,86 @@
                     64,
                     152,
                     233,
-                    255
+                    0
+                ],
+                "shinyness": [
+                    0.95,
+                    1.45
+                ]
+            }
+        }
+    ],
+    [
+        "PLASMA::MAGNESIUM_FLAME",
+        {
+            "id": 93,
+            "density": 0.0002109,
+            "phase": "Plasma",
+            "material_type": "Solution",
+            "initial_temperature": 3370,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0081,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    32
                 ],
                 "shinyness": [
                     0.99,
-                    1.9
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "PLASMA::SODIUM_FLAME",
+        {
+            "id": 94,
+            "density": 0.0002109,
+            "phase": "Plasma",
+            "material_type": "Solution",
+            "initial_temperature": 1673.15,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0081,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    255,
+                    178,
+                    0,
+                    32
+                ],
+                "shinyness": [
+                    0.95,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "PLASMA::POTASSIUM_FLAME",
+        {
+            "id": 95,
+            "density": 0.0002109,
+            "phase": "Plasma",
+            "material_type": "Solution",
+            "initial_temperature": 1673.15,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0081,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    185,
+                    126,
+                    178,
+                    32
+                ],
+                "shinyness": [
+                    0.95,
+                    1.1
                 ]
             }
         }

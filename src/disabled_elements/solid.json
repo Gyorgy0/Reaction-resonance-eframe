@@ -1,0 +1,92 @@
+[
+    [
+        "SOLID::LITHIUM",
+        {
+            "id": 32,
+            "density": 0.5334,
+            "phase": {
+                "Solid": {
+                    "melting_point": 453.65,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 3.5821,
+            "heat_conductivity": 0.848,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    146,
+                    143,
+                    126,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.05
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::RUBIDIUM",
+        {
+            "id": 35,
+            "density": 1.534,
+            "phase": {
+                "Solid": {
+                    "melting_point": 312.45,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.363,
+            "heat_conductivity": 0.582,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    163,
+                    161,
+                    159,
+                    255
+                ],
+                "shinyness": [
+                    0.9,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::CAESIUM",
+        {
+            "id": 36,
+            "density": 1.886,
+            "phase": {
+                "Solid": {
+                    "melting_point": 301.7,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.242,
+            "heat_conductivity": 0.359,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    107,
+                    102,
+                    44,
+                    255
+                ],
+                "shinyness": [
+                    1.05,
+                    1.35
+                ]
+            }
+        }
+    ]
+]

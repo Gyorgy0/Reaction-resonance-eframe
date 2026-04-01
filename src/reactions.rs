@@ -240,6 +240,13 @@ impl MaterialType {
         };
         returnval
     }
+    pub fn get_alloy_components(&self) -> Vec<(usize, f32)> {
+        let mut returnval: Vec<(usize, f32)> = vec![];
+        if let MaterialType::Alloy { metals } = self {
+            returnval = metals.clone();
+        };
+        returnval
+    }
 }
 #[inline(always)]
 pub(crate) fn solve_reactions(
@@ -406,6 +413,7 @@ pub(crate) fn solve_reactions(
                                     {
                                         if rng > (1_f32 - products.1) {
                                             checked_particle.material_id = products.0;
+                                            checked_particle.burning = true;
                                             checked_particle.temperature = *flame_temperature;
                                             checked_particle.set_color(
                                                 materials,
@@ -459,19 +467,21 @@ pub(crate) fn solve_reactions(
                             .phase
                             == Phase::Air
                     {
-                        current_particle.material_id =
-                            prev_board[get_safe_i(height, width, &pos)].cloned_material;
-                        current_particle
+                        let mut checked_particle = Particle::default();
+                        checked_particle.material_id = current_particle.cloned_material;
+                        checked_particle
                             .set_color(materials, rngs[get_safe_i(height, width, &pos)]);
+                        checked_particle.temperature = materials[current_particle.cloned_material]
+                            .1
+                            .initial_temperature;
                         unsafe {
                             write_particle(
                                 slice_board,
                                 get_safe_i(height, width, &pos),
-                                current_particle,
+                                checked_particle,
                                 check_board,
                             )
                         };
-                        return;
                     }
                 }
             }
@@ -484,9 +494,7 @@ pub(crate) fn solve_reactions(
                             .get_machine_type()
                             != MachineTypes::Sink
                     {
-                        let mut checked_particle =
-                            *slice_board.get_elem(get_safe_i(height, width, &pos));
-                        checked_particle = Particle::default();
+                        let checked_particle = Particle::default();
                         unsafe {
                             write_particle(
                                 slice_board,

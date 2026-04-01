@@ -19,69 +19,54 @@ pub fn handle_mouse_input(
     response: Response,
 ) {
     let cursor_position = response.hover_pos().unwrap_or(pos2(-1024_f32, -1024_f32));
+
     let pos = ((cursor_position - response.interact_rect.min) / game_board.cellsize)
         .floor()
         .to_pos2();
     if response.dragged_by(egui::PointerButton::Primary)
         || response.clicked_by(egui::PointerButton::Primary)
     {
-        if selected_tool == &BrushTool::MixBrush {
-            let mut mixed_particles: Vec<Particle> = vec![];
-            let mut mixed_indices: Vec<usize> = vec![];
-            for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
-                for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
-                    let cellpos = get_safe_i(
-                        &(game_board.height as usize),
-                        &(game_board.width as usize),
-                        &((y + pos.y as i64) as usize, (x + pos.x as i64) as usize),
-                    );
-                    if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
-                        && game_board.contents.get(cellpos).is_some()
-                        && materials[game_board
-                            .contents
-                            .get(cellpos)
-                            .unwrap_or(&Particle::default())
-                            .material_id]
-                            .1
-                            .phase
-                            != Phase::Air
-                    {
-                        mixed_particles.push(*game_board.contents.get(cellpos).unwrap());
-                        mixed_indices.push(cellpos);
-                    }
+        let mut particle_indices: Vec<usize> = vec![];
+        let mut mixed_particles: Vec<Particle> = vec![];
+        for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
+            for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
+                let cellpos = get_safe_i(
+                    &(game_board.height as usize),
+                    &(game_board.width as usize),
+                    &((y + pos.y as i64) as usize, (x + pos.x as i64) as usize),
+                );
+                if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
+                    && game_board.contents.get(cellpos).is_some()
+                    && particle_indices
+                        .iter()
+                        .find(|index| **index == cellpos)
+                        .is_none()
+                {
+                    mixed_particles.push(*game_board.contents.get(cellpos).unwrap());
+                    particle_indices.push(cellpos);
                 }
             }
-            mixed_indices.shuffle(rng);
-            for i in 0..mixed_indices.len() {
+        }
+        if selected_tool == &BrushTool::MixBrush {
+            mixed_particles.shuffle(rng);
+            for index in 0..particle_indices.len() {
                 get_tool_action(
                     materials,
                     selected_tool,
-                    mixed_indices[i],
-                    &mixed_particles[i],
+                    particle_indices[index],
+                    &mixed_particles[index],
                     game_board,
                 );
             }
         } else {
-            for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
-                for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
-                    let cellpos = get_safe_i(
-                        &(game_board.height as usize),
-                        &(game_board.width as usize),
-                        &((y + pos.y as i64) as usize, (x + pos.x as i64) as usize),
-                    );
-
-                    if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
-                        && game_board.contents.get(cellpos).is_some()
-                    {
-                        get_tool_action(
-                            materials,
-                            selected_tool,
-                            cellpos,
-                            &Particle::default(),
-                            game_board,
-                        );
-                    }
-                }
+            for index in 0..particle_indices.len() {
+                get_tool_action(
+                    materials,
+                    selected_tool,
+                    particle_indices[index],
+                    &Particle::default(),
+                    game_board,
+                );
             }
         }
     } else if response.dragged_by(egui::PointerButton::Secondary)

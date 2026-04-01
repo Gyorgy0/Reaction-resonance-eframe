@@ -134,39 +134,9 @@
         }
     ],
     [
-        "SOLID::LITHIUM",
-        {
-            "id": 32,
-            "density": 0.5334,
-            "phase": {
-                "Solid": {
-                    "melting_point": 453.65,
-                    "sublimation_point": -1.0
-                }
-            },
-            "material_type": "Metal",
-            "initial_temperature": 293.15,
-            "heat_capacity": 3.5821,
-            "heat_conductivity": 0.848,
-            "durability": 50,
-            "material_color": {
-                "color": [
-                    146,
-                    143,
-                    126,
-                    255
-                ],
-                "shinyness": [
-                    0.95,
-                    1.05
-                ]
-            }
-        }
-    ],
-    [
         "SOLID::SODIUM",
         {
-            "id": 33,
+            "id": 32,
             "density": 0.9688,
             "phase": {
                 "Solid": {
@@ -196,7 +166,7 @@
     [
         "SOLID::POTASSIUM",
         {
-            "id": 34,
+            "id": 33,
             "density": 0.8590,
             "phase": {
                 "Solid": {
@@ -224,69 +194,9 @@
         }
     ],
     [
-        "SOLID::RUBIDIUM",
-        {
-            "id": 35,
-            "density": 1.534,
-            "phase": {
-                "Solid": {
-                    "melting_point": 312.45,
-                    "sublimation_point": -1.0
-                }
-            },
-            "material_type": "Metal",
-            "initial_temperature": 293.15,
-            "heat_capacity": 0.363,
-            "heat_conductivity": 0.582,
-            "durability": 50,
-            "material_color": {
-                "color": [
-                    163,
-                    161,
-                    159,
-                    255
-                ],
-                "shinyness": [
-                    0.9,
-                    1.1
-                ]
-            }
-        }
-    ],
-    [
-        "SOLID::CAESIUM",
-        {
-            "id": 36,
-            "density": 1.886,
-            "phase": {
-                "Solid": {
-                    "melting_point": 301.7,
-                    "sublimation_point": -1.0
-                }
-            },
-            "material_type": "Metal",
-            "initial_temperature": 293.15,
-            "heat_capacity": 0.242,
-            "heat_conductivity": 0.359,
-            "durability": 50,
-            "material_color": {
-                "color": [
-                    107,
-                    102,
-                    44,
-                    255
-                ],
-                "shinyness": [
-                    1.05,
-                    1.35
-                ]
-            }
-        }
-    ],
-    [
         "SOLID::DRY_ICE",
         {
-            "id": 49,
+            "id": 40,
             "density": 1.562,
             "phase": {
                 "Solid": {
@@ -316,7 +226,7 @@
     [
         "SOLID::SULFUR",
         {
-            "id": 57,
+            "id": 48,
             "density": 2.0,
             "phase": {
                 "Solid": {
@@ -346,7 +256,7 @@
     [
         "SOLID::COPPER",
         {
-            "id": 62,
+            "id": 53,
             "density": 8.935,
             "phase": {
                 "Solid": {
@@ -376,7 +286,7 @@
     [
         "SOLID::GOLD",
         {
-            "id": 65,
+            "id": 56,
             "density": 19.283,
             "phase": {
                 "Solid": {
@@ -406,7 +316,7 @@
     [
         "SOLID::IRON",
         {
-            "id": 68,
+            "id": 59,
             "density": 7.874,
             "phase": {
                 "Solid": {
@@ -436,7 +346,7 @@
     [
         "SOLID::TIN",
         {
-            "id": 71,
+            "id": 62,
             "density": 7.289,
             "phase": {
                 "Solid": {
@@ -466,7 +376,7 @@
     [
         "SOLID::ZINC",
         {
-            "id": 74,
+            "id": 65,
             "density": 7.14,
             "phase": {
                 "Solid": {
@@ -496,7 +406,7 @@
     [
         "SOLID::NITROGEN_ICE",
         {
-            "id": 79,
+            "id": 70,
             "density": 0.81,
             "phase": {
                 "Solid": {
@@ -526,7 +436,7 @@
     [
         "SOLID::BRONZE",
         {
-            "id": 89,
+            "id": 80,
             "density": 8.8,
             "phase": {
                 "Solid": {
@@ -569,7 +479,7 @@
     [
         "SOLID::COOLER",
         {
-            "id": 92,
+            "id": 83,
             "density": 1.0,
             "phase": {
                 "Solid": {
@@ -603,7 +513,7 @@
     [
         "SOLID::HEATER_800K",
         {
-            "id": 93,
+            "id": 84,
             "density": 1.0,
             "phase": {
                 "Solid": {
@@ -641,7 +551,7 @@
     [
         "SOLID::HEATER_1300K",
         {
-            "id": 94,
+            "id": 85,
             "density": 1.0,
             "phase": {
                 "Solid": {
@@ -679,7 +589,7 @@
     [
         "SOLID::HEATER_1800K",
         {
-            "id": 95,
+            "id": 86,
             "density": 1.0,
             "phase": {
                 "Solid": {
@@ -717,7 +627,7 @@
     [
         "SOLID::HEATER_2300K",
         {
-            "id": 96,
+            "id": 87,
             "density": 1.0,
             "phase": {
                 "Solid": {
@@ -755,7 +665,7 @@
     [
         "SOLID::HEATER_3300K",
         {
-            "id": 97,
+            "id": 88,
             "density": 1.0,
             "phase": {
                 "Solid": {
@@ -793,7 +703,7 @@
     [
         "SOLID::HEATER_5300K",
         {
-            "id": 98,
+            "id": 89,
             "density": 1.0,
             "phase": {
                 "Solid": {
@@ -824,6 +734,36 @@
                 "shinyness": [
                     0.99,
                     1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::ALUMINIUM",
+        {
+            "id": 90,
+            "density": 2.699,
+            "phase": {
+                "Solid": {
+                    "melting_point": 933.47,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Metal",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.897,
+            "heat_conductivity": 2.37,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    85,
+                    94,
+                    103,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
                 ]
             }
         }

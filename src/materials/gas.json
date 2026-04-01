@@ -38,7 +38,7 @@
     [
         "GAS::HYDROGEN",
         {
-            "id": 42,
+            "id": 36,
             "density": 0.00008988,
             "phase": {
                 "Gas": {
@@ -74,7 +74,7 @@
     [
         "GAS::STEAM",
         {
-            "id": 43,
+            "id": 37,
             "density": 0.000598,
             "phase": {
                 "Gas": {
@@ -104,7 +104,7 @@
     [
         "GAS::CARBON_DIOXIDE",
         {
-            "id": 50,
+            "id": 41,
             "density": 0.001977,
             "phase": {
                 "Gas": {
@@ -134,7 +134,7 @@
     [
         "GAS::OXYHYDROGEN",
         {
-            "id": 54,
+            "id": 45,
             "density": 0.000542,
             "phase": {
                 "Gas": {
@@ -170,7 +170,7 @@
     [
         "GAS::SULFUR_DIOXIDE",
         {
-            "id": 59,
+            "id": 50,
             "density": 0.002619,
             "phase": {
                 "Gas": {
@@ -200,7 +200,7 @@
     [
         "GAS::OXYGEN",
         {
-            "id": 60,
+            "id": 51,
             "density": 0.001429,
             "phase": {
                 "Gas": {
@@ -235,7 +235,7 @@
     [
         "GAS::NITROGEN",
         {
-            "id": 77,
+            "id": 68,
             "density": 0.00125,
             "phase": {
                 "Gas": {
@@ -265,7 +265,7 @@
     [
         "GAS::FlUORINE",
         {
-            "id": 82,
+            "id": 73,
             "density": 0.0017,
             "phase": {
                 "Gas": {
@@ -300,7 +300,7 @@
     [
         "GAS::CHLORINE",
         {
-            "id": 83,
+            "id": 74,
             "density": 0.0032,
             "phase": {
                 "Gas": {
@@ -335,7 +335,7 @@
     [
         "GAS::HYDROGEN_FLUORIDE",
         {
-            "id": 84,
+            "id": 75,
             "density": 0.0012,
             "phase": {
                 "Gas": {
@@ -365,7 +365,7 @@
     [
         "GAS::HYDROGEN_CHLORIDE",
         {
-            "id": 85,
+            "id": 76,
             "density": 0.0015,
             "phase": {
                 "Gas": {
@@ -395,7 +395,7 @@
     [
         "GAS::FLUORINE_AND_HYDROGEN",
         {
-            "id": 86,
+            "id": 77,
             "density": 0.00121,
             "phase": {
                 "Gas": {
@@ -431,7 +431,7 @@
     [
         "GAS::CHLORINE_AND_HYDROGEN",
         {
-            "id": 87,
+            "id": 78,
             "density": 0.00151,
             "phase": {
                 "Gas": {
@@ -467,7 +467,7 @@
     [
         "GAS::OZONE",
         {
-            "id": 88,
+            "id": 79,
             "density": 0.00214,
             "phase": {
                 "Gas": {

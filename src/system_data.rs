@@ -1,12 +1,14 @@
-use std::mem::discriminant;
+use std::{fs, mem::discriminant};
 
 use egui::{ColorImage, TextureHandle, TextureOptions, epaint::Hsva, text::LayoutJob};
 use egui_colorgradient::ColorInterpolator;
 use egui_dialogs::Dialogs;
+use env_logger::fmt::style::EffectIter;
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
 
 use crate::{
+    app,
     egui_input::BrushTool,
     locale::Locale,
     material::{AIR, Material},
@@ -116,7 +118,7 @@ impl Default for EFrameApp<'_> {
             TextureOptions::LINEAR,
         );
         let mut locales: Vec<Locale> = vec![];
-        let mut materials: Vec<(String, Material)> = vec![(String::new(), AIR.clone())];
+        let mut materials: Vec<(String, Material)> = vec![];
         let serialized_transition_melting: Vec<PhaseTransition>;
         let serialized_transition_boiling: Vec<PhaseTransition>;
         let serialized_transition_sublimation: Vec<PhaseTransition>;
@@ -158,20 +160,34 @@ impl Default for EFrameApp<'_> {
             }
 
             // Materials
-            let paths = fs::read_dir("src/materials/").unwrap();
-            for path in paths {
-                let materials_per_phase: Result<Vec<u8>, std::io::Error> =
-                    fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
-                let mut serialized_materials: Vec<(String, Material)> =
-                    serde_json::from_reader(materials_per_phase.unwrap().as_slice()).unwrap();
-                materials.append(&mut serialized_materials);
-            }
+            materials = import_materials(&mut materials);
 
             // Sorts the elements by their Id's and outputs them to a list
             materials.sort_by_key(|elem| elem.1.id);
             let mut material_ids: Vec<(usize, String)> = vec![];
             materials.iter().for_each(|element| {
-                material_ids.push((element.1.id, element.0.clone()));
+                if discriminant(&element.1.material_type)
+                    == discriminant(&MaterialType::Alloy { metals: vec![] })
+                {
+                    let mut components = String::new();
+                    for metal in element.1.material_type.get_alloy_components().iter() {
+                        components += format!(
+                            "{component} {percent}% ",
+                            component = materials[metal.0].0,
+                            percent = (metal.1 * 100_f32)
+                        )
+                        .as_str();
+                    }
+                    material_ids.push((
+                        element.1.id,
+                        format!(
+                            "{element_name} - ({components})",
+                            element_name = element.0.clone()
+                        ),
+                    ));
+                } else {
+                    material_ids.push((element.1.id, element.0.clone()));
+                }
             });
             fs::write(
                 "src/material_ids.json",
@@ -309,4 +325,18 @@ impl Default for EFrameApp<'_> {
             dialogopen: false,
         }
     }
+}
+
+pub fn import_materials(materials: &mut Vec<(String, Material)>) -> Vec<(String, Material)> {
+    let mut materials: Vec<(String, Material)> = vec![(String::new(), AIR.clone())];
+    // Materials
+    let paths = fs::read_dir("src/materials/").unwrap();
+    for path in paths {
+        let materials_per_phase: Result<Vec<u8>, std::io::Error> =
+            fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
+        let mut serialized_materials: Vec<(String, Material)> =
+            serde_json::from_reader(materials_per_phase.unwrap().as_slice()).unwrap();
+        materials.append(&mut serialized_materials);
+    }
+    materials.clone()
 }

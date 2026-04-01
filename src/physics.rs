@@ -1021,8 +1021,8 @@ pub fn solve_particle(
                         * gravity
                         * framedelta)) as i32;
                 if gravity.abs() > 1_f32 {
-                    orientation_y = orientation_y.signum()
-                        * (orientation_y.abs()).clamp(1_i32, gravity.abs() as i32);
+                    orientation_y =
+                        orientation_y.signum() * (orientation_y.abs()) % gravity.abs() as i32;
                 }
             }
             let mut ychange = 0_i32;
@@ -1254,8 +1254,8 @@ pub fn solve_particle(
                         * gravity
                         * framedelta)) as i32;
                 if gravity.abs() > 1_f32 {
-                    orientation_y = orientation_y.signum()
-                        * (orientation_y.abs()).clamp(1_i32, gravity.abs() as i32);
+                    orientation_y =
+                        orientation_y.signum() * (orientation_y.abs()) % gravity.abs() as i32;
                 }
             }
             let mut ychange = 0_i32;
@@ -1566,7 +1566,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .boiling
                     .iter()
                     .find(|original_material| {
@@ -1576,8 +1576,13 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;
+                        break;
                     }
                 }
             } else {

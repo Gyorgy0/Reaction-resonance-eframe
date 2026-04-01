@@ -29,7 +29,7 @@
   ],
   [
     7,
-    "PLASMA::AIR"
+    "PLASMA::FLAME"
   ],
   [
     8,
@@ -129,270 +129,258 @@
   ],
   [
     32,
-    "SOLID::LITHIUM"
-  ],
-  [
-    33,
     "SOLID::SODIUM"
   ],
   [
-    34,
+    33,
     "SOLID::POTASSIUM"
   ],
   [
-    35,
-    "SOLID::RUBIDIUM"
-  ],
-  [
-    36,
-    "SOLID::CAESIUM"
-  ],
-  [
-    37,
-    "POWDER::POWDERED_LITHIUM"
-  ],
-  [
-    38,
+    34,
     "POWDER::POWDERED_SODIUM"
   ],
   [
-    39,
+    35,
     "POWDER::POWDERED_POTASSIUM"
   ],
   [
-    40,
-    "POWDER::POWDERED_RUBIDIUM"
-  ],
-  [
-    41,
-    "POWDER::POWDERED_CAESIUM"
-  ],
-  [
-    42,
+    36,
     "GAS::HYDROGEN"
   ],
   [
-    43,
+    37,
     "GAS::STEAM"
   ],
   [
-    44,
-    "LIQUID::MOLTEN_LITHIUM"
-  ],
-  [
-    45,
+    38,
     "LIQUID::MOLTEN_SODIUM"
   ],
   [
-    46,
+    39,
     "LIQUID::MOLTEN_POTASSIUM"
   ],
   [
-    47,
-    "LIQUID::MOLTEN_RUBIDIUM"
-  ],
-  [
-    48,
-    "LIQUID::MOLTEN_CAESIUM"
-  ],
-  [
-    49,
+    40,
     "SOLID::DRY_ICE"
   ],
   [
-    50,
+    41,
     "GAS::CARBON_DIOXIDE"
   ],
   [
-    51,
+    42,
     "POWDER::POWDERED_DRY_ICE"
   ],
   [
-    52,
+    43,
     "POWDER::SUCHROSE"
   ],
   [
-    53,
+    44,
     "POWDER::ASH"
   ],
   [
-    54,
+    45,
     "GAS::OXYHYDROGEN"
   ],
   [
-    55,
-    "PLASMA::SULFUR"
+    46,
+    "PLASMA::SULFUR_FLAME"
   ],
   [
-    56,
+    47,
     "POWDER::POWDERED_SULFUR"
   ],
   [
-    57,
+    48,
     "SOLID::SULFUR"
   ],
   [
-    58,
+    49,
     "LIQUID::MOLTEN_SULFUR"
   ],
   [
-    59,
+    50,
     "GAS::SULFUR_DIOXIDE"
   ],
   [
-    60,
+    51,
     "GAS::OXYGEN"
   ],
   [
-    61,
+    52,
     "LIQUID::LIQUID_OXYGEN"
   ],
   [
-    62,
+    53,
     "SOLID::COPPER"
   ],
   [
-    63,
+    54,
     "POWDER::POWDERED_COPPER"
   ],
   [
-    64,
+    55,
     "LIQUID::MOLTEN_COPPER"
   ],
   [
-    65,
+    56,
     "SOLID::GOLD"
   ],
   [
-    66,
+    57,
     "POWDER::POWDERED_GOLD"
   ],
   [
-    67,
+    58,
     "LIQUID::MOLTEN_GOLD"
   ],
   [
-    68,
+    59,
     "SOLID::IRON"
   ],
   [
-    69,
+    60,
     "POWDER::POWDERED_IRON"
   ],
   [
-    70,
+    61,
     "LIQUID::MOLTEN_IRON"
   ],
   [
-    71,
+    62,
     "SOLID::TIN"
   ],
   [
-    72,
+    63,
     "POWDER::POWDERED_TIN"
   ],
   [
-    73,
+    64,
     "LIQUID::MOLTEN_TIN"
   ],
   [
-    74,
+    65,
     "SOLID::ZINC"
   ],
   [
-    75,
+    66,
     "POWDER::POWDERED_ZINC"
   ],
   [
-    76,
+    67,
     "LIQUID::MOLTEN_ZINC"
   ],
   [
-    77,
+    68,
     "GAS::NITROGEN"
   ],
   [
-    78,
+    69,
     "LIQUID::LIQUID_NITROGEN"
   ],
   [
-    79,
+    70,
     "SOLID::NITROGEN_ICE"
   ],
   [
-    80,
+    71,
     "POWDER::POWDERED_NITROGEN_ICE"
   ],
   [
-    81,
+    72,
     "POWDER::GUNPOWDER"
   ],
   [
-    82,
+    73,
     "GAS::FlUORINE"
   ],
   [
-    83,
+    74,
     "GAS::CHLORINE"
   ],
   [
-    84,
+    75,
     "GAS::HYDROGEN_FLUORIDE"
   ],
   [
-    85,
+    76,
     "GAS::HYDROGEN_CHLORIDE"
   ],
   [
-    86,
+    77,
     "GAS::FLUORINE_AND_HYDROGEN"
   ],
   [
-    87,
+    78,
     "GAS::CHLORINE_AND_HYDROGEN"
   ],
   [
-    88,
+    79,
     "GAS::OZONE"
   ],
   [
-    89,
-    "SOLID::BRONZE"
+    80,
+    "SOLID::BRONZE - (POWDER::POWDERED_TIN 75% POWDER::GUNPOWDER 25% )"
   ],
   [
-    90,
-    "LIQUID::MOLTEN_BRONZE"
+    81,
+    "LIQUID::MOLTEN_BRONZE - (POWDER::POWDERED_TIN 75% POWDER::GUNPOWDER 25% )"
   ],
   [
-    91,
+    82,
     "POWDER::POTASSIUM_NITRATE"
   ],
   [
-    92,
+    83,
     "SOLID::COOLER"
   ],
   [
-    93,
+    84,
     "SOLID::HEATER_800K"
   ],
   [
-    94,
+    85,
     "SOLID::HEATER_1300K"
   ],
   [
-    95,
+    86,
     "SOLID::HEATER_1800K"
   ],
   [
-    96,
+    87,
     "SOLID::HEATER_2300K"
   ],
   [
-    97,
+    88,
     "SOLID::HEATER_3300K"
   ],
   [
-    98,
+    89,
     "SOLID::HEATER_5300K"
+  ],
+  [
+    90,
+    "SOLID::ALUMINIUM"
+  ],
+  [
+    91,
+    "POWDER::POWDERED_ALUMINIUM"
+  ],
+  [
+    92,
+    "LIQUID::MOLTEN_ALUMINIUM"
+  ],
+  [
+    93,
+    "PLASMA::MAGNESIUM_FLAME"
+  ],
+  [
+    94,
+    "PLASMA::SODIUM_FLAME"
+  ],
+  [
+    95,
+    "PLASMA::POTASSIUM_FLAME"
   ]
 ]
