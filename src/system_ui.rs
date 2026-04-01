@@ -83,6 +83,8 @@ impl fmt::Display for MachineTypes {
         match *self {
             MachineTypes::Cloner => write!(f, "Cloner"),
             MachineTypes::Sink => write!(f, "Sink"),
+            MachineTypes::Heater { max_temp: _ } => write!(f, "Heater"),
+            MachineTypes::Cooler => write!(f, "Cooler"),
         }
     }
 }

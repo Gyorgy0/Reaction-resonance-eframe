@@ -362,5 +362,37 @@
   [
     90,
     "LIQUID::MOLTEN_BRONZE"
+  ],
+  [
+    91,
+    "POWDER::POTASSIUM_NITRATE"
+  ],
+  [
+    92,
+    "SOLID::COOLER"
+  ],
+  [
+    93,
+    "SOLID::HEATER_800K"
+  ],
+  [
+    94,
+    "SOLID::HEATER_1300K"
+  ],
+  [
+    95,
+    "SOLID::HEATER_1800K"
+  ],
+  [
+    96,
+    "SOLID::HEATER_2300K"
+  ],
+  [
+    97,
+    "SOLID::HEATER_3300K"
+  ],
+  [
+    98,
+    "SOLID::HEATER_5300K"
   ]
 ]

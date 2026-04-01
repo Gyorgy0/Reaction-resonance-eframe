@@ -565,5 +565,267 @@
                 ]
             }
         }
+    ],
+    [
+        "SOLID::COOLER",
+        {
+            "id": 92,
+            "density": 1.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": "Cooler"
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    83,
+                    104,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::HEATER_800K",
+        {
+            "id": 93,
+            "density": 1.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": {
+                        "Heater": {
+                            "max_temp": 800.0
+                        }
+                    }
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    85,
+                    0,
+                    0,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::HEATER_1300K",
+        {
+            "id": 94,
+            "density": 1.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": {
+                        "Heater": {
+                            "max_temp": 1300.0
+                        }
+                    }
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    135,
+                    45,
+                    0,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::HEATER_1800K",
+        {
+            "id": 95,
+            "density": 1.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": {
+                        "Heater": {
+                            "max_temp": 1800.0
+                        }
+                    }
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    185,
+                    85,
+                    0,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::HEATER_2300K",
+        {
+            "id": 96,
+            "density": 1.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": {
+                        "Heater": {
+                            "max_temp": 2300.0
+                        }
+                    }
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    215,
+                    95,
+                    0,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::HEATER_3300K",
+        {
+            "id": 97,
+            "density": 1.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": {
+                        "Heater": {
+                            "max_temp": 3300.0
+                        }
+                    }
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    245,
+                    125,
+                    0,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::HEATER_5300K",
+        {
+            "id": 98,
+            "density": 1.0,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": {
+                        "Heater": {
+                            "max_temp": 5300.0
+                        }
+                    }
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.1,
+            "heat_conductivity": 0.001,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    255,
+                    185,
+                    80,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1.0
+                ]
+            }
+        }
     ]
 ]

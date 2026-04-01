@@ -6,6 +6,7 @@ use crate::{material::Material, world::AtomicComparedSlice};
 use egui::epaint::Hsva;
 use egui::{Color32, lerp};
 use serde::{Deserialize, Serialize};
+use std::mem::discriminant;
 use std::sync::Arc;
 use strum_macros::EnumIter;
 
@@ -102,6 +103,10 @@ pub(crate) enum MachineTypes {
     #[default]
     Cloner,
     Sink,
+    Heater {
+        max_temp: f32,
+    },
+    Cooler,
 }
 
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter, Default)]
@@ -225,7 +230,7 @@ impl MaterialType {
         returnval
     }
     pub fn get_burn_speedup(&self) -> f32 {
-        let mut returnval: f32 = f32::default();
+        let mut returnval: f32 = 1_f32;
         if let MaterialType::Oxidizer {
             oxidizing_agent: _,
             combustion_speedup,
@@ -288,8 +293,22 @@ pub(crate) fn solve_reactions(
                         .1
                         .material_type
                         .get_oxidizing_agent();
-                    if checked_particle.temperature > *ignition_temperature
+                    if current_particle.temperature > *ignition_temperature
                         && !current_particle.burning
+                        && chemical_reactions
+                            .burning
+                            .iter()
+                            .find(|reaction| {
+                                reaction.burn_reagents
+                                    == (
+                                        current_particle.material_id,
+                                        materials[checked_particle.material_id]
+                                            .1
+                                            .material_type
+                                            .get_oxidizing_agent(),
+                                    )
+                            })
+                            .is_some()
                     {
                         current_particle.burning = true;
                         current_particle.particle_health = *burn_time;
@@ -301,7 +320,7 @@ pub(crate) fn solve_reactions(
                                 == (current_particle.material_id, oxidizing_agent)
                         })
                     {
-                        for products in chemical_reactions
+                        for product in chemical_reactions
                             .burning
                             .iter()
                             .find(|reaction| {
@@ -312,9 +331,13 @@ pub(crate) fn solve_reactions(
                             .products
                             .clone()
                         {
-                            if rng > (1_f32 - products.1) {
-                                checked_particle.material_id = products.0;
-                                checked_particle.temperature = *flame_temperature;
+                            let burn_speedup = materials[checked_particle.material_id]
+                                .1
+                                .material_type
+                                .get_burn_speedup();
+                            if (rng * burn_speedup) > (1_f32 - product.1) {
+                                checked_particle.material_id = product.0;
+                                checked_particle.temperature = *flame_temperature * burn_speedup;
                                 checked_particle
                                     .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
                                 unsafe {
@@ -461,12 +484,63 @@ pub(crate) fn solve_reactions(
                             .get_machine_type()
                             != MachineTypes::Sink
                     {
-                        current_particle = Particle::default();
+                        let mut checked_particle =
+                            *slice_board.get_elem(get_safe_i(height, width, &pos));
+                        checked_particle = Particle::default();
                         unsafe {
                             write_particle(
                                 slice_board,
                                 get_safe_i(height, width, &pos),
-                                current_particle,
+                                checked_particle,
+                                check_board,
+                            )
+                        };
+                    }
+                }
+            }
+            MachineTypes::Heater { max_temp } => {
+                for pos in neumann_positions.into_iter() {
+                    if slice_board.get(get_safe_i(height, width, &pos)).is_some()
+                        && discriminant(
+                            &materials[prev_board[get_safe_i(height, width, &pos)].material_id]
+                                .1
+                                .material_type
+                                .get_machine_type(),
+                        ) != discriminant(&MachineTypes::Heater {
+                            max_temp: f32::default(),
+                        })
+                    {
+                        let mut checked_particle =
+                            *slice_board.get_elem(get_safe_i(height, width, &pos));
+                        checked_particle.temperature = *max_temp;
+                        unsafe {
+                            write_particle(
+                                slice_board,
+                                get_safe_i(height, width, &pos),
+                                checked_particle,
+                                check_board,
+                            )
+                        };
+                    }
+                }
+            }
+            MachineTypes::Cooler => {
+                for pos in neumann_positions.into_iter() {
+                    if slice_board.get(get_safe_i(height, width, &pos)).is_some()
+                        && materials[prev_board[get_safe_i(height, width, &pos)].material_id]
+                            .1
+                            .material_type
+                            .get_machine_type()
+                            != MachineTypes::Cooler
+                    {
+                        let mut checked_particle =
+                            *slice_board.get_elem(get_safe_i(height, width, &pos));
+                        checked_particle.temperature = 0_f32;
+                        unsafe {
+                            write_particle(
+                                slice_board,
+                                get_safe_i(height, width, &pos),
+                                checked_particle,
                                 check_board,
                             )
                         };

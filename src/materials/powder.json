@@ -584,5 +584,40 @@
                 ]
             }
         }
+    ],
+    [
+        "POWDER::POTASSIUM_NITRATE",
+        {
+            "id": 91,
+            "density": 2.11,
+            "phase": {
+                "Powder": {
+                    "melting_point": 334,
+                    "sublimation_point": 400
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "oxidizing_agent": "Oxygen",
+                    "combustion_speedup": 1.35
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.06,
+            "heat_conductivity": 0.00026,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.25
+                ]
+            }
+        }
     ]
 ]
