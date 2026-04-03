@@ -3,12 +3,10 @@ use std::{fs, mem::discriminant};
 use egui::{ColorImage, TextureHandle, TextureOptions, epaint::Hsva, text::LayoutJob};
 use egui_colorgradient::ColorInterpolator;
 use egui_dialogs::Dialogs;
-use env_logger::fmt::style::EffectIter;
 use rand::SeedableRng;
 use strum::IntoEnumIterator;
 
 use crate::{
-    app,
     egui_input::BrushTool,
     locale::Locale,
     material::{AIR, Material},
@@ -119,13 +117,20 @@ impl Default for EFrameApp<'_> {
         );
         let mut locales: Vec<Locale> = vec![];
         let mut materials: Vec<(String, Material)> = vec![];
-        let serialized_transition_melting: Vec<PhaseTransition>;
-        let serialized_transition_boiling: Vec<PhaseTransition>;
-        let serialized_transition_sublimation: Vec<PhaseTransition>;
 
-        let serialized_reactions_burning: Vec<BurningReaction>;
-        let serialized_reactions_mingling: Vec<MinglingReaction>;
-        // This is for the PC platform (locale and materials and their reactions are serialized from files)
+        // Locale
+        locales = import_locales(&mut locales);
+
+        // Materials
+        materials = import_materials(&mut materials);
+
+        // Physical transitions
+        let physical_transitions: PhysicalReactions = import_transitions();
+
+        // Chemical reactions
+        let chemical_reactions: ChemicalReactions = import_reactions();
+
+        // This is for the PC platform
         #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
         {
             use std::fs;
@@ -142,25 +147,6 @@ impl Default for EFrameApp<'_> {
             let serialized_data: Vec<PhaseTransition> =
                 serde_json::from_reader(fs::read("src/new.json").unwrap().as_slice()).unwrap();
             println!("{:?}", serialized_data);*/
-
-            // Locale
-            let paths = fs::read_dir("src/locale").unwrap();
-            for path in paths {
-                if path
-                    .as_ref()
-                    .is_ok_and(|path| path.file_name() != "default_locale.json")
-                {
-                    let locale: Result<Vec<u8>, std::io::Error> =
-                        fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
-                    let serialized_locale: Locale =
-                        serde_json::from_reader(locale.unwrap().as_slice())
-                            .unwrap_or(Locale::default());
-                    locales.push(serialized_locale);
-                }
-            }
-
-            // Materials
-            materials = import_materials(&mut materials);
 
             // Sorts the elements by their Id's and outputs them to a list
             materials.sort_by_key(|elem| elem.1.id);
@@ -194,81 +180,6 @@ impl Default for EFrameApp<'_> {
                 serde_json::to_string_pretty(&material_ids).unwrap(),
             )
             .unwrap();
-
-            // Physical transitions
-            let transition_path_melting = fs::read("src/physics/phase_transitions_melting.json");
-            serialized_transition_melting =
-                serde_json::from_reader(transition_path_melting.unwrap().as_slice()).unwrap();
-            let transition_path_boiling = fs::read("src/physics/phase_transitions_boiling.json");
-            serialized_transition_boiling =
-                serde_json::from_reader(transition_path_boiling.unwrap().as_slice()).unwrap();
-            let transition_path_sublimation =
-                fs::read("src/physics/phase_transitions_sublimation.json");
-            serialized_transition_sublimation =
-                serde_json::from_slice(transition_path_sublimation.unwrap().as_slice()).unwrap();
-
-            // Chemical reactions
-            let reaction_path_burning = fs::read("src/chemistry/chemical_reactions_burning.json");
-            serialized_reactions_burning =
-                serde_json::from_reader(reaction_path_burning.unwrap().as_slice()).unwrap();
-            let reaction_path_mingling = fs::read("src/chemistry/chemical_reactions_mingling.json");
-
-            serialized_reactions_mingling =
-                serde_json::from_slice(reaction_path_mingling.unwrap().as_slice()).unwrap();
-        }
-        #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
-        {
-            use serde_json::from_str;
-
-            use crate::included_files::FILES;
-
-            // Locale
-            locales.push(from_str(&FILES.locales.locale_en).unwrap());
-            locales.push(from_str(&FILES.locales.locale_hu).unwrap());
-            locales.push(from_str(&FILES.locales.locale_sk).unwrap());
-
-            // Materials
-            let mut serialized_materials: Vec<(String, Material)> =
-                from_str(&FILES.materials.solid_materials).unwrap();
-
-            serialized_materials.append(
-                (from_str(&FILES.materials.powder_materials))
-                    .as_mut()
-                    .unwrap(),
-            );
-
-            serialized_materials.append(
-                from_str(&FILES.materials.liquid_materials)
-                    .as_mut()
-                    .unwrap(),
-            );
-
-            serialized_materials.append(from_str(&FILES.materials.gas_materials).as_mut().unwrap());
-
-            serialized_materials.append(
-                from_str(&FILES.materials.plasma_materials)
-                    .as_mut()
-                    .unwrap(),
-            );
-
-            serialized_materials
-                .append(from_str(&FILES.materials.life_materials).as_mut().unwrap());
-
-            materials.append(&mut serialized_materials);
-
-            // Physical transitions
-            serialized_transition_melting =
-                from_str(&FILES.physics_transition.melting_transitions).unwrap();
-            serialized_transition_boiling =
-                from_str(&FILES.physics_transition.boiling_transitions).unwrap();
-            serialized_transition_sublimation =
-                from_str(&FILES.physics_transition.sublimation_transitions).unwrap();
-
-            // Chemical reactions
-            serialized_reactions_burning =
-                from_str(&FILES.chemical_reactions.burning_reactions).unwrap();
-            serialized_reactions_mingling =
-                from_str(&FILES.chemical_reactions.mingling_reactions).unwrap();
         }
 
         program_options.locale = locales;
@@ -301,15 +212,8 @@ impl Default for EFrameApp<'_> {
                 stops,
             )
             .interpolator(),
-            physical_transitions: PhysicalReactions::new(
-                serialized_transition_melting,
-                serialized_transition_boiling,
-                serialized_transition_sublimation,
-            ),
-            chemical_reactions: ChemicalReactions::new(
-                serialized_reactions_burning,
-                serialized_reactions_mingling,
-            ),
+            physical_transitions,
+            chemical_reactions,
             debug_text_job,
             game_board,
             materials,
@@ -327,16 +231,155 @@ impl Default for EFrameApp<'_> {
     }
 }
 
+pub fn import_locales(locales: &mut Vec<Locale>) -> Vec<Locale> {
+    locales.clear();
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    {
+        // Materials - PC version (loads them from the src/materials folder)
+        let paths = fs::read_dir("src/locale").unwrap();
+        for path in paths {
+            if path
+                .as_ref()
+                .is_ok_and(|path| path.file_name() != "default_locale.json")
+            {
+                let locale: Result<Vec<u8>, std::io::Error> =
+                    fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
+                let serialized_locale: Locale = serde_json::from_reader(locale.unwrap().as_slice())
+                    .unwrap_or(Locale::default());
+                locales.push(serialized_locale);
+            }
+        }
+    }
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    {
+        // Materials - Portable version (includes the files in src/materials in the executable file)
+
+        use serde_json::from_str;
+
+        use crate::included_files::FILES;
+        // Locale
+        locales.push(from_str(&FILES.locales.locale_en).unwrap());
+        locales.push(from_str(&FILES.locales.locale_hu).unwrap());
+        locales.push(from_str(&FILES.locales.locale_sk).unwrap());
+
+        locales.append(&mut serialized_materials);
+    }
+    locales.clone()
+}
+
 pub fn import_materials(materials: &mut Vec<(String, Material)>) -> Vec<(String, Material)> {
+    materials.clear();
     let mut materials: Vec<(String, Material)> = vec![(String::new(), AIR.clone())];
-    // Materials
-    let paths = fs::read_dir("src/materials/").unwrap();
-    for path in paths {
-        let materials_per_phase: Result<Vec<u8>, std::io::Error> =
-            fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    {
+        // Materials - PC version (loads them from the src/materials folder)
+        let paths = fs::read_dir("src/materials/").unwrap();
+        for path in paths {
+            let materials_per_phase: Result<Vec<u8>, std::io::Error> =
+                fs::read(path.as_ref().unwrap().path().display().to_string().as_str());
+            let mut serialized_materials: Vec<(String, Material)> =
+                serde_json::from_reader(materials_per_phase.unwrap().as_slice()).unwrap();
+            materials.append(&mut serialized_materials);
+        }
+    }
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    {
+        // Materials - Portable version (includes the files in src/materials in the executable file)
+
+        use serde_json::from_str;
+
+        use crate::included_files::FILES;
         let mut serialized_materials: Vec<(String, Material)> =
-            serde_json::from_reader(materials_per_phase.unwrap().as_slice()).unwrap();
+            from_str(&FILES.materials.solid_materials).unwrap();
+
+        serialized_materials.append(
+            (from_str(&FILES.materials.powder_materials))
+                .as_mut()
+                .unwrap(),
+        );
+
+        serialized_materials.append(
+            from_str(&FILES.materials.liquid_materials)
+                .as_mut()
+                .unwrap(),
+        );
+
+        serialized_materials.append(from_str(&FILES.materials.gas_materials).as_mut().unwrap());
+
+        serialized_materials.append(
+            from_str(&FILES.materials.plasma_materials)
+                .as_mut()
+                .unwrap(),
+        );
+
+        serialized_materials.append(from_str(&FILES.materials.life_materials).as_mut().unwrap());
+
         materials.append(&mut serialized_materials);
     }
     materials.clone()
+}
+
+pub fn import_transitions() -> PhysicalReactions {
+    let serialized_transition_melting: Vec<PhaseTransition>;
+    let serialized_transition_boiling: Vec<PhaseTransition>;
+    let serialized_transition_sublimation: Vec<PhaseTransition>;
+
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    {
+        // Physical transitions - PC version (loads phase change files from src/physics)
+        let transition_path_melting = fs::read("src/physics/phase_transitions_melting.json");
+        serialized_transition_melting =
+            serde_json::from_reader(transition_path_melting.unwrap().as_slice()).unwrap();
+        let transition_path_boiling = fs::read("src/physics/phase_transitions_boiling.json");
+        serialized_transition_boiling =
+            serde_json::from_reader(transition_path_boiling.unwrap().as_slice()).unwrap();
+        let transition_path_sublimation =
+            fs::read("src/physics/phase_transitions_sublimation.json");
+        serialized_transition_sublimation =
+            serde_json::from_slice(transition_path_sublimation.unwrap().as_slice()).unwrap();
+    }
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    {
+        // Physical transitions - Portable version
+        serialized_transition_melting =
+            from_str(&FILES.physics_transition.melting_transitions).unwrap();
+        serialized_transition_boiling =
+            from_str(&FILES.physics_transition.boiling_transitions).unwrap();
+        serialized_transition_sublimation =
+            from_str(&FILES.physics_transition.sublimation_transitions).unwrap();
+    }
+    PhysicalReactions {
+        melting: serialized_transition_melting,
+        boiling: serialized_transition_boiling,
+        sublimation: serialized_transition_sublimation,
+    }
+}
+
+pub fn import_reactions() -> ChemicalReactions {
+    let serialized_reactions_burning: Vec<BurningReaction>;
+    let serialized_reactions_mingling: Vec<MinglingReaction>;
+
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    {
+        // Chemical reactions - PC version (loads reaction files from src/chemistry)
+        let reaction_path_burning = fs::read("src/chemistry/chemical_reactions_burning.json");
+        serialized_reactions_burning =
+            serde_json::from_reader(reaction_path_burning.unwrap().as_slice()).unwrap();
+        let reaction_path_mingling = fs::read("src/chemistry/chemical_reactions_mingling.json");
+
+        serialized_reactions_mingling =
+            serde_json::from_slice(reaction_path_mingling.unwrap().as_slice()).unwrap();
+    }
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    {
+        // Chemical reactions
+        serialized_reactions_burning =
+            from_str(&FILES.chemical_reactions.burning_reactions).unwrap();
+        serialized_reactions_mingling =
+            from_str(&FILES.chemical_reactions.mingling_reactions).unwrap();
+    }
+    ChemicalReactions {
+        burning: serialized_reactions_burning,
+        mingling: serialized_reactions_mingling,
+    }
 }

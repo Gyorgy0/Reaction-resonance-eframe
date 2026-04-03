@@ -3,6 +3,8 @@
   "language_name": "Slovenčina",
   "options_title": "Nastavenia",
   "screen_option_label": "Obrazovka:",
+  "reload_button": "Obnoviť konfiguráciu",
+  "reload_tooltip": "Znova načíta súbory.",
   "fullscreen_button": "Celá obrazovka",
   "fullscreen_tooltip": "Zvǎčší obrazovku aplikácie.",
   "windowed_button": "Okenný režim",

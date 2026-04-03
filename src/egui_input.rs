@@ -1,5 +1,5 @@
 use crate::particle::Particle;
-use crate::physics::{Phase, PhysicalReactions};
+use crate::physics::PhysicalReactions;
 use crate::reactions::ChemicalReactions;
 use crate::system_data::ApplicationOptions;
 use crate::system_ui::get_shape;
@@ -37,10 +37,7 @@ pub fn handle_mouse_input(
                 );
                 if get_shape(game_board.brush_shape, game_board.brush_size, x, y).1
                     && game_board.contents.get(cellpos).is_some()
-                    && particle_indices
-                        .iter()
-                        .find(|index| **index == cellpos)
-                        .is_none()
+                    && !particle_indices.contains(&cellpos)
                 {
                     mixed_particles.push(*game_board.contents.get(cellpos).unwrap());
                     particle_indices.push(cellpos);
@@ -220,21 +217,24 @@ pub fn get_tool_action(
                 .1
                 .material_color
                 .color
-                .gamma_multiply(lerp(
-                    RangeInclusive::new(
-                        materials[new_particle.material_id]
-                            .1
-                            .material_color
-                            .shinyness
-                            .0,
-                        materials[new_particle.material_id]
-                            .1
-                            .material_color
-                            .shinyness
-                            .1,
-                    ),
-                    game_board.rngs[cellpos],
-                ));
+                .gamma_multiply(
+                    lerp(
+                        RangeInclusive::new(
+                            materials[new_particle.material_id]
+                                .1
+                                .material_color
+                                .shinyness
+                                .0,
+                            materials[new_particle.material_id]
+                                .1
+                                .material_color
+                                .shinyness
+                                .1,
+                        ),
+                        game_board.rngs[cellpos],
+                    )
+                    .abs(),
+                );
             new_particle.display_color[3] = materials[new_particle.material_id]
                 .1
                 .material_color

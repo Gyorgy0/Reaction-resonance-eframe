@@ -229,7 +229,7 @@
             "material_type": "Solution",
             "initial_temperature": 273.15,
             "heat_capacity": 1.0,
-            "heat_conductivity": 0.0017,
+            "heat_conductivity": 0.0,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -623,7 +623,7 @@
             "density": 2.49,
             "phase": {
                 "Powder": {
-                    "melting_point":  683,
+                    "melting_point":  1405,
                     "sublimation_point": -1.0
                 }
             },
@@ -1085,6 +1085,36 @@
                 "shinyness": [
                     0.8,
                     1.9
+                ]
+            }
+        }
+    ],
+    [
+        "POWDER::POTASSIUM_OXIDE",
+        {
+            "id": 134,
+            "density": 2.32,
+            "phase": {
+                "Powder": {
+                    "melting_point":  1010,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Ceramic",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.89,
+            "heat_conductivity": 0.00026,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    225,
+                    225,
+                    185,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.15
                 ]
             }
         }

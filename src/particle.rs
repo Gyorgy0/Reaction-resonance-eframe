@@ -32,10 +32,13 @@ impl Particle {
     // Applies the material's color and shinyness to the particle's display color
     pub fn set_color(&mut self, materials: &[(String, Material)], noise_val: f32) -> Self {
         self.display_color = materials[self.material_id].1.material_color.color;
-        self.display_color = self.display_color.gamma_multiply(lerp(
-            tuple_to_rangeinclusive(materials[self.material_id].1.material_color.shinyness),
-            noise_val,
-        ));
+        self.display_color = self.display_color.gamma_multiply(
+            lerp(
+                tuple_to_rangeinclusive(materials[self.material_id].1.material_color.shinyness),
+                noise_val,
+            )
+            .abs(),
+        );
         self.display_color[3] = materials[self.material_id].1.material_color.color.a();
         *self
     }

@@ -5,7 +5,7 @@ use crate::EFrameApp;
 use crate::dialogs::{BoardSize, OptionsMenuDialog};
 use crate::egui_input::BrushTool;
 use crate::locale::get_text;
-use crate::material::{AIR, Material};
+use crate::material::Material;
 use crate::system_data::{ApplicationOptions, get_sign, get_temperature, import_materials};
 use crate::system_ui::{debug_text_rendering, get_particle};
 use crate::{
@@ -14,7 +14,6 @@ use crate::{
     system_ui::draw_brush_outlines,
     world::update_board,
 };
-use eframe::CreationContext;
 use egui::util::hash;
 use egui::{
     Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureOptions, Theme,
@@ -66,6 +65,11 @@ impl eframe::App for EFrameApp<'_> {
                 self.game_board.create_board();
             }
         }
+        /*
+        egui::Panel::left("navbar_placeholder")
+        .exact_size(15_f32)
+        .show(ctx, |ui| {});
+        */
         egui::Panel::top("top panel").show(ctx, |ui| {
             egui::ScrollArea::horizontal().show(ui, |ui| {
                 ui.add_space(5_f32);
@@ -215,32 +219,55 @@ impl eframe::App for EFrameApp<'_> {
                     {
                         self.game_board.create_board();
                     }
-                    // Updates the materials
-                    if ui
-                        .add(
-                            egui::widgets::Button::new(
-                                RichText::new("Reload materials").heading().strong(),
-                            )
-                            .stroke(Stroke::new(1_f32, Color32::WHITE))
-                            .fill(Color32::DARK_RED),
-                        )
-                        .clicked()
+                    #[cfg(not(any(
+                        target_os = "android",
+                        target_arch = "wasm32",
+                        target_os = "ios"
+                    )))]
                     {
-                        self.materials.push((String::new(), AIR.clone()));
-                        self.materials = import_materials(&mut vec![]);
-                        // Sorts the elements by their Id's and outputs them to a list
-                        self.materials.sort_by_key(|elem| elem.1.id);
-                        self.material_categories = vec![];
-                        for category in MaterialType::iter() {
-                            let mut category_vec: Vec<(String, Material)> = vec![];
-                            for material in self.materials.iter() {
-                                if discriminant(&category)
-                                    == discriminant(&material.1.material_type)
-                                {
-                                    category_vec.push(material.clone());
+                        if ui
+                            .add(
+                                egui::widgets::Button::new(
+                                    RichText::new(
+                                        get_text(
+                                            &self.program_options.locale,
+                                            self.program_options.selected_locale,
+                                        )
+                                        .reload_button
+                                        .as_str(),
+                                    )
+                                    .heading()
+                                    .strong(),
+                                )
+                                .stroke(Stroke::new(1_f32, Color32::WHITE))
+                                .fill(Color32::PURPLE),
+                            )
+                            .clicked()
+                        {
+                            // Reimports the materials
+
+                            use crate::system_data::{
+                                import_locales, import_reactions, import_transitions,
+                            };
+                            self.materials = import_materials(&mut vec![]);
+                            // Sorts the elements by their Id's and outputs them to the category list
+                            self.materials.sort_by_key(|elem| elem.1.id);
+                            self.material_categories = vec![];
+                            for category in MaterialType::iter() {
+                                let mut category_vec: Vec<(String, Material)> = vec![];
+                                for material in self.materials.iter() {
+                                    if discriminant(&category)
+                                        == discriminant(&material.1.material_type)
+                                    {
+                                        category_vec.push(material.clone());
+                                    }
                                 }
+                                self.material_categories.push(category_vec);
                             }
-                            self.material_categories.push(category_vec);
+                            self.program_options.locale =
+                                import_locales(&mut self.program_options.locale);
+                            self.physical_transitions = import_transitions();
+                            self.chemical_reactions = import_reactions();
                         }
                     }
                 });

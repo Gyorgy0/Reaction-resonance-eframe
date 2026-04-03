@@ -305,20 +305,16 @@ pub(crate) fn solve_reactions(
                         .get_oxidizing_agent();
                     if current_particle.temperature > *ignition_temperature
                         && !current_particle.burning
-                        && chemical_reactions
-                            .burning
-                            .iter()
-                            .find(|reaction| {
-                                reaction.burn_reagents
-                                    == (
-                                        current_particle.material_id,
-                                        materials[checked_particle.material_id]
-                                            .1
-                                            .material_type
-                                            .get_oxidizing_agent(),
-                                    )
-                            })
-                            .is_some()
+                        && chemical_reactions.burning.iter().any(|reaction| {
+                            reaction.burn_reagents
+                                == (
+                                    current_particle.material_id,
+                                    materials[checked_particle.material_id]
+                                        .1
+                                        .material_type
+                                        .get_oxidizing_agent(),
+                                )
+                        })
                     {
                         current_particle.burning = true;
                         current_particle.particle_health = *burn_time;
@@ -328,6 +324,11 @@ pub(crate) fn solve_reactions(
                         && chemical_reactions.burning.iter().any(|reaction| {
                             reaction.burn_reagents
                                 == (current_particle.material_id, oxidizing_agent)
+                                && discriminant(
+                                    &materials[checked_particle.material_id].1.material_type,
+                                ) != discriminant(&MaterialType::Machine {
+                                    machine: MachineTypes::Cloner,
+                                })
                         })
                     {
                         for product in chemical_reactions
@@ -388,7 +389,7 @@ pub(crate) fn solve_reactions(
                         if (x.abs().pow(2_u32) + y.abs().pow(2_u32))
                             <= explosion_power.abs().powi(2_i32) as i32
                         {
-                            let pos = (i + y as usize, j + x as usize);
+                            let pos = (i.wrapping_add(y as usize), j.wrapping_add(x as usize));
                             if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
                                 let mut checked_particle =
                                     *slice_board.get(get_safe_i(height, width, &pos)).unwrap();
@@ -399,6 +400,13 @@ pub(crate) fn solve_reactions(
                                 if chemical_reactions.burning.iter().any(|reaction| {
                                     reaction.burn_reagents
                                         == (current_particle.material_id, OxidizingAgent::None)
+                                        && discriminant(
+                                            &materials[checked_particle.material_id]
+                                                .1
+                                                .material_type,
+                                        ) != discriminant(&MaterialType::Machine {
+                                            machine: MachineTypes::Cloner,
+                                        })
                                 }) {
                                     for products in chemical_reactions
                                         .burning
@@ -569,8 +577,8 @@ pub(crate) fn solve_reactions(
                     1_f32,
                 )
                 .into();
-                current_particle.display_color =
-                    current_particle.display_color.gamma_multiply(lerp(
+                current_particle.display_color = current_particle.display_color.gamma_multiply(
+                    lerp(
                         tuple_to_rangeinclusive(
                             materials[prev_board[get_safe_i(height, width, &(i, j))].material_id]
                                 .1
@@ -578,7 +586,9 @@ pub(crate) fn solve_reactions(
                                 .shinyness,
                         ),
                         rngs[get_safe_i(height, width, &(i, j))],
-                    ));
+                    )
+                    .abs(),
+                );
                 unsafe {
                     write_particle(
                         slice_board,

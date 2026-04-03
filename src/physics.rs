@@ -379,15 +379,18 @@ pub fn solve_particle(
                     .1
                     .material_color
                     .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[changed_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
+                    .gamma_multiply(
+                        lerp(
+                            tuple_to_rangeinclusive(
+                                materials[changed_particle.material_id]
+                                    .1
+                                    .material_color
+                                    .shinyness,
+                            ),
+                            rngs[get_safe_i(height, width, &(i, j))],
+                        )
+                        .abs(),
+                    );
                 changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
@@ -423,15 +426,18 @@ pub fn solve_particle(
                     .1
                     .material_color
                     .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[changed_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
+                    .gamma_multiply(
+                        lerp(
+                            tuple_to_rangeinclusive(
+                                materials[changed_particle.material_id]
+                                    .1
+                                    .material_color
+                                    .shinyness,
+                            ),
+                            rngs[get_safe_i(height, width, &(i, j))],
+                        )
+                        .abs(),
+                    );
                 changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
@@ -702,15 +708,18 @@ pub fn solve_particle(
                     .1
                     .material_color
                     .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[changed_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
+                    .gamma_multiply(
+                        lerp(
+                            tuple_to_rangeinclusive(
+                                materials[changed_particle.material_id]
+                                    .1
+                                    .material_color
+                                    .shinyness,
+                            ),
+                            rngs[get_safe_i(height, width, &(i, j))],
+                        )
+                        .abs(),
+                    );
                 changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
@@ -922,7 +931,7 @@ pub fn solve_particle(
                     get_safe_i(
                         height,
                         width,
-                        &(i, j + (rnd.signum() as i32 * xchange) as usize),
+                        &(i, j.wrapping_add((rnd.signum() as i32 * xchange) as usize)),
                     ),
                     check_board,
                 )
@@ -949,15 +958,18 @@ pub fn solve_particle(
                     .1
                     .material_color
                     .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[changed_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
+                    .gamma_multiply(
+                        lerp(
+                            tuple_to_rangeinclusive(
+                                materials[changed_particle.material_id]
+                                    .1
+                                    .material_color
+                                    .shinyness,
+                            ),
+                            rngs[get_safe_i(height, width, &(i, j))],
+                        )
+                        .abs(),
+                    );
                 changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color
@@ -1183,15 +1195,18 @@ pub fn solve_particle(
                     .1
                     .material_color
                     .color
-                    .gamma_multiply(lerp(
-                        tuple_to_rangeinclusive(
-                            materials[changed_particle.material_id]
-                                .1
-                                .material_color
-                                .shinyness,
-                        ),
-                        rngs[get_safe_i(height, width, &(i, j))],
-                    ));
+                    .gamma_multiply(
+                        lerp(
+                            tuple_to_rangeinclusive(
+                                materials[changed_particle.material_id]
+                                    .1
+                                    .material_color
+                                    .shinyness,
+                            ),
+                            rngs[get_safe_i(height, width, &(i, j))],
+                        )
+                        .abs(),
+                    );
                 changed_particle.display_color[3] = materials[changed_particle.material_id]
                     .1
                     .material_color

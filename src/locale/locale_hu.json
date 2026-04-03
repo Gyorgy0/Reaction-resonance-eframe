@@ -3,6 +3,8 @@
   "language_name": "Magyar",
   "options_title": "Beállítások",
   "screen_option_label": "Képernyő:",
+  "reload_button": "Konfiguráció újratöltése",
+  "reload_tooltip": "Újraimportálja a fájlokat.",
   "fullscreen_button": "Teljes képernyő",
   "fullscreen_tooltip": "Maximalizálja a képernyő méretét.",
   "windowed_button": "Ablak mód",

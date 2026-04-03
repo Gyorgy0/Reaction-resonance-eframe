@@ -3,6 +3,8 @@
   "language_name": "English",
   "options_title": "Options",
   "screen_option_label": "Screen:",
+  "reload_button": "Reload config",
+  "reload_tooltip": "Reloads the imported files.",
   "fullscreen_button": "Fullscreen",
   "fullscreen_tooltip": "Maximizes the applications screen.",
   "windowed_button": "Windowed",

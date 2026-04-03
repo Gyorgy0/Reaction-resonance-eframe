@@ -534,5 +534,9 @@
   [
     133,
     "LIQUID::MOLTEN_BRASS - (POWDER::POWDERED_TIN 69% POWDER::GUNPOWDER 31% )"
+  ],
+  [
+    134,
+    "POWDER::POTASSIUM_OXIDE"
   ]
 ]
