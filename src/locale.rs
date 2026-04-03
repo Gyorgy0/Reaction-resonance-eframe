@@ -133,10 +133,7 @@ impl Default for Locale {
                     String::from("Alloys"),
                 ),
                 (
-                    (MaterialType::Ceramic {
-                        chemical_resistance: f32::default(),
-                    })
-                    .discriminant(),
+                    MaterialType::Ceramic.discriminant(),
                     String::from("Ceramic and glass materials"),
                 ),
                 (
@@ -176,6 +173,7 @@ impl Default for Locale {
                     .discriminant(),
                     String::from("Cellular automatons"),
                 ),
+                ((MaterialType::Salt).discriminant(), String::from("Salts")),
                 (
                     MaterialType::Machine {
                         machine: MachineTypes::default(),

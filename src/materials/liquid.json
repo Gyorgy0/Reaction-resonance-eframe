@@ -296,7 +296,7 @@
             "density": 6.98,
             "phase": {
                 "Liquid": {
-                    "viscosity": 5.0,
+                    "viscosity": 500.0,
                     "boiling_point": 3134,
                     "melting_point": 1811
                 }
@@ -479,6 +479,459 @@
                     85,
                     94,
                     103,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_NITROGEN_DIOXIDE",
+        {
+            "id": 111,
+            "density": 1.44,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 263.8,
+                    "boiling_point": 294.3
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 275.0,
+            "heat_capacity": 0.64,
+            "heat_conductivity": 0.00182,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    185,
+                    178,
+                    120,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::NITRIC_ACID",
+        {
+            "id": 113,
+            "density": 1.51,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 231,
+                    "boiling_point": 394
+                }
+            },
+            "material_type": "Corrosive",
+            "initial_temperature": 293.15,
+            "heat_capacity": 4.1955,
+            "heat_conductivity": 0.00598,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    185,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::HYDROFLUORIC_ACID",
+        {
+            "id": 114,
+            "density": 1.15,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 230.15,
+                    "boiling_point": 357.15
+                }
+            },
+            "material_type": "Corrosive",
+            "initial_temperature": 293.15,
+            "heat_capacity": 4.1955,
+            "heat_conductivity": 0.00598,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    85,
+                    185,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::HYDROCHLORIC_ACID",
+        {
+            "id": 115,
+            "density": 1.15,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 230.15,
+                    "boiling_point": 357.15
+                }
+            },
+            "material_type": "Corrosive",
+            "initial_temperature": 293.15,
+            "heat_capacity": 4.1955,
+            "heat_conductivity": 0.00598,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    103,
+                    185,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::SODIUM_HYDROXIDE_SOLUTION",
+        {
+            "id": 116,
+            "density": 1.15,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 250.15,
+                    "boiling_point": 373.15
+                }
+            },
+            "material_type": "Corrosive",
+            "initial_temperature": 293.15,
+            "heat_capacity": 4.1955,
+            "heat_conductivity": 0.00598,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    152,
+                    185,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::POTASSIUM_HYDROXIDE_SOLUTION",
+        {
+            "id": 117,
+            "density": 1.15,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 256.15,
+                    "boiling_point": 373.15
+                }
+            },
+            "material_type": "Corrosive",
+            "initial_temperature": 293.15,
+            "heat_capacity": 4.1955,
+            "heat_conductivity": 0.00598,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    152,
+                    185,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::AQUA_REGIA",
+        {
+            "id": 119,
+            "density": 1.15,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 231.15,
+                    "boiling_point": 394.15
+                }
+            },
+            "material_type": "Corrosive",
+            "initial_temperature": 293.15,
+            "heat_capacity": 4.1955,
+            "heat_conductivity": 0.00598,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    255,
+                    124,
+                    53,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_HYDROGEN",
+        {
+            "id": 120,
+            "density": 0.071,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 1.0,
+                    "melting_point": 14.01,
+                    "boiling_point": 20.28
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 15.0,
+            "heat_capacity": 14.305,
+            "heat_conductivity": 0.00182,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_SLAG",
+        {
+            "id": 121,
+            "density": 6.53,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 1.0,
+                    "melting_point": 1751,
+                    "boiling_point": -1
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 1851,
+            "heat_capacity": 0.88,
+            "heat_conductivity": 0.0030,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    125,
+                    13,
+                    10,
+                    255
+                ],
+                "shinyness": [
+                    0.75,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_SULFUR_DIOXIDE",
+        {
+            "id": 123,
+            "density": 2.62,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 1.0,
+                    "melting_point": 201,
+                    "boiling_point": -1
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 180.0,
+            "heat_capacity": 0.64,
+            "heat_conductivity": 0.00182,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    175,
+                    175,
+                    175,
+                    255
+                ],
+                "shinyness": [
+                    0.75,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_QUARTZ_GLASS",
+        {
+            "id": 126,
+            "density": 2.203,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 1500.0,
+                    "melting_point": 1938,
+                    "boiling_point": -1.0
+                }
+            },
+            "material_type": "Ceramic",
+            "initial_temperature": 2038,
+            "heat_capacity": 1.32,
+            "heat_conductivity": 0.013,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    42,
+                    234,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.99,
+                    1
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::TAR",
+        {
+            "id": 129,
+            "density": 1.81,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 20000.0,
+                    "melting_point": 388.36,
+                    "boiling_point": 717.8
+                }
+            },
+            "material_type": {
+                "Fuel": {
+                    "burn_time": 400,
+                    "ignition_temperature": 717.8,
+                    "flame_temperature": 1273.15
+                }
+            },
+            "initial_temperature": 273.15,
+            "heat_capacity": 0.71,
+            "heat_conductivity": 0.0021,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    53,
+                    50,
+                    52,
+                    255
+                ],
+                "shinyness": [
+                    0.45,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::CARAMEL",
+        {
+            "id": 130,
+            "density": 1.587,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 1500.0,
+                    "melting_point": 462,
+                    "boiling_point": 561
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 470,
+            "heat_capacity": 1.052,
+            "heat_conductivity": 0.00157,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    183,
+                    115,
+                    32,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::MOLTEN_BRASS",
+        {
+            "id": 133,
+            "density": 8.53,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 5.0,
+                    "melting_point": 1203.15,
+                    "boiling_point": 1503
+                }
+            },
+            "material_type": {
+                "Alloy": {
+                    "metals": [
+                        [
+                            63,
+                            0.69
+                        ],
+                        [
+                            72,
+                            0.31
+                        ]
+                    ]
+                }
+            },
+            "initial_temperature": 1303.15,
+            "heat_capacity": 0.38,
+            "heat_conductivity": 1.2,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    169,
+                    172,
+                    78,
                     255
                 ],
                 "shinyness": [

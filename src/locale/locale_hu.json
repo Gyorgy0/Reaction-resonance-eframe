@@ -143,13 +143,14 @@
     "1": "Ötvözetek",
     "2": "Sejtautomaták",
     "0": "Maró anyagok",
-    "4": "Robbanó anyagok",
-    "10": "Vegyi anyagok",
-    "6": "Gépek",
+    "4": "Sók",
+    "10": "Dekoratív anyagok",
+    "11": "Vegyi anyagok",
+    "6": "Gyúlékony anyagok",
     "3": "Kerámiák és üvegek",
-    "8": "Oxidálószerek",
-    "9": "Díszítő anyagok",
-    "7": "Fémek",
-    "5": "Éghető anyagok"
+    "8": "Fémek",
+    "9": "Oxidálószerek",
+    "7": "Gépek",
+    "5": "Robbanószerek"
   }
 }

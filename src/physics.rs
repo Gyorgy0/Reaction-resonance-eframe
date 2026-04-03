@@ -761,7 +761,7 @@ pub fn solve_particle(
 
             // Change on the Y axis
             let mut ychange = 0;
-            for k in 0..slice_board
+            for k in 0..=slice_board
                 .get_elem(get_safe_i(height, width, &(i, j)))
                 .speed
                 .y
@@ -784,6 +784,8 @@ pub fn solve_particle(
                     > materials[future_particle.material_id].1.density
                     && std::mem::discriminant(&materials[future_particle.material_id].1.phase)
                         != std::mem::discriminant(&Phase::solid_default())
+                    && std::mem::discriminant(&materials[future_particle.material_id].1.phase)
+                        != std::mem::discriminant(&Phase::powder_default())
                 {
                     ychange = k;
                 }
@@ -796,9 +798,9 @@ pub fn solve_particle(
                         &(i + (gravity.signum() as i32 * k) as usize, j),
                     ))
                     .is_none()
-                    && std::mem::discriminant(&materials[future_particle.material_id].1.phase)
+                    || std::mem::discriminant(&materials[future_particle.material_id].1.phase)
                         == std::mem::discriminant(&Phase::solid_default())
-                    && std::mem::discriminant(
+                    || std::mem::discriminant(
                         &materials[slice_board
                             .get(get_safe_i(
                                 height,
@@ -845,7 +847,6 @@ pub fn solve_particle(
                         check_board,
                     );
                 }
-                return;
             }
 
             current_particle =

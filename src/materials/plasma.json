@@ -123,5 +123,30 @@
                 ]
             }
         }
+    ],
+    [
+        "PLASMA::COPPER_FLAME",
+        {
+            "id": 118,
+            "density": 0.0002109,
+            "phase": "Plasma",
+            "material_type": "Solution",
+            "initial_temperature": 1673.15,
+            "heat_capacity": 1.226,
+            "heat_conductivity": 0.0081,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    96,
+                    232,
+                    139,
+                    32
+                ],
+                "shinyness": [
+                    0.65,
+                    1.45
+                ]
+            }
+        }
     ]
 ]

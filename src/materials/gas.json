@@ -26,7 +26,7 @@
                     252,
                     250,
                     0,
-                    255
+                    32
                 ],
                 "shinyness": [
                     0.9,
@@ -62,7 +62,7 @@
                     195,
                     195,
                     195,
-                    255
+                    32
                 ],
                 "shinyness": [
                     0.9,
@@ -92,7 +92,7 @@
                     255,
                     255,
                     255,
-                    255
+                    32
                 ],
                 "shinyness": [
                     0.95,
@@ -122,7 +122,7 @@
                     200,
                     200,
                     200,
-                    255
+                    32
                 ],
                 "shinyness": [
                     0.95,
@@ -158,7 +158,7 @@
                     195,
                     195,
                     225,
-                    255
+                    32
                 ],
                 "shinyness": [
                     0.9,
@@ -188,7 +188,7 @@
                     155,
                     155,
                     155,
-                    255
+                    32
                 ],
                 "shinyness": [
                     0.9,
@@ -223,7 +223,7 @@
                     155,
                     185,
                     205,
-                    255
+                    32
                 ],
                 "shinyness": [
                     0.9,
@@ -253,7 +253,7 @@
                     195,
                     195,
                     195,
-                    195
+                    32
                 ],
                 "shinyness": [
                     0.95,
@@ -490,11 +490,41 @@
                     95,
                     155,
                     255,
-                    195
+                    64
                 ],
                 "shinyness": [
                     0.9,
                     1.1
+                ]
+            }
+        }
+    ],
+    [
+        "GAS::NITROGEN_DIOXIDE",
+        {
+            "id": 110,
+            "density": 0.00188,
+            "phase": {
+                "Gas": {
+                    "boiling_point": 294.3,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 300.15,
+            "heat_capacity": 0.64,
+            "heat_conductivity": 0.00182,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    143,
+                    42,
+                    0,
+                    32
+                ],
+                "shinyness": [
+                    0.8,
+                    1.2
                 ]
             }
         }

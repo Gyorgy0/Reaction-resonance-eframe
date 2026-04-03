@@ -143,13 +143,14 @@
     "1": "Alloys",
     "2": "Cellular automatons",
     "0": "Corrosive materials",
-    "4": "Explosive materials",
-    "10": "Solutions",
-    "6": "Machines",
+    "4": "Salts",
+    "10": "Decorative materials",
+    "11": "Solutions",
+    "6": "Fuels",
     "3": "Ceramic and glass materials",
-    "8": "Oxidizers",
-    "9": "Decorative materials",
-    "7": "Metals",
-    "5": "Fuels"
+    "8": "Metals",
+    "9": "Oxidizers",
+    "7": "Machines",
+    "5": "Explosives"
   }
 }

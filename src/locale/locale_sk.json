@@ -143,13 +143,14 @@
     "1": "Zliatiny",
     "2": "Celulárne automaty",
     "0": "Korozívne materiály",
-    "4": "Výbušniny",
-    "10": "Materiály",
-    "6": "Stroje",
+    "4": "Soli",
+    "10": "Dekoratívne materiály",
+    "11": "Materiály",
+    "6": "Pohonné látky",
     "3": "Keramické a sklenené materiály",
-    "8": "Oxidanty",
-    "9": "Dekoratívne materiály",
-    "7": "Kovy",
-    "5": "Pohonné látky"
+    "8": "Kovy",
+    "9": "Oxidanty",
+    "7": "Stroje",
+    "5": "Výbušniny"
   }
 }

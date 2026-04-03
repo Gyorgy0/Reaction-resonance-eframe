@@ -47,7 +47,9 @@ pub(crate) enum MaterialType {
     /// 
     CAutomata {survival: u8, birth:u8, stages: u16},
     // Hard, brittle, heat-resistant, and corrosion-resistant material
-    Ceramic {chemical_resistance: f32},
+    Ceramic,
+    // Salts are formed by corrosive materials reaction with other compounds
+    Salt,
     // A material that generates a lot of energy and lot of gases
     Explosive {ignition_temperature: f32, explosion_power: f32, flame_temperature: f32},
     // Flammable material under normal circumstances
@@ -107,6 +109,7 @@ pub(crate) enum MachineTypes {
         max_temp: f32,
     },
     Cooler,
+    Insulator,
 }
 
 #[derive(PartialEq, Copy, Clone, Debug, Serialize, Deserialize, EnumIter, Default)]
@@ -555,6 +558,7 @@ pub(crate) fn solve_reactions(
                     }
                 }
             }
+            MachineTypes::Insulator => {}
         },
         MaterialType::Decor => {
             if current_particle.display_color == Color32::from_rgba_unmultiplied(0, 0, 0, 0) {
@@ -587,9 +591,9 @@ pub(crate) fn solve_reactions(
         }
         _ => {
             for pos in neumann_positions {
-                let checked_particle = slice_board.get(get_safe_i(height, width, &pos));
-                if checked_particle.is_some() {
-                    let mut neighboring_particle = *checked_particle.unwrap();
+                if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
+                    let checked_particle = slice_board.get_elem(get_safe_i(height, width, &pos));
+                    let mut neighboring_particle = *checked_particle;
                     let current_rng = rngs[get_safe_i(height, width, &(i, j))];
                     let rng = rngs[get_safe_i(height, width, &pos)];
                     let checked_id_pair = (

@@ -69,7 +69,7 @@
         "SOLID::ClONER",
         {
             "id": 2,
-            "density": 1.0,
+            "density": 1024.0,
             "phase": {
                 "Solid": {
                     "melting_point": -1.0,
@@ -87,9 +87,9 @@
             "durability": -1,
             "material_color": {
                 "color": [
-                    83,
-                    104,
-                    120,
+                    125,
+                    255,
+                    255,
                     255
                 ],
                 "shinyness": [
@@ -458,7 +458,7 @@
                     ]
                 }
             },
-            "initial_temperature": 43.23,
+            "initial_temperature": 273.15,
             "heat_capacity": 0.435,
             "heat_conductivity": 0.26,
             "durability": -1,
@@ -759,6 +759,173 @@
                     85,
                     94,
                     103,
+                    255
+                ],
+                "shinyness": [
+                    0.95,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::INSULATOR",
+        {
+            "id": 109,
+            "density": 2.699,
+            "phase": {
+                "Solid": {
+                    "melting_point": -1.0,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": {
+                "Machine": {
+                    "machine": "Insulator"
+                }
+            },
+            "initial_temperature": 293.15,
+            "heat_capacity": 1024.0,
+            "heat_conductivity": 0.0,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    155,
+                    155,
+                    155,
+                    255
+                ],
+                "shinyness": [
+                    0.75,
+                    1.25
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::SLAG",
+        {
+            "id": 122,
+            "density": 6.78,
+            "phase": {
+                "Solid": {
+                    "melting_point": 1751,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 293.15,
+            "heat_capacity": 0.88,
+            "heat_conductivity": 0.0030,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    96,
+                    26,
+                    30,
+                    255
+                ],
+                "shinyness": [
+                    0.75,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::QUARTZ_GLASS",
+        {
+            "id": 125,
+            "density": 2.203,
+            "phase": {
+                "Solid": {
+                    "melting_point": 1938,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Ceramic",
+            "initial_temperature": 293.15,
+            "heat_capacity": 1.32,
+            "heat_conductivity": 0.013,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    42,
+                    234,
+                    255,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.1
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::SOLID_CARAMEL",
+        {
+            "id": 131,
+            "density": 1.587,
+            "phase": {
+                "Solid": {
+                    "melting_point": 462,
+                    "sublimation_point": -1.0
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 273.15,
+            "heat_capacity": 1.052,
+            "heat_conductivity": 0.00157,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    183,
+                    115,
+                    32,
+                    255
+                ],
+                "shinyness": [
+                    0.8,
+                    1.15
+                ]
+            }
+        }
+    ],
+    [
+        "SOLID::BRASS",
+        {
+            "id": 132,
+            "density": 8.53,
+            "phase": {
+                "Solid": {
+                    "melting_point": 1203.15,
+                    "sublimation_point": -1
+                }
+            },
+            "material_type": {
+                "Alloy": {
+                    "metals": [
+                        [
+                            63,
+                            0.69
+                        ],
+                        [
+                            72,
+                            0.31
+                        ]
+                    ]
+                }
+            },
+            "initial_temperature": 273.15,
+            "heat_capacity": 0.38,
+            "heat_conductivity": 1.2,
+            "durability": -1,
+            "material_color": {
+                "color": [
+                    169,
+                    172,
+                    78,
                     255
                 ],
                 "shinyness": [

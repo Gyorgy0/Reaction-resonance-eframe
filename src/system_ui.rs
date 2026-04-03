@@ -49,9 +49,7 @@ impl fmt::Display for MaterialType {
                 write!(f, "Corrosive")
             }
             MaterialType::Alloy { metals: _ } => write!(f, "Alloy"),
-            MaterialType::Ceramic {
-                chemical_resistance: _,
-            } => write!(f, "Ceramic"),
+            MaterialType::Ceramic => write!(f, "Ceramic"),
             MaterialType::CAutomata {
                 birth: _,
                 survival: _,
@@ -75,6 +73,7 @@ impl fmt::Display for MaterialType {
             } => write!(f, "Oxidizer"),
             MaterialType::Decor => write!(f, "Decor"),
             MaterialType::Solution => write!(f, "Solution"),
+            MaterialType::Salt => write!(f, "Salts"),
         }
     }
 }
@@ -85,6 +84,7 @@ impl fmt::Display for MachineTypes {
             MachineTypes::Sink => write!(f, "Sink"),
             MachineTypes::Heater { max_temp: _ } => write!(f, "Heater"),
             MachineTypes::Cooler => write!(f, "Cooler"),
+            MachineTypes::Insulator => write!(f, "Insulator"),
         }
     }
 }
@@ -99,9 +99,8 @@ impl MaterialType {
                 birth: _,
                 stages: _,
             } => include_image!("assets/cautomatas_icon.svg"),
-            MaterialType::Ceramic {
-                chemical_resistance: _,
-            } => include_image!("assets/ceramics_icon.svg"),
+            MaterialType::Ceramic => include_image!("assets/ceramics_icon.svg"),
+            MaterialType::Salt => include_image!("assets/category_background.svg"),
             MaterialType::Explosive {
                 ignition_temperature: _,
                 explosion_power: _,
