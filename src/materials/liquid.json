@@ -425,15 +425,15 @@
                     "melting_point": 1018.15
                 }
             },
-             "material_type": {
+            "material_type": {
                 "Alloy": {
                     "metals": [
                         [
-                            63,
+                            54,
                             0.75
                         ],
                         [
-                            72,
+                            63,
                             0.25
                         ]
                     ]
@@ -776,7 +776,7 @@
                 "Liquid": {
                     "viscosity": 1.0,
                     "melting_point": 201,
-                    "boiling_point": -1
+                    "boiling_point": 263
                 }
             },
             "material_type": "Solution",
@@ -913,11 +913,11 @@
                 "Alloy": {
                     "metals": [
                         [
-                            63,
+                            54,
                             0.69
                         ],
                         [
-                            72,
+                            66,
                             0.31
                         ]
                     ]
@@ -937,6 +937,145 @@
                 "shinyness": [
                     0.95,
                     1.0
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_FLUORINE",
+        {
+            "id": 135,
+            "density": 1.505,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 3.0,
+                    "melting_point": 53.48,
+                    "boiling_point": 85.03
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "oxidizing_agent": "Fluorine",
+                    "combustion_speedup": 1.35
+                }
+            },
+            "initial_temperature": 64.36,
+            "heat_capacity": 0.823,
+            "heat_conductivity": 0.27,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    185,
+                    185,
+                    64,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_CHLORINE",
+        {
+            "id": 136,
+            "density": 1.563,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 3.0,
+                    "melting_point": 171.6,
+                    "boiling_point": 239.11
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "oxidizing_agent": "Chlorine",
+                    "combustion_speedup": 1.32
+                }
+            },
+            "initial_temperature": 181.6,
+            "heat_capacity": 0.478,
+            "heat_conductivity": 0.27,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    112,
+                    185,
+                    24,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_OZONE",
+        {
+            "id": 137,
+            "density": 1.14,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 3.0,
+                    "melting_point": 54.36,
+                    "boiling_point": 90.188
+                }
+            },
+            "material_type": {
+                "Oxidizer": {
+                    "oxidizing_agent": "Oxygen",
+                    "combustion_speedup": 1.47
+                }
+            },
+            "initial_temperature": 74.36,
+            "heat_capacity": 0.92,
+            "heat_conductivity": 0.27,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    49,
+                    43,
+                    193,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
+                ]
+            }
+        }
+    ],
+    [
+        "LIQUID::LIQUID_METHANE",
+        {
+            "id": 138,
+            "density": 0.423,
+            "phase": {
+                "Liquid": {
+                    "viscosity": 3.0,
+                    "melting_point": 90.694,
+                    "boiling_point": 111.66
+                }
+            },
+            "material_type": "Solution",
+            "initial_temperature": 100.694,
+            "heat_capacity": 0.92,
+            "heat_conductivity": 0.27,
+            "durability": 50,
+            "material_color": {
+                "color": [
+                    189,
+                    189,
+                    145,
+                    255
+                ],
+                "shinyness": [
+                    0.85,
+                    1.35
                 ]
             }
         }

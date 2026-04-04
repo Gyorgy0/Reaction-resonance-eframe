@@ -1024,7 +1024,7 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.wrapping_add(gravity.signum() as usize), j),
+                        &(i.saturating_add(gravity.signum() as usize), j),
                     ))
                     .unwrap_or(current_particle);
                 orientation_y = ((current_particle.speed.y.signum()
@@ -1122,7 +1122,7 @@ pub fn solve_particle(
                         height,
                         width,
                         &(
-                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                            (i as i32 + (orientation_y.signum() * ychange)) as usize,
                             (j as i32 + (orientation_x.signum() * k)) as usize,
                         ),
                     ))
@@ -1132,7 +1132,7 @@ pub fn solve_particle(
                             height,
                             width,
                             &(
-                                i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                                (i as i32 + (orientation_y.signum() * ychange)) as usize,
                                 (j as i32 + (orientation_x.signum() * k)) as usize,
                             ),
                         ))
@@ -1147,8 +1147,8 @@ pub fn solve_particle(
                                     height,
                                     width,
                                     &(
-                                        i.wrapping_add((orientation_y.signum() * ychange) as usize),
-                                        (j as i32 + (orientation_x.signum() * k)) as usize,
+                                        ((i as i32).saturating_add(orientation_y.signum() * ychange)) as usize,
+                                        ((j as i32).saturating_add(orientation_x.signum() * k)) as usize,
                                     ),
                                 ))
                                 .unwrap_or(current_particle)
@@ -1170,8 +1170,8 @@ pub fn solve_particle(
                         height,
                         width,
                         &(
-                            i.wrapping_add((orientation_y.signum() * ychange) as usize),
-                            j.wrapping_add((orientation_x.signum() * xchange) as usize),
+                            (i as i32 + (orientation_y.signum() * ychange)) as usize,
+                            (j as i32 + (orientation_x.signum() * xchange)) as usize,
                         ),
                     ),
                     check_board,
@@ -1441,7 +1441,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .melting
                     .iter()
                     .find(|original_material| {
@@ -1451,11 +1451,17 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
-            } else if *sublimation_point < current_particle.temperature
+            }
+            else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
                     .iter()
@@ -1466,7 +1472,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .sublimation
                     .iter()
                     .find(|original_material| {
@@ -1476,12 +1482,15 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
-            } else {
-                return None;
             }
         }
         Phase::Powder {
@@ -1498,7 +1507,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .melting
                     .iter()
                     .find(|original_material| {
@@ -1508,11 +1517,17 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
-            } else if *sublimation_point < current_particle.temperature
+            }
+            else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
                     .iter()
@@ -1523,7 +1538,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .sublimation
                     .iter()
                     .find(|original_material| {
@@ -1533,12 +1548,15 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
-            } else {
-                return None;
             }
         }
         Phase::Liquid {
@@ -1557,7 +1575,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .melting
                     .iter()
                     .find(|original_material| {
@@ -1567,12 +1585,18 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
+            }
             // Boiling/evaporation (liquid -> gas)
-            } else if *boiling_point < current_particle.temperature
+             else if *boiling_point < current_particle.temperature
                 && physical_transitions
                     .boiling
                     .iter()
@@ -1597,12 +1621,10 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;
-                        break;
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
-            } else {
-                return None;
             }
         }
         Phase::Gas {
@@ -1619,7 +1641,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .boiling
                     .iter()
                     .find(|original_material| {
@@ -1629,11 +1651,17 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
-            } else if *sublimation_point > current_particle.temperature
+            }
+            else if *sublimation_point > current_particle.temperature
                 && physical_transitions
                     .sublimation
                     .iter()
@@ -1644,7 +1672,7 @@ pub fn phase_change(
                     from: current_particle.material_id,
                     to: vec![(current_particle.material_id, 1.0)],
                 };
-                for materials in physical_transitions
+                for product in physical_transitions
                     .sublimation
                     .iter()
                     .find(|original_material| {
@@ -1654,12 +1682,15 @@ pub fn phase_change(
                     .to
                     .clone()
                 {
-                    if rng > (1_f32 - materials.1) {
-                        new_particle.material_id = materials.0;
+                    if rng > (1_f32 - product.1) {
+                        new_particle.temperature = materials[product.0]
+                            .1
+                            .initial_temperature
+                            .max(current_particle.temperature);
+                        new_particle.material_id = product.0;         
+                        return Some(new_particle);
                     }
                 }
-            } else {
-                return None;
             }
         }
         Phase::Plasma => {
@@ -1677,5 +1708,5 @@ pub fn phase_change(
             }
         }
     }
-    Some(new_particle)
+    None
 }
