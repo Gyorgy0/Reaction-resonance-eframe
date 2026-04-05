@@ -845,7 +845,7 @@
                 "Fuel": {
                     "burn_time": 400,
                     "ignition_temperature": 717.8,
-                    "flame_temperature": 1273.15
+                    "flame_temperature": 1173.15
                 }
             },
             "initial_temperature": 273.15,

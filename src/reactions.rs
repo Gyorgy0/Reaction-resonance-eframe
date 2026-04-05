@@ -283,6 +283,28 @@ pub(crate) fn solve_reactions(
             ignition_temperature,
             flame_temperature,
         } => {
+            let checked_pos_idx =
+                (rngs[get_safe_i(height, width, &(i, j))].abs() / 0.33_f32).floor() as usize;
+            let pos = neumann_positions[checked_pos_idx];
+            if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
+                let checked_particle = *slice_board.get(get_safe_i(height, width, &pos)).unwrap();
+                if checked_particle.temperature > *ignition_temperature
+                    && !current_particle.burning
+                    && chemical_reactions.burning.iter().any(|reaction| {
+                        reaction.burn_reagents
+                            == (
+                                current_particle.material_id,
+                                materials[checked_particle.material_id]
+                                    .1
+                                    .material_type
+                                    .get_oxidizing_agent(),
+                            )
+                    })
+                {
+                    current_particle.burning = true;
+                    current_particle.particle_health = *burn_time;
+                }
+            }
             if current_particle.burning && current_particle.particle_health > 0_u16 {
                 current_particle.particle_health -= 1_u16;
             } else if current_particle.burning && current_particle.particle_health == 0_u16 {
@@ -294,73 +316,54 @@ pub(crate) fn solve_reactions(
                     .material_color
                     .color;
             }
-            for pos in neumann_positions {
-                if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
-                    let mut checked_particle =
-                        *slice_board.get(get_safe_i(height, width, &pos)).unwrap();
-                    let rng = rngs.get(get_safe_i(height, width, &pos)).unwrap().abs();
-                    let oxidizing_agent = materials[checked_particle.material_id]
-                        .1
-                        .material_type
-                        .get_oxidizing_agent();
-                    if current_particle.temperature > *ignition_temperature
-                        && !current_particle.burning
-                        && chemical_reactions.burning.iter().any(|reaction| {
-                            reaction.burn_reagents
-                                == (
-                                    current_particle.material_id,
-                                    materials[checked_particle.material_id]
-                                        .1
-                                        .material_type
-                                        .get_oxidizing_agent(),
-                                )
-                        })
-                    {
-                        current_particle.burning = true;
-                        current_particle.particle_health = *burn_time;
-                    }
-                    if current_particle.burning
-                        && current_particle.particle_health > 0_u16
-                        && chemical_reactions.burning.iter().any(|reaction| {
+            if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
+                let mut checked_particle =
+                    *slice_board.get(get_safe_i(height, width, &pos)).unwrap();
+                let rng = rngs.get(get_safe_i(height, width, &pos)).unwrap().abs();
+                let oxidizing_agent = materials[checked_particle.material_id]
+                    .1
+                    .material_type
+                    .get_oxidizing_agent();
+                if current_particle.burning
+                    && current_particle.particle_health > 0_u16
+                    && chemical_reactions.burning.iter().any(|reaction| {
+                        reaction.burn_reagents == (current_particle.material_id, oxidizing_agent)
+                            && discriminant(
+                                &materials[checked_particle.material_id].1.material_type,
+                            ) != discriminant(&MaterialType::Machine {
+                                machine: MachineTypes::Cloner,
+                            })
+                    })
+                {
+                    for product in chemical_reactions
+                        .burning
+                        .iter()
+                        .find(|reaction| {
                             reaction.burn_reagents
                                 == (current_particle.material_id, oxidizing_agent)
-                                && discriminant(
-                                    &materials[checked_particle.material_id].1.material_type,
-                                ) != discriminant(&MaterialType::Machine {
-                                    machine: MachineTypes::Cloner,
-                                })
                         })
+                        .unwrap()
+                        .products
+                        .clone()
                     {
-                        for product in chemical_reactions
-                            .burning
-                            .iter()
-                            .find(|reaction| {
-                                reaction.burn_reagents
-                                    == (current_particle.material_id, oxidizing_agent)
-                            })
-                            .unwrap()
-                            .products
-                            .clone()
-                        {
-                            let burn_speedup = materials[checked_particle.material_id]
-                                .1
-                                .material_type
-                                .get_burn_speedup();
-                            if (rng * burn_speedup) > (1_f32 - product.1) {
-                                checked_particle.material_id = product.0;
-                                checked_particle.temperature = *flame_temperature * burn_speedup;
-                                checked_particle
-                                    .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
-                                unsafe {
-                                    write_particle(
-                                        slice_board,
-                                        get_safe_i(height, width, &pos),
-                                        checked_particle,
-                                        check_board,
-                                    )
-                                };
-                                break;
-                            }
+                        let burn_speedup = materials[checked_particle.material_id]
+                            .1
+                            .material_type
+                            .get_burn_speedup();
+                        if (rng * burn_speedup) > (1_f32 - product.1) {
+                            checked_particle.material_id = product.0;
+                            checked_particle.temperature = *flame_temperature * burn_speedup;
+                            checked_particle
+                                .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
+                            unsafe {
+                                write_particle(
+                                    slice_board,
+                                    get_safe_i(height, width, &pos),
+                                    checked_particle,
+                                    check_board,
+                                )
+                            };
+                            break;
                         }
                     }
                 }
@@ -600,76 +603,81 @@ pub(crate) fn solve_reactions(
             }
         }
         _ => {
-            for pos in neumann_positions {
-                if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
-                    let checked_particle = slice_board.get_elem(get_safe_i(height, width, &pos));
-                    let mut neighboring_particle = *checked_particle;
-                    let current_rng = rngs[get_safe_i(height, width, &(i, j))];
-                    let rng = rngs[get_safe_i(height, width, &pos)];
-                    let checked_id_pair = (
-                        current_particle.material_id,
-                        neighboring_particle.material_id,
-                    );
-                    let _checked_reverse_pair = (checked_id_pair.1, checked_id_pair.0);
+            let checked_pos_idx =
+                (rngs[get_safe_i(height, width, &(i, j))].abs() / 0.33_f32).floor() as usize;
+            let pos = neumann_positions[checked_pos_idx];
+            if slice_board.get(get_safe_i(height, width, &pos)).is_some() {
+                let checked_particle = slice_board.get_elem(get_safe_i(height, width, &pos));
+                let mut neighboring_particle = *checked_particle;
+                let rng = rngs[get_safe_i(height, width, &pos)];
+                let checked_id_pair = (
+                    current_particle.material_id,
+                    neighboring_particle.material_id,
+                );
+                let reverse_checked_id_pair = (checked_id_pair.1, checked_id_pair.0);
 
-                    if chemical_reactions
+                if chemical_reactions
+                    .mingling
+                    .iter()
+                    .any(|reaction| reaction.reagents == checked_id_pair)
+                {
+                    for product in chemical_reactions
                         .mingling
                         .iter()
-                        .any(|reaction| reaction.reagents == checked_id_pair)
+                        .find(|reaction| reaction.reagents == checked_id_pair)
+                        .unwrap()
+                        .products
+                        .clone()
                     {
-                        for product in chemical_reactions
-                            .mingling
-                            .iter()
-                            .find(|reaction| reaction.reagents == checked_id_pair)
-                            .unwrap()
-                            .products
-                            .clone()
-                        {
-                            if rng > (1_f32 - product.1) {
-                                neighboring_particle.material_id = product.0;
-                                neighboring_particle.temperature = materials[product.0]
-                                    .1
-                                    .initial_temperature
-                                    .max(neighboring_particle.temperature);
-                                neighboring_particle
-                                    .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
-                                unsafe {
-                                    write_particle(
-                                        slice_board,
-                                        get_safe_i(height, width, &pos),
-                                        neighboring_particle,
-                                        check_board,
-                                    )
-                                };
-                                break;
-                            }
+                        if rng > (1_f32 - product.1) {
+                            neighboring_particle.material_id = product.0;
+                            neighboring_particle.temperature = materials[product.0]
+                                .1
+                                .initial_temperature
+                                .max(neighboring_particle.temperature);
+                            neighboring_particle
+                                .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
+                            unsafe {
+                                write_particle(
+                                    slice_board,
+                                    get_safe_i(height, width, &pos),
+                                    neighboring_particle,
+                                    check_board,
+                                )
+                            };
+                            break;
                         }
-                        for products in chemical_reactions
-                            .mingling
-                            .iter()
-                            .find(|reaction| reaction.reagents == checked_id_pair)
-                            .unwrap()
-                            .products
-                            .clone()
-                        {
-                            if current_rng > (1_f32 - products.1) {
-                                current_particle.material_id = products.0;
-                                current_particle.temperature = materials[products.0]
-                                    .1
-                                    .initial_temperature
-                                    .max(current_particle.temperature);
-                                current_particle
-                                    .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
-                                unsafe {
-                                    write_particle(
-                                        slice_board,
-                                        get_safe_i(height, width, &(i, j)),
-                                        current_particle,
-                                        check_board,
-                                    )
-                                };
-                                break;
-                            }
+                    }
+                } else if chemical_reactions
+                    .mingling
+                    .iter()
+                    .any(|reaction| reaction.reagents == reverse_checked_id_pair)
+                {
+                    for product in chemical_reactions
+                        .mingling
+                        .iter()
+                        .find(|reaction| reaction.reagents == reverse_checked_id_pair)
+                        .unwrap()
+                        .products
+                        .clone()
+                    {
+                        if rng > (1_f32 - product.1) {
+                            neighboring_particle.material_id = product.0;
+                            neighboring_particle.temperature = materials[product.0]
+                                .1
+                                .initial_temperature
+                                .max(neighboring_particle.temperature);
+                            neighboring_particle
+                                .set_color(materials, _seeds[get_safe_i(height, width, &pos)]);
+                            unsafe {
+                                write_particle(
+                                    slice_board,
+                                    get_safe_i(height, width, &pos),
+                                    neighboring_particle,
+                                    check_board,
+                                )
+                            };
+                            break;
                         }
                     }
                 }

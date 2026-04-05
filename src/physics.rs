@@ -180,7 +180,10 @@ pub fn solve_heat(
                 .get_elem(get_safe_i(height, width, &pos))
                 .material_id;
             let temp_difference = current_particle.temperature - neighbouring_particle_temperature;
-            let transferred_heat = materials[neighbouring_particle_id].1.heat_conductivity
+            let transferred_heat = materials[neighbouring_particle_id]
+                .1
+                .heat_conductivity
+                .min(materials[current_particle.material_id].1.heat_conductivity)
                 * temp_difference.abs()
                 * framedelta;
             if slice_board
