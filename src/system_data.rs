@@ -261,8 +261,6 @@ pub fn import_locales(locales: &mut Vec<Locale>) -> Vec<Locale> {
         locales.push(from_str(&FILES.locales.locale_en).unwrap());
         locales.push(from_str(&FILES.locales.locale_hu).unwrap());
         locales.push(from_str(&FILES.locales.locale_sk).unwrap());
-
-        locales.append(&mut serialized_materials);
     }
     locales.clone()
 }
@@ -341,6 +339,10 @@ pub fn import_transitions() -> PhysicalReactions {
     #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
     {
         // Physical transitions - Portable version
+
+        use serde_json::from_str;
+
+        use crate::included_files::FILES;
         serialized_transition_melting =
             from_str(&FILES.physics_transition.melting_transitions).unwrap();
         serialized_transition_boiling =
@@ -373,6 +375,10 @@ pub fn import_reactions() -> ChemicalReactions {
     #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
     {
         // Chemical reactions
+
+        use serde_json::from_str;
+
+        use crate::included_files::FILES;
         serialized_reactions_burning =
             from_str(&FILES.chemical_reactions.burning_reactions).unwrap();
         serialized_reactions_mingling =
