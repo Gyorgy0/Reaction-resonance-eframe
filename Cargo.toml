@@ -53,16 +53,16 @@ wasm-bindgen-rayon = "1.3.0"
 
 # FOR APKS - dev profile builds an apk
 [profile.dev]
-debug = false
-strip = false
+debug = true
+strip = true
 opt-level = "s"
 #lto = true
 codegen-units = 1
 
 [profile.release]
 opt-level = 's'
-debug = true
-strip = false
+debug = false
+strip = true
 #lto = "fat"
 panic = "abort"
 codegen-units = 1

@@ -26,8 +26,10 @@ pub fn handle_mouse_input(
     if response.dragged_by(egui::PointerButton::Primary)
         || response.clicked_by(egui::PointerButton::Primary)
     {
-        let mut particle_indices: Vec<usize> = vec![];
-        let mut mixed_particles: Vec<Particle> = vec![];
+        let mut particle_indices: Vec<usize> =
+            Vec::with_capacity((game_board.brush_size.x * game_board.brush_size.y) as usize);
+        let mut mixed_particles: Vec<Particle> =
+            Vec::with_capacity((game_board.brush_size.x * game_board.brush_size.y) as usize);
         for y in -game_board.brush_size.y as i64..=game_board.brush_size.y as i64 {
             for x in -game_board.brush_size.x as i64..=game_board.brush_size.x as i64 {
                 let cellpos = get_safe_i(

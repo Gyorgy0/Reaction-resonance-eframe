@@ -209,7 +209,7 @@ pub fn update_board(
                 if ((*framecount % 5_u64) as i64 + HEAT_OFFSET[i % 5] + j as i64) % 5_i64 == 0_i64 {
                     solve_heat(
                         &game_board.contents,
-                        materials,
+                        &materials,
                         &height,
                         &width,
                         i,
@@ -233,7 +233,7 @@ pub fn get_safe_i(rows: &usize, cols: &usize, pos: &(usize, usize)) -> usize {
         col = 0_usize;
     }
     col = col.clamp(0_usize, *cols - 1_usize);
-    ((row * cols) + col).clamp(0_usize, (*rows*cols))
+    ((row * cols) + col).clamp(0_usize, *rows * cols)
 }
 
 /// A thread-safe wrapper for a slice, allowing concurrent writes to distinct indexes.
@@ -289,9 +289,11 @@ pub unsafe fn swap_particle(
         let data_ptr = slice.data.get();
         let vec = &mut *data_ptr; // Dereference to &mut Vec<T> (unsafe!)
 
-        if !check_board[index_1]
-            .physics_written
-            .swap(true, Ordering::AcqRel)
+        if check_board.get(index_1).is_some()
+            && check_board.get(index_2).is_some()
+            && !check_board[index_1]
+                .physics_written
+                .swap(true, Ordering::AcqRel)
             && !check_board[index_2]
                 .physics_written
                 .swap(true, Ordering::AcqRel)

@@ -750,8 +750,8 @@
             },
             "material_type": "Solution",
             "initial_temperature": 1851,
-            "heat_capacity": 0.88,
-            "heat_conductivity": 0.0030,
+            "heat_capacity": 0.48,
+            "heat_conductivity": 0.3,
             "durability": -1,
             "material_color": {
                 "color": [
@@ -805,7 +805,7 @@
             "density": 2.203,
             "phase": {
                 "Liquid": {
-                    "viscosity": 1500.0,
+                    "viscosity": 100.0,
                     "melting_point": 1938,
                     "boiling_point": -1.0
                 }

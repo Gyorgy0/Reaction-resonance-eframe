@@ -169,7 +169,7 @@
             "material_type": "Solution",
             "initial_temperature": 174.6855,
             "heat_capacity": 0.843,
-            "heat_conductivity": 0.0001662,
+            "heat_conductivity": 0.01662,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -563,7 +563,7 @@
             "density": 2.13,
             "phase": {
                 "Powder": {
-                    "melting_point":  596,
+                    "melting_point": 596,
                     "sublimation_point": -1.0
                 }
             },
@@ -593,7 +593,7 @@
             "density": 2.04,
             "phase": {
                 "Powder": {
-                    "melting_point":  683,
+                    "melting_point": 683,
                     "sublimation_point": -1.0
                 }
             },
@@ -623,7 +623,7 @@
             "density": 2.49,
             "phase": {
                 "Powder": {
-                    "melting_point":  1405,
+                    "melting_point": 1405,
                     "sublimation_point": -1.0
                 }
             },
@@ -653,7 +653,7 @@
             "density": 2.49,
             "phase": {
                 "Powder": {
-                    "melting_point":  683,
+                    "melting_point": 683,
                     "sublimation_point": -1.0
                 }
             },
@@ -683,7 +683,7 @@
             "density": 2.17,
             "phase": {
                 "Powder": {
-                    "melting_point":  1073.8,
+                    "melting_point": 1073.8,
                     "sublimation_point": -1.0
                 }
             },
@@ -713,7 +713,7 @@
             "density": 2.48,
             "phase": {
                 "Powder": {
-                    "melting_point":  1131,
+                    "melting_point": 1131,
                     "sublimation_point": -1.0
                 }
             },
@@ -743,7 +743,7 @@
             "density": 1.984,
             "phase": {
                 "Powder": {
-                    "melting_point":  1040,
+                    "melting_point": 1040,
                     "sublimation_point": -1.0
                 }
             },
@@ -773,7 +773,7 @@
             "density": 6.315,
             "phase": {
                 "Powder": {
-                    "melting_point":  1599,
+                    "melting_point": 1599,
                     "sublimation_point": -1.0
                 }
             },
@@ -803,7 +803,7 @@
             "density": 5.25,
             "phase": {
                 "Powder": {
-                    "melting_point":  1812,
+                    "melting_point": 1812,
                     "sublimation_point": -1.0
                 }
             },
@@ -905,7 +905,7 @@
             "density": 3.99,
             "phase": {
                 "Powder": {
-                    "melting_point":  2345,
+                    "melting_point": 2345,
                     "sublimation_point": -1.0
                 }
             },
@@ -1096,7 +1096,7 @@
             "density": 2.32,
             "phase": {
                 "Powder": {
-                    "melting_point":  1010,
+                    "melting_point": 1010,
                     "sublimation_point": -1.0
                 }
             },

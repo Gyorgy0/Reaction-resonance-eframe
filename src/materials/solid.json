@@ -207,7 +207,7 @@
             "material_type": "Solution",
             "initial_temperature": 174.6855,
             "heat_capacity": 0.843,
-            "heat_conductivity": 0.0001662,
+            "heat_conductivity": 0.01662,
             "durability": 50,
             "material_color": {
                 "color": [
@@ -815,8 +815,8 @@
             },
             "material_type": "Solution",
             "initial_temperature": 293.15,
-            "heat_capacity": 0.88,
-            "heat_conductivity": 0.0030,
+            "heat_capacity": 0.48,
+            "heat_conductivity": 0.30,
             "durability": -1,
             "material_color": {
                 "color": [

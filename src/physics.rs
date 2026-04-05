@@ -254,6 +254,7 @@ pub fn solve_particle(
         Phase::Air => {
             current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
             //let current_particle_mass = materials[current_particle.material_id].1.density * ();
+
             // This calculates the position on the Y axis
             let mut orientation_y: i32 = 0_i32;
             if slice_board
@@ -278,11 +279,11 @@ pub fn solve_particle(
                     write_y_speed_field(
                         slice_board,
                         get_safe_i(height, width, &(i, j)),
-                        slice_board
+                        (slice_board
                             .get_elem(get_safe_i(height, width, &(i, j)))
                             .speed
                             .y
-                            + (rnd.signum() * (rnd.abs() / 2_f32)),
+                            + (rnd.signum() * (rnd.abs() / 2_f32)) * gravity.signum()),
                         check_board,
                     );
                 }
@@ -292,18 +293,17 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.wrapping_add(gravity.signum() as usize), j),
+                        &((i as i32 + gravity.signum() as i32) as usize, j),
                     ))
                     .unwrap_or(current_particle);
-                orientation_y = ((current_particle.speed.y.signum()
-                    * (current_particle.speed.y.abs() + 1_f32))
+                orientation_y = (current_particle.speed.y.signum()
+                    * (current_particle.speed.y.abs() + 1_f32)
                     - ((materials[next_particle.material_id].1.density
                         / materials[current_particle.material_id].1.density)
                         * gravity
                         * framedelta)) as i32;
                 if gravity.abs() > 1_f32 {
-                    orientation_y = orientation_y.signum()
-                        * (orientation_y.abs()).clamp(1_i32, gravity.abs() as i32);
+                    orientation_y = orientation_y % gravity as i32;
                 }
             }
             let mut ychange = 0_i32;
@@ -858,8 +858,13 @@ pub fn solve_particle(
                 }
             }
 
-            current_particle =
-                slice_board.get_elem(get_safe_i(height, width, &(i + ychange as usize, j)));
+            if slice_board
+                .get(get_safe_i(height, width, &(i + ychange as usize, j)))
+                .is_some()
+            {
+                current_particle =
+                    slice_board.get_elem(get_safe_i(height, width, &(i + ychange as usize, j)));
+            }
             // Viscosity simulation
             let mut speed_x = 0_f32;
             let rnd = rngs[get_safe_i(height, width, &(i, j))];
@@ -1010,11 +1015,11 @@ pub fn solve_particle(
                     write_y_speed_field(
                         slice_board,
                         get_safe_i(height, width, &(i, j)),
-                        slice_board
+                        (slice_board
                             .get_elem(get_safe_i(height, width, &(i, j)))
                             .speed
                             .y
-                            + (rnd.signum() * (rnd.abs() / 2_f32)),
+                            + (rnd.signum() * (rnd.abs() / 2_f32)) * gravity.signum()),
                         check_board,
                     );
                 }
@@ -1024,254 +1029,17 @@ pub fn solve_particle(
                     .get(get_safe_i(
                         height,
                         width,
-                        &(i.saturating_add(gravity.signum() as usize), j),
+                        &((i as i32 + gravity.signum() as i32) as usize, j),
                     ))
                     .unwrap_or(current_particle);
-                orientation_y = ((current_particle.speed.y.signum()
-                    * (current_particle.speed.y.abs() + 1_f32))
+                orientation_y = (current_particle.speed.y.signum()
+                    * (current_particle.speed.y.abs() + 1_f32)
                     - ((materials[next_particle.material_id].1.density
                         / materials[current_particle.material_id].1.density)
                         * gravity
                         * framedelta)) as i32;
                 if gravity.abs() > 1_f32 {
-                    orientation_y =
-                        orientation_y.signum() * (orientation_y.abs()) % gravity.abs() as i32;
-                }
-            }
-            let mut ychange = 0_i32;
-            for k in 0_i32..orientation_y.abs() {
-                if slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &((i as i32 + (orientation_y.signum() * k)) as usize, j),
-                    ))
-                    .is_some()
-                    && (materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &((i as i32 + (orientation_y.signum() * k)) as usize, j),
-                        ))
-                        .unwrap_or(current_particle)
-                        .material_id]
-                        .1
-                        .density
-                        < materials[current_particle.material_id].1.density
-                        || discriminant(
-                            &materials[slice_board
-                                .get(get_safe_i(
-                                    height,
-                                    width,
-                                    &((i as i32 + (orientation_y.signum() * k)) as usize, j),
-                                ))
-                                .unwrap_or(current_particle)
-                                .material_id]
-                                .1
-                                .phase,
-                        ) != discriminant(&Phase::solid_default()))
-                {
-                    ychange = k;
-                } else {
-                    break;
-                }
-            }
-
-            // This calculates the position on the X axis
-            let mut orientation_x: i32 = 0_i32;
-            if slice_board
-                .get_elem(get_safe_i(height, width, &(i, j)))
-                .speed
-                .x
-                .abs()
-                > 1_f32
-            {
-                unsafe {
-                    write_x_speed_field(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        0_f32,
-                        check_board,
-                    );
-                }
-            } else {
-                // Rand range: (-1_f32..1_f32)
-                let rnd = rngs[get_safe_i(height, width, &(i, j))]
-                    * seeds[get_safe_i(height, width, &(i, j))];
-                unsafe {
-                    write_x_speed_field(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .speed
-                            .x
-                            + (rnd.signum() * (rnd.abs())),
-                        check_board,
-                    );
-                }
-                orientation_x = (current_particle.speed.x.signum()
-                    * (current_particle.speed.x.abs() + 1_f32))
-                    as i32;
-            }
-
-            let mut xchange = 0_i32;
-            for k in 0_i32..orientation_x.abs() {
-                if slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(
-                            (i as i32 + (orientation_y.signum() * ychange)) as usize,
-                            (j as i32 + (orientation_x.signum() * k)) as usize,
-                        ),
-                    ))
-                    .is_some()
-                    && (materials[slice_board
-                        .get(get_safe_i(
-                            height,
-                            width,
-                            &(
-                                (i as i32 + (orientation_y.signum() * ychange)) as usize,
-                                (j as i32 + (orientation_x.signum() * k)) as usize,
-                            ),
-                        ))
-                        .unwrap_or(current_particle)
-                        .material_id]
-                        .1
-                        .density
-                        < materials[current_particle.material_id].1.density
-                        || discriminant(
-                            &materials[slice_board
-                                .get(get_safe_i(
-                                    height,
-                                    width,
-                                    &(
-                                        ((i as i32).saturating_add(orientation_y.signum() * ychange)) as usize,
-                                        ((j as i32).saturating_add(orientation_x.signum() * k)) as usize,
-                                    ),
-                                ))
-                                .unwrap_or(current_particle)
-                                .material_id]
-                                .1
-                                .phase,
-                        ) != discriminant(&Phase::solid_default()))
-                {
-                    xchange = k;
-                } else {
-                    break;
-                }
-            }
-            unsafe {
-                swap_particle(
-                    slice_board,
-                    get_safe_i(height, width, &(i, j)),
-                    get_safe_i(
-                        height,
-                        width,
-                        &(
-                            (i as i32 + (orientation_y.signum() * ychange)) as usize,
-                            (j as i32 + (orientation_x.signum() * xchange)) as usize,
-                        ),
-                    ),
-                    check_board,
-                )
-            }
-        }
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        // PLASMA PHYSICS
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        Phase::Plasma => {
-            current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
-            let new_particle = phase_change(
-                current_particle,
-                physical_transitions,
-                materials,
-                rngs[get_safe_i(height, width, &(i, j))],
-            );
-            if new_particle.is_some() {
-                let mut changed_particle = new_particle.unwrap();
-                changed_particle.display_color = materials[changed_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .gamma_multiply(
-                        lerp(
-                            tuple_to_rangeinclusive(
-                                materials[changed_particle.material_id]
-                                    .1
-                                    .material_color
-                                    .shinyness,
-                            ),
-                            rngs[get_safe_i(height, width, &(i, j))],
-                        )
-                        .abs(),
-                    );
-                changed_particle.display_color[3] = materials[changed_particle.material_id]
-                    .1
-                    .material_color
-                    .color
-                    .a();
-                unsafe {
-                    write_particle(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        changed_particle,
-                        check_board,
-                    )
-                };
-                return;
-            }
-            // This calculates the position on the Y axis
-            let mut orientation_y: i32 = 0_i32;
-            if slice_board
-                .get_elem(get_safe_i(height, width, &(i, j)))
-                .speed
-                .y
-                .abs()
-                > 1_f32
-            {
-                unsafe {
-                    write_y_speed_field(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        0_f32,
-                        check_board,
-                    );
-                }
-            } else {
-                // Rand range: (-1_f32..1_f32)
-                let rnd = rngs[get_safe_i(height, width, &(i, j))];
-                unsafe {
-                    write_y_speed_field(
-                        slice_board,
-                        get_safe_i(height, width, &(i, j)),
-                        slice_board
-                            .get_elem(get_safe_i(height, width, &(i, j)))
-                            .speed
-                            .y
-                            + (rnd.signum() * (rnd.abs() / 2_f32)),
-                        check_board,
-                    );
-                }
-                // Calculates buoyancy using gravity and material density
-                // We limit the velocity so on phase change there are no "teleporting" particles
-                let next_particle = slice_board
-                    .get(get_safe_i(
-                        height,
-                        width,
-                        &(i.wrapping_add(gravity.signum() as usize), j),
-                    ))
-                    .unwrap_or(current_particle);
-                orientation_y = ((current_particle.speed.y.signum()
-                    * (current_particle.speed.y.abs() + 1_f32))
-                    - ((materials[next_particle.material_id].1.density
-                        / materials[current_particle.material_id].1.density)
-                        * gravity
-                        * framedelta)) as i32;
-                if gravity.abs() > 1_f32 {
-                    orientation_y =
-                        orientation_y.signum() * (orientation_y.abs()) % gravity.abs() as i32;
+                    orientation_y = orientation_y % gravity as i32;
                 }
             }
             let mut ychange = 0_i32;
@@ -1406,8 +1174,244 @@ pub fn solve_particle(
                         height,
                         width,
                         &(
+                            ((i as i32).wrapping_add(orientation_y.signum() * ychange)) as usize,
+                            ((j as i32).wrapping_add(orientation_x.signum() * xchange)) as usize,
+                        ),
+                    ),
+                    check_board,
+                )
+            }
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // PLASMA PHYSICS
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        Phase::Plasma => {
+            current_particle = slice_board.get_elem(get_safe_i(height, width, &(i, j)));
+            let new_particle = phase_change(
+                current_particle,
+                physical_transitions,
+                materials,
+                rngs[get_safe_i(height, width, &(i, j))],
+            );
+            if new_particle.is_some() {
+                let mut changed_particle = new_particle.unwrap();
+                changed_particle.display_color = materials[changed_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .gamma_multiply(
+                        lerp(
+                            tuple_to_rangeinclusive(
+                                materials[changed_particle.material_id]
+                                    .1
+                                    .material_color
+                                    .shinyness,
+                            ),
+                            rngs[get_safe_i(height, width, &(i, j))],
+                        )
+                        .abs(),
+                    );
+                changed_particle.display_color[3] = materials[changed_particle.material_id]
+                    .1
+                    .material_color
+                    .color
+                    .a();
+                unsafe {
+                    write_particle(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        changed_particle,
+                        check_board,
+                    )
+                };
+                return;
+            }
+
+            // This calculates the position on the Y axis
+            let mut orientation_y: i32 = 0_i32;
+            if slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .y
+                .abs()
+                > 1_f32
+            {
+                unsafe {
+                    write_y_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        0_f32,
+                        check_board,
+                    );
+                }
+            } else {
+                // Rand range: (-1_f32..1_f32)
+                let rnd = rngs[get_safe_i(height, width, &(i, j))];
+                unsafe {
+                    write_y_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        (slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .speed
+                            .y
+                            + (rnd.signum() * (rnd.abs() / 2_f32)) * gravity.signum()),
+                        check_board,
+                    );
+                }
+                // Calculates buoyancy using gravity and material density
+                // We limit the velocity so on phase change there are no "teleporting" particles
+                let next_particle = slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &((i as i32 + gravity.signum() as i32) as usize, j),
+                    ))
+                    .unwrap_or(current_particle);
+                orientation_y = (current_particle.speed.y.signum()
+                    * (current_particle.speed.y.abs() + 1_f32)
+                    - ((materials[next_particle.material_id].1.density
+                        / materials[current_particle.material_id].1.density)
+                        * gravity
+                        * framedelta)) as i32;
+                if gravity.abs() > 1_f32 {
+                    orientation_y = orientation_y % gravity as i32;
+                }
+            }
+            let mut ychange = 0_i32;
+            for k in 0_i32..orientation_y.abs() {
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &((i as i32 + (orientation_y.signum() * k)) as usize, j),
+                    ))
+                    .is_some()
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &((i as i32 + (orientation_y.signum() * k)) as usize, j),
+                        ))
+                        .unwrap_or(current_particle)
+                        .material_id]
+                        .1
+                        .density
+                        < materials[current_particle.material_id].1.density
+                        || discriminant(
+                            &materials[slice_board
+                                .get(get_safe_i(
+                                    height,
+                                    width,
+                                    &((i as i32 + (orientation_y.signum() * k)) as usize, j),
+                                ))
+                                .unwrap_or(current_particle)
+                                .material_id]
+                                .1
+                                .phase,
+                        ) != discriminant(&Phase::solid_default()))
+                {
+                    ychange = k;
+                } else {
+                    break;
+                }
+            }
+
+            // This calculates the position on the X axis
+            let mut orientation_x: i32 = 0_i32;
+            if slice_board
+                .get_elem(get_safe_i(height, width, &(i, j)))
+                .speed
+                .x
+                .abs()
+                > 1_f32
+            {
+                unsafe {
+                    write_x_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        0_f32,
+                        check_board,
+                    );
+                }
+            } else {
+                // Rand range: (-1_f32..1_f32)
+                let rnd = rngs[get_safe_i(height, width, &(i, j))]
+                    * seeds[get_safe_i(height, width, &(i, j))];
+                unsafe {
+                    write_x_speed_field(
+                        slice_board,
+                        get_safe_i(height, width, &(i, j)),
+                        slice_board
+                            .get_elem(get_safe_i(height, width, &(i, j)))
+                            .speed
+                            .x
+                            + (rnd.signum() * (rnd.abs())),
+                        check_board,
+                    );
+                }
+                orientation_x = (current_particle.speed.x.signum()
+                    * (current_particle.speed.x.abs() + 1_f32))
+                    as i32;
+            }
+
+            let mut xchange = 0_i32;
+            for k in 0_i32..orientation_x.abs() {
+                if slice_board
+                    .get(get_safe_i(
+                        height,
+                        width,
+                        &(
                             i.wrapping_add((orientation_y.signum() * ychange) as usize),
-                            j.wrapping_add((orientation_x.signum() * xchange) as usize),
+                            (j as i32 + (orientation_x.signum() * k)) as usize,
+                        ),
+                    ))
+                    .is_some()
+                    && (materials[slice_board
+                        .get(get_safe_i(
+                            height,
+                            width,
+                            &(
+                                i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                                (j as i32 + (orientation_x.signum() * k)) as usize,
+                            ),
+                        ))
+                        .unwrap_or(current_particle)
+                        .material_id]
+                        .1
+                        .density
+                        < materials[current_particle.material_id].1.density
+                        || discriminant(
+                            &materials[slice_board
+                                .get(get_safe_i(
+                                    height,
+                                    width,
+                                    &(
+                                        i.wrapping_add((orientation_y.signum() * ychange) as usize),
+                                        (j as i32 + (orientation_x.signum() * k)) as usize,
+                                    ),
+                                ))
+                                .unwrap_or(current_particle)
+                                .material_id]
+                                .1
+                                .phase,
+                        ) != discriminant(&Phase::solid_default()))
+                {
+                    xchange = k;
+                } else {
+                    break;
+                }
+            }
+            unsafe {
+                swap_particle(
+                    slice_board,
+                    get_safe_i(height, width, &(i, j)),
+                    get_safe_i(
+                        height,
+                        width,
+                        &(
+                            ((i as i32).wrapping_add(orientation_y.signum() * ychange)) as usize,
+                            ((j as i32).wrapping_add(orientation_x.signum() * xchange)) as usize,
                         ),
                     ),
                     check_board,
@@ -1456,12 +1460,11 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
-            }
-            else if *sublimation_point < current_particle.temperature
+            } else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
                     .iter()
@@ -1487,7 +1490,7 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
@@ -1522,12 +1525,11 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
-            }
-            else if *sublimation_point < current_particle.temperature
+            } else if *sublimation_point < current_particle.temperature
                 && physical_transitions
                     .sublimation
                     .iter()
@@ -1553,7 +1555,7 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
@@ -1590,13 +1592,13 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
             }
             // Boiling/evaporation (liquid -> gas)
-             else if *boiling_point < current_particle.temperature
+            else if *boiling_point < current_particle.temperature
                 && physical_transitions
                     .boiling
                     .iter()
@@ -1621,7 +1623,7 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
@@ -1656,12 +1658,11 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
-            }
-            else if *sublimation_point > current_particle.temperature
+            } else if *sublimation_point > current_particle.temperature
                 && physical_transitions
                     .sublimation
                     .iter()
@@ -1687,7 +1688,7 @@ pub fn phase_change(
                             .1
                             .initial_temperature
                             .max(current_particle.temperature);
-                        new_particle.material_id = product.0;         
+                        new_particle.material_id = product.0;
                         return Some(new_particle);
                     }
                 }
