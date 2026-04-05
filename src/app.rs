@@ -17,7 +17,7 @@ use crate::{
 use egui::util::hash;
 use egui::{
     Color32, ColorImage, Id, Image, LayerId, Rect, RichText, Sense, Stroke, TextureOptions, Theme,
-    Vec2, load, pos2, vec2,
+    Vec2, include_image, load, pos2, vec2,
 };
 use egui_dialogs::DialogDetails;
 use strum::IntoEnumIterator;
@@ -75,17 +75,10 @@ impl eframe::App for EFrameApp<'_> {
                 ui.add_space(5_f32);
                 ui.horizontal(|ui| {
                     if ui
-                        .button(
-                            RichText::new(
-                                get_text(
-                                    &self.program_options.locale,
-                                    self.program_options.selected_locale,
-                                )
-                                .options_title
-                                .as_str(),
-                            )
-                            .size(20_f32),
-                        )
+                        .add(egui::widgets::Button::new(
+                            Image::new(include_image!("assets/button_icons/options_icon.svg"))
+                                .fit_to_exact_size(vec2(32_f32, 34_f32)),
+                        ))
                         .clicked()
                     {
                         DialogDetails::new(OptionsMenuDialog::new(
@@ -100,6 +93,11 @@ impl eframe::App for EFrameApp<'_> {
                         .show(&mut self.dialogs);
                         self.dialogopen = true;
                     }
+                    ui.add(
+                        egui::widgets::Separator::default()
+                            .vertical()
+                            .spacing(10_f32),
+                    );
                     ui.horizontal_centered(|ui| {
                         ui.label(
                             RichText::new(
@@ -157,74 +155,84 @@ impl eframe::App for EFrameApp<'_> {
                             resize_brush(&mut self.game_board.brush_size, vec2(1_f32, 1_f32));
                         }
                         ui.separator();
-                        if ui
-                            .button(
-                                get_text(
-                                    &self.program_options.locale,
-                                    self.program_options.selected_locale,
-                                )
-                                .rectangle_brush_tooltip
-                                .as_str(),
-                            )
-                            .clicked()
-                        {
-                            self.game_board.brush_shape = BrushShape::Rectangle;
-                        }
-                        if ui
-                            .button(
-                                get_text(
-                                    &self.program_options.locale,
-                                    self.program_options.selected_locale,
-                                )
-                                .rhombus_brush_tooltip
-                                .as_str(),
-                            )
-                            .clicked()
-                        {
-                            self.game_board.brush_shape = BrushShape::Rhombus;
-                        }
-                        if ui
-                            .button(
-                                get_text(
-                                    &self.program_options.locale,
-                                    self.program_options.selected_locale,
-                                )
-                                .ellipse_brush_tooltip
-                                .as_str(),
-                            )
-                            .clicked()
-                        {
-                            self.game_board.brush_shape = BrushShape::Ellipse;
+                        for shapes in BrushShape::iter() {
+                            if ui
+                                .add(egui::widgets::Button::new(
+                                    Image::new(shapes.get_icon())
+                                        .fit_to_exact_size(vec2(26_f32, 26_f32)),
+                                ))
+                                .clicked()
+                            {
+                                self.game_board.brush_shape = shapes;
+                            }
                         }
                     });
-
+                    ui.add(
+                        egui::widgets::Separator::default()
+                            .vertical()
+                            .spacing(10_f32),
+                    );
                     if ui
-                        .add(
-                            egui::widgets::Button::new(
-                                RichText::new(
-                                    get_text(
-                                        &self.program_options.locale,
-                                        self.program_options.selected_locale,
-                                    )
-                                    .reset_button
-                                    .as_str(),
-                                )
-                                .heading()
-                                .strong(),
-                            )
-                            .stroke(Stroke::new(1_f32, Color32::WHITE))
-                            .fill(Color32::DARK_RED),
-                        )
+                        .add(egui::widgets::Button::new(
+                            Image::new(include_image!("assets/button_icons/reset_icon.svg"))
+                                .fit_to_exact_size(vec2(34_f32, 34_f32)),
+                        ))
                         .clicked()
                     {
                         self.game_board.create_board();
                     }
+                    if self.program_options.simulation_stopped {
+                        if ui
+                            .add(egui::widgets::Button::new(
+                                Image::new(include_image!("assets/button_icons/play_icon.svg"))
+                                    .fit_to_exact_size(vec2(34_f32, 34_f32)),
+                            ))
+                            .clicked()
+                        {
+                            self.program_options.simulation_stopped = false;
+                        }
+                    } else {
+                        if ui
+                            .add(egui::widgets::Button::new(
+                                Image::new(include_image!("assets/button_icons/pause_icon.svg"))
+                                    .fit_to_exact_size(vec2(34_f32, 34_f32)),
+                            ))
+                            .clicked()
+                        {
+                            self.program_options.simulation_stopped = true;
+                        }
+                    }
+                    if ui
+                        .add(egui::widgets::Button::new(
+                            Image::new(include_image!("assets/button_icons/step_icon.svg"))
+                                .fit_to_exact_size(vec2(34_f32, 34_f32)),
+                        ))
+                        .clicked()
+                    {
+                        self.program_options.simulation_stopped = false;
+                        update_board(
+                            &mut self.game_board,
+                            &self.materials,
+                            &self.physical_transitions,
+                            &self.chemical_reactions,
+                            self.program_options.simulation_stopped,
+                            &mut self.framecount,
+                            ctx.input(|time| time.unstable_dt),
+                        );
+                        self.program_options.simulation_stopped = true;
+                    }
+
                     #[cfg(not(any(
                         target_os = "android",
                         target_arch = "wasm32",
                         target_os = "ios"
                     )))]
                     {
+                        ui.add(
+                            egui::widgets::Separator::default()
+                                .vertical()
+                                .spacing(10_f32),
+                        );
                         if ui
                             .add(
                                 egui::widgets::Button::new(

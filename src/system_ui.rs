@@ -92,35 +92,49 @@ impl fmt::Display for MachineTypes {
 impl MaterialType {
     pub fn get_icon(&self) -> ImageSource<'_> {
         match self {
-            MaterialType::Corrosive => include_image!("assets/corrosives_icon.svg"),
-            MaterialType::Alloy { metals: _ } => include_image!("assets/alloys_icon.svg"),
+            MaterialType::Corrosive => include_image!("assets/category_icons/corrosives_icon.svg"),
+            MaterialType::Alloy { metals: _ } => {
+                include_image!("assets/category_icons/alloys_icon.svg")
+            }
             MaterialType::CAutomata {
                 survival: _,
                 birth: _,
                 stages: _,
-            } => include_image!("assets/cautomatas_icon.svg"),
-            MaterialType::Ceramic => include_image!("assets/ceramics_icon.svg"),
-            MaterialType::Salt => include_image!("assets/category_background.svg"),
+            } => include_image!("assets/category_icons/cautomatas_icon.svg"),
+            MaterialType::Ceramic => include_image!("assets/category_icons/ceramics_icon.svg"),
+            MaterialType::Salt => include_image!("assets/category_icons/salts_icon.svg"),
             MaterialType::Explosive {
                 ignition_temperature: _,
                 explosion_power: _,
                 flame_temperature: _,
             } => {
-                include_image!("assets/explosives_icon.svg")
+                include_image!("assets/category_icons/explosives_icon.svg")
             }
             MaterialType::Fuel {
                 burn_time: _,
                 ignition_temperature: _,
                 flame_temperature: _,
-            } => include_image!("assets/fuels_icon.svg"),
-            MaterialType::Machine { machine: _ } => include_image!("assets/machines_icon.svg"),
-            MaterialType::Metal => include_image!("assets/metals_icon.svg"),
+            } => include_image!("assets/category_icons/fuels_icon.svg"),
+            MaterialType::Machine { machine: _ } => {
+                include_image!("assets/category_icons/machines_icon.svg")
+            }
+            MaterialType::Metal => include_image!("assets/category_icons/metals_icon.svg"),
             MaterialType::Oxidizer {
                 oxidizing_agent: _,
                 combustion_speedup: _,
-            } => include_image!("assets/oxidizers_icon.svg"),
-            MaterialType::Decor => include_image!("assets/decors_icon.svg"),
-            MaterialType::Solution => include_image!("assets/solutions_icon.svg"),
+            } => include_image!("assets/category_icons/oxidizers_icon.svg"),
+            MaterialType::Decor => include_image!("assets/category_icons/decors_icon.svg"),
+            MaterialType::Solution => include_image!("assets/category_icons/solutions_icon.svg"),
+        }
+    }
+}
+
+impl BrushShape {
+    pub fn get_icon(&self) -> ImageSource<'_> {
+        match self {
+            BrushShape::Rectangle => include_image!("assets/button_icons/rectangle_brush_icon.svg"),
+            BrushShape::Rhombus => include_image!("assets/button_icons/rhombus_brush_icon.svg"),
+            BrushShape::Ellipse => include_image!("assets/button_icons/ellipse_brush_icon.svg"),
         }
     }
 }
@@ -346,16 +360,17 @@ pub fn debug_text_rendering(
     let mean_fps = fps_values.iter().sum::<f32>() / fps_values.len() as f32;
     debug_text_job.append(
         format!(
-            "\nFPS: {}\n\nName: {}\nParticle:\n{:?}",
+            "\n\nFPS: {}\n\nName: {}\nParticle:\n{:?}",
             mean_fps.round(),
             materials[viewed_particle.material_id].0,
             viewed_particle
         )
         .as_str(),
-        0_f32,
+        5_f32,
         TextFormat {
             font_id: FontId::new(18_f32, egui::FontFamily::Monospace),
             color: Color32::WHITE,
+            background: Color32::from_black_alpha(100_u8),
             ..Default::default()
         },
     );

@@ -840,7 +840,7 @@
             "material_type": {
                 "Fuel": {
                     "ignition_temperature": 1712,
-                    "burn_time": 84,
+                    "burn_time": 400,
                     "flame_temperature": 2773.15
                 }
             },
