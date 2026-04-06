@@ -4,13 +4,14 @@
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
+    use egui::{IconData, Image, include_image};
     use reaction_resonance_eframe::EFrameApp;
 
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
     let native_options = eframe::NativeOptions {
         vsync: false,
-        viewport: egui::ViewportBuilder::default()
+        viewport: egui::ViewportBuilder::default().with_icon(eframe::icon_data::from_png_bytes(include_bytes!("assets/icon_falling_sand.png")).unwrap())
             .with_inner_size([400.0, 300.0])
             .with_min_inner_size([300.0, 220.0]),
         ..Default::default()
