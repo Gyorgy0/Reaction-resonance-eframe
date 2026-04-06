@@ -63,7 +63,7 @@ codegen-units = 1
 opt-level = 's'
 debug = false
 strip = true
-#lto = "fat"
+lto = "fat"
 panic = "abort"
 codegen-units = 1
 
@@ -85,6 +85,6 @@ supportsRtl="true"
 
 [package.metadata.android.application.activity]
 config_changes="orientation|screenSize"
-#orientation = "landscape"
+orientation = "landscape"
 exported = true
 immersive = true
