@@ -18,7 +18,7 @@ pub struct Particle {
 }
 
 impl Particle {
-    pub fn new(material: &Material, speed: Vec2, temperature: f32) -> Self {
+    pub(crate) fn new(material: &Material, speed: Vec2, temperature: f32) -> Self {
         Self {
             material_id: material.id,
             speed,
@@ -30,7 +30,7 @@ impl Particle {
         }
     }
     // Applies the material's color and shinyness to the particle's display color
-    pub fn set_color(&mut self, materials: &[(String, Material)], noise_val: f32) -> Self {
+    pub(crate) fn set_color(&mut self, materials: &[(String, Material)], noise_val: f32) -> Self {
         self.display_color = materials[self.material_id].1.material_color.color;
         self.display_color = self.display_color.gamma_multiply(
             lerp(

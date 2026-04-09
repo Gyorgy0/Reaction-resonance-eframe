@@ -63,7 +63,7 @@ codegen-units = 1
 opt-level = 's'
 debug = false
 strip = true
-lto = "fat"
+#lto = "fat"
 panic = "abort"
 codegen-units = 1
 

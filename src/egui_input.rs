@@ -254,7 +254,7 @@ pub fn get_tool_action(
                 new_particle.temperature += selected_tool.get_temp_delta();
                 new_particle.temperature = new_particle.temperature.clamp(0_f32, 99_999_f32);
             } else {
-                new_particle.temperature = 273.15_f32;
+                new_particle.temperature = 293.15_f32;
             }
             unsafe { write_particle_seq(&game_board.contents, cellpos, new_particle) };
         }

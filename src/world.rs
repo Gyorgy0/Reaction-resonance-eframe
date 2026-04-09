@@ -242,7 +242,7 @@ pub struct AtomicComparedSlice<T> {
     data: UnsafeCell<Vec<T>>, // Use Vec<T> for owned data (easier lifetime management)
 }
 
-// unsafe impls: Manually mark ThreadSafeSlice as Send and Sync.
+// unsafe impls: Manually mark AtomicCompareSlice as Send and Sync.
 unsafe impl<T: Send> Send for AtomicComparedSlice<T> {}
 unsafe impl<T: Send> Sync for AtomicComparedSlice<T> {}
 
@@ -256,7 +256,7 @@ impl<T: Clone> AtomicComparedSlice<T> {
 }
 
 impl<T> AtomicComparedSlice<T> {
-    /// Create a new ThreadSafeSlice from a Vec<T>.
+    /// Create a new AtomicCompareslice from a Vec<T>.
     pub fn new(data: Vec<T>) -> Self {
         Self {
             data: UnsafeCell::new(data),

@@ -28,7 +28,7 @@ pub fn tuple_to_rangeinclusive(range: (f32, f32)) -> RangeInclusive<f32> {
 }
 
 pub static AIR: Material = Material {
-    id: 0,
+    id: 0_usize,
     density: 0.0012041_f32,
     phase: Phase::Air,
     material_type: MaterialType::Oxidizer {
