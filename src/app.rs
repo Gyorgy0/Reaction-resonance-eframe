@@ -65,11 +65,6 @@ impl eframe::App for EFrameApp<'_> {
                 self.game_board.create_board();
             }
         }
-        /*
-        egui::Panel::left("navbar_placeholder")
-        .exact_size(15_f32)
-        .show(ctx, |ui| {});
-        */
         egui::Panel::top("top panel").show(ctx, |ui| {
             egui::ScrollArea::horizontal().show(ui, |ui| {
                 ui.add_space(5_f32);
@@ -550,6 +545,14 @@ impl eframe::App for EFrameApp<'_> {
                                     .vertical()
                                     .grow(f32::INFINITY),
                             );
+                            #[cfg(any(
+                            target_os = "android",
+                            target_arch = "wasm32",
+                            target_os = "ios"
+                        ))]
+                        {
+                            ui.add(egui::widgets::Separator::default().vertical().spacing(ctx.screen_rect().width().max(ctx.screen_rect().height()) * 0.02_f32) );
+                        }
                         });
                     });
             });

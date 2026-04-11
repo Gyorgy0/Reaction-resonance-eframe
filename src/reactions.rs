@@ -65,9 +65,7 @@ pub(crate) enum MaterialType {
     // This material is indestructible and completely inert it's used for 
     // decoration purposes, mainly pixelart, map making, etc...
     Decor,
-    // Material that contains other materials e.g. salts, if heated it leaves the
-    // dissolved materials behind
-    // Also dissolves certain materials
+    // Default material which can not be added to any other category
     Solution,
 }
 
