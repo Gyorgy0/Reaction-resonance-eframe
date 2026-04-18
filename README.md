@@ -6,7 +6,7 @@ This is a cross-platform falling-sand game written in Rust, using the egui GUI f
 
 Have you ever wanted to light a chunk of sulfur on fire and watch it burn, releasing some nasty compound in the comfort behind your computer? Or maybe toss a chunk of sodium in water and watch it explode while creating sodium hydroxide? This program let's you recreate these kind of reactions and even more!
 
-[![Watch the video](https://github.com/Gyorgy0/Reaction-resonance-eframe/blob/master/README%20media%20files/gameplay_thumbnail.png)](https://github.com/Gyorgy0/Reaction-resonance-eframe/blob/master/README%20media%20files/gameplay_video.mp4)
+![Reaction resonance gameplay](https://github.com/Gyorgy0/Reaction-resonance-eframe/blob/master/README%20media%20files/gameplay_video.mp4?raw=true)
 
 ## WebAssembly version
 [https://github.com/Gyorgy0/Reaction-resonance-release](https://github.com/Gyorgy0/Reaction-resonance-release)
