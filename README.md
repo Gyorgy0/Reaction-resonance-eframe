@@ -1,28 +1,17 @@
-<center>
-#Reaction resonance
-####  A cross-platform falling-sand game
- </center>
 
-<style>body {text-align: justify}</style>
-<body>
-<br>
-<p>
+# Reaction resonance
+#### A cross-platform falling-sand game
+
 This is a cross-platform falling-sand game written in Rust, using the egui GUI framework. Inspired by Noita, The Powder Toy and Powder Game it simulates the chemical and physical reactions with elements or other natural forces e.g. gravity, buoyancy, viscosity, heat, etc...
-</p >
 
-<p>
 Have you ever wanted to light a chunk of sulfur on fire and watch it burn, releasing some nasty compound in the comfort behind your computer? Or maybe toss a chunk of sodium in water and watch it explode while creating sodium hydroxide? This program let's you recreate these kind of reactions and even more!
-</p>
-<br>
-<center>
-<video width="320" height="240" controls>
-  <source src="README media files/2026-04-18 03-33-07.mp4" type="video/mp4">
-</video>
-</center>
-<br>
-</body>
 
-##Controls on the PC version
+[![Watch the video](https://github.com/Gyorgy0/Reaction-resonance-eframe/blob/master/README%20media%20files/gameplay_thumbnail.png)](https://github.com/Gyorgy0/Reaction-resonance-eframe/blob/master/README%20media%20files/gameplay_video.mp4)
+
+## WebAssembly version
+[https://github.com/Gyorgy0/Reaction-resonance-release](https://github.com/Gyorgy0/Reaction-resonance-release)
+
+## Controls on the PC version
 |Key|Action|
 |:--:|:--|
 |Space|Pauses the simulation|
@@ -30,9 +19,7 @@ Have you ever wanted to light a chunk of sulfur on fire and watch it burn, relea
 |R|Resets the board|
 |F3|Turns on the debug view (displays the FPS, and particle properties)|
 
-
-<br> 
-##Libraries used
+## Libraries used
 - [cargo-apk](https://github.com/rust-mobile/cargo-apk) 
 - [egui](https://github.com/emilk/egui) 
 - [wasm-bindgen](https://github.com/wasm-bindgen/wasm-bindgen) 
