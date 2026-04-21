@@ -131,7 +131,7 @@ impl Default for EFrameApp<'_> {
         let chemical_reactions: ChemicalReactions = import_reactions();
 
         // This is for the PC platform
-        #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+        #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos")))]
         {
             use std::fs;
 
@@ -233,7 +233,7 @@ impl Default for EFrameApp<'_> {
 
 pub fn import_locales(locales: &mut Vec<Locale>) -> Vec<Locale> {
     locales.clear();
-    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos")))]
     {
         // Materials - PC version (loads them from the src/materials folder)
         let paths = fs::read_dir("src/locale").unwrap();
@@ -250,7 +250,7 @@ pub fn import_locales(locales: &mut Vec<Locale>) -> Vec<Locale> {
             }
         }
     }
-    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos"))]
     {
         // Materials - Portable version (includes the files in src/materials in the executable file)
 
@@ -268,7 +268,7 @@ pub fn import_locales(locales: &mut Vec<Locale>) -> Vec<Locale> {
 pub fn import_materials(materials: &mut Vec<(String, Material)>) -> Vec<(String, Material)> {
     materials.clear();
     let mut materials: Vec<(String, Material)> = vec![(String::new(), AIR.clone())];
-    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos")))]
     {
         // Materials - PC version (loads them from the src/materials folder)
         let paths = fs::read_dir("src/materials/").unwrap();
@@ -280,7 +280,7 @@ pub fn import_materials(materials: &mut Vec<(String, Material)>) -> Vec<(String,
             materials.append(&mut serialized_materials);
         }
     }
-    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos"))]
     {
         // Materials - Portable version (includes the files in src/materials in the executable file)
 
@@ -322,7 +322,7 @@ pub fn import_transitions() -> PhysicalReactions {
     let serialized_transition_boiling: Vec<PhaseTransition>;
     let serialized_transition_sublimation: Vec<PhaseTransition>;
 
-    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos")))]
     {
         // Physical transitions - PC version (loads phase change files from src/physics)
         let transition_path_melting = fs::read("src/physics/phase_transitions_melting.json");
@@ -336,7 +336,7 @@ pub fn import_transitions() -> PhysicalReactions {
         serialized_transition_sublimation =
             serde_json::from_slice(transition_path_sublimation.unwrap().as_slice()).unwrap();
     }
-    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos"))]
     {
         // Physical transitions - Portable version
 
@@ -361,7 +361,7 @@ pub fn import_reactions() -> ChemicalReactions {
     let serialized_reactions_burning: Vec<BurningReaction>;
     let serialized_reactions_mingling: Vec<MinglingReaction>;
 
-    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios")))]
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos")))]
     {
         // Chemical reactions - PC version (loads reaction files from src/chemistry)
         let reaction_path_burning = fs::read("src/chemistry/chemical_reactions_burning.json");
@@ -372,7 +372,7 @@ pub fn import_reactions() -> ChemicalReactions {
         serialized_reactions_mingling =
             serde_json::from_slice(reaction_path_mingling.unwrap().as_slice()).unwrap();
     }
-    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios"))]
+    #[cfg(any(target_os = "android", target_arch = "wasm32", target_os = "ios", target_os = "macos"))]
     {
         // Chemical reactions
 
