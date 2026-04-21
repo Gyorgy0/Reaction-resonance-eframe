@@ -53,7 +53,7 @@ wasm-bindgen-rayon = "1.3.0"
 
 # FOR APKS - dev profile builds an apk
 [profile.dev]
-debug = true
+debug = false
 strip = true
 opt-level = "s"
 lto = true
@@ -71,20 +71,23 @@ codegen-units = 1
 winresource = "0.1.31"
 
 [package.metadata.android]
+apk_name = "reaction_resonance"
+resources = "src/assets/res"
 build_targets = [ "armv7-linux-androideabi", "aarch64-linux-android", "i686-linux-android", "x86_64-linux-android" ]
 label = "Reaction resonance"
+strip = "strip"
 
 [package.metadata.android.sdk]
 min_sdk_version = 23
 target_sdk_version = 35
 
 [package.metadata.android.application]
-theme = "@android:style/Theme.NoTitleBar.Fullscreen"
+theme = "@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+icon = "@mipmap/reaction_resonance"
 label = "Reaction resonance"
 supportsRtl="true"
 
 [package.metadata.android.application.activity]
 config_changes="orientation|screenSize"
 orientation = "landscape"
-exported = true
 immersive = true
