@@ -1,6 +1,6 @@
 [package]
 name = "reaction-resonance-eframe"
-version = "0.1.1"
+version = "1.0.0"
 edition = "2024"
 rust-version = "1.92"
 
@@ -70,6 +70,8 @@ codegen-units = 1
 [build-dependencies]
 winresource = "0.1.31"
 
+# Android APK options
+
 [package.metadata.android]
 apk_name = "reaction_resonance"
 resources = "src/assets/res"
@@ -78,7 +80,7 @@ label = "Reaction resonance"
 strip = "strip"
 
 [package.metadata.android.sdk]
-min_sdk_version = 23
+min_sdk_version = 21
 target_sdk_version = 35
 
 [package.metadata.android.application]
@@ -91,3 +93,22 @@ supportsRtl="true"
 config_changes="orientation|screenSize"
 orientation = "landscape"
 immersive = true
+
+# Cargo bundle settings
+[package.metadata.bundle]
+name = "Reaction resonance"
+identifier = "com.gyorgy0.reaction_resonance"
+resources = ["src/chemistry", "src/locale", "src/materials", "src/physics", "src/material_ids.json"]
+icon = ["src/assets/icon_falling_sand_2048x2048.png", "src/assets/icon_falling_sand_2048x2048@2x.png", "src/assets/icon_falling_sand.ico"]
+version = "1.0.0"
+category = "Game"
+short_description = "A cross-platform falling-sand game."
+long_description = """
+This is a cross-platform falling-sand game written in Rust,
+using the egui GUI framework. Inspired by Noita, 
+The Powder Toy and Powder Game it simulates the chemical
+and physical reactions with elements or other natural 
+forces e.g. gravity, buoyancy, viscosity, heat, etc...
+"""
+osx_frameworks = ["SDL2"]
+osx_url_schemes = ["com.gyorgy0.reaction_resonance"]
