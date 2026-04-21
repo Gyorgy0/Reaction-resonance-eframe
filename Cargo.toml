@@ -110,5 +110,3 @@ The Powder Toy and Powder Game it simulates the chemical
 and physical reactions with elements or other natural 
 forces e.g. gravity, buoyancy, viscosity, heat, etc...
 """
-osx_frameworks = ["SDL2"]
-osx_url_schemes = ["com.gyorgy0.reaction_resonance"]
